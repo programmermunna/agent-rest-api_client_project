@@ -1,0 +1,557 @@
+<?php
+
+namespace App\Http\Controllers\Api\v1;
+
+use App\Http\Controllers\ApiController;
+use App\Models\BetModel;
+use App\Models\DepositModel;
+use App\Models\ImageContent;
+use App\Models\MembersModel;
+use App\Models\MemoModel;
+use App\Models\RekMemberModel;
+use App\Models\FreeBetModel;
+use App\Models\BonusHistoryModel;
+use App\Models\TurnoverModel;
+use App\Models\UserLogModel;
+use App\Rules\IsValidPassword;
+use Carbon\Carbon;
+use DB;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Hash;
+
+use Illuminate\Support\Facades\Validator;
+use JWTAuth;            # pagination pake ini
+use Livewire\WithPagination;              # pagination pake ini
+use Tymon\JWTAuth\Exceptions\JWTException; # pagination pake ini
+
+class JWTAuthController extends ApiController
+{
+    use WithPagination;
+    public $perPage = 20;
+    public $history = [];
+    public function authenticate(Request $request)
+    {
+        $input = $request->all();
+
+        $fieldType = filter_var($request->user_account, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        if ($fieldType == 'email') {
+            $validator = Validator::make($request->all(), [
+                'user_account' => 'required|email',
+                'password' => 'required',
+            ]);
+        } else {
+            $validator = Validator::make($request->all(), [
+                'user_account' => 'required',
+                'password' => 'required',
+            ]);
+        }
+
+        if ($validator->fails()) {
+            return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+        }
+
+        $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
+        \Config::set('auth.defaults.guard', 'api');
+
+        try {
+            $token = auth('api')->attempt($credentials);
+            if (! $token) {
+                return $this->errorResponse('Username atau password yang anda masukan salah', 401);
+            }
+        } catch (JWTException $e) {
+            return $this->errorResponse('Could not create token', 500);
+        }
+
+        auth('api')->user()->update([
+            'last_login_at' => now(),
+            // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
+            'last_login_ip' => $request->ip,
+        ]);
+
+        $user = auth('api')->user();
+        UserLogModel::logMemberActivity(
+            'Member Login',
+            $user,
+            $user,
+            [
+                'target' => $user->username,
+                'activity' => 'Logged In',
+                // 'ip' => $request->ip ?? request()->getClientIp(),
+                'ip' => $request->ip,
+            ],
+            'Successfully'
+        );
+
+        return $this->createNewToken($token);
+    }
+
+    public function getAuthenticatedMember()
+    {
+        try {
+            if (! $member = auth('api')->user()) {
+                return $this->errorResponse('Member not found', 404);
+            }
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return $this->errorResponse('Token expired', 404);
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return $this->errorResponse('Token invalid', 400);
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return $this->errorResponse('Token absent', 500);
+        }
+
+        return $this->successResponse($member);
+    }
+
+    public function lastBet()
+    {
+        try {
+            $lastBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+            ->select([
+                'bets.bet',
+                'bets.created_at',
+                'bets.created_by',
+
+            ])->where('bets.type', 'Lose')
+            ->where('bets.created_by', auth('api')->user()->id)
+            ->latest()
+            ->limit(1)->first();
+
+            // $getMember = MembersModel::where('id', auth('api')->user()->id)->select('is_cash')->first();
+            // $dt = Carbon::now();
+
+            // if ($dt->dayOfWeek == Carbon::MONDAY && $getMember->is_cash === 0) {
+            //     $date = Carbon::now()->subDays(7);
+            //     $date->format('Y-m-d');
+            //     $enableCashback = ImageContent::where('type', 'cashback')->where('enabled', 1)->select('enabled')->first();
+            //     $cbMember = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+            //     ->select(
+            //         'members.id AS member_id',
+            //         DB::raw("(sum(bets.win)) - (sum(bets.bet)) as Balance"),
+            //     )
+            //         ->where('bets.created_at', '>=', $date)
+            //         ->where('bets.created_by', auth('api')->user()->id)
+            //         ->groupBy('bets.created_by')->first();
+            //     if (is_null($cbMember) && is_null($enableCashback)) {
+            //         return $this->successResponse(null, 'Belum Pernah Melakukan Betting', 200);
+            //     } elseif ($cbMember->Balance < 0) {
+            //         if ($cbMember->Balance > (-50000)) {
+            //             'no cashback';
+            //         } elseif ($cbMember->Balance <= -50000 && $cbMember->Balance >= -10000000) {
+            //             #tambah cashback to credit member
+            //             $member = MembersModel::find($cbMember->member_id);
+            //             $data1 = $cbMember->Balance - $cbMember->Balance - $cbMember->Balance;
+            //             $cashback5 = $data1 * 5 / 100;
+            //             $member->update([
+            //                 'credit' => $cashback5,
+            //                 'is_cash' => 1,
+            //             ]);
+
+            //             #create memo after get cashback
+            //             $createMemo = MemoModel::create([
+            //                 'member_id' => $cbMember->member_id,
+            //                 'sender_id' => 1,
+            //                 'subject' => 'CASHBACK 5%',
+            //                 'is_reply' => 1,
+            //                 'is_bonus' => 1,
+            //                 'content' => 'Selamat Anda Mendapatkan CASHBACK 5% = '. $cashback5,
+            //                 'created_at' => Carbon::now(),
+            //             ]);
+            //         } elseif ($cbMember->Balance <= -10001000 && $cbMember->Balance >= -100000000) {
+            //             #tambah cashback to credit member
+            //             $member = MembersModel::find($cbMember->member_id);
+            //             $data1 = $cbMember->Balance - $cbMember->Balance - $cbMember->Balance;
+            //             $cashback7 = $data1 * 7 / 100;
+            //             $member->update([
+            //                 'credit' => $cashback7,
+            //                 'is_cash' => 1,
+            //             ]);
+
+            //             #create memo after get cashback
+            //             $createMemo = MemoModel::create([
+            //                 'member_id' => $cbMember->member_id,
+            //                 'sender_id' => 1,
+            //                 'subject' => 'CASHBACK 7%',
+            //                 'is_reply' => 1,
+            //                 'is_bonus' => 1,
+            //                 'content' => 'Selamat Anda Mendapatkan CASHBACK 7% = '.$cashback7,
+            //                 'created_at' => Carbon::now(),
+            //             ]);
+            //         } elseif ($cbMember->Balance <= -100001000 && $cbMember->Balance >= -100000000000) {
+            //             #tambah cashback to credit member
+            //             $member = MembersModel::find($cbMember->member_id);
+            //             $data1 = $cbMember->Balance - $cbMember->Balance - $cbMember->Balance;
+            //             $cashback10 = $data1 * 10 / 100;
+            //             $member->update([
+            //                 'credit' => $cashback10,
+            //                 'is_cash' => 1,
+            //             ]);
+
+            //             #create memo after get cashback
+            //             $createMemo = MemoModel::create([
+            //                 'member_id' => $cbMember->member_id,
+            //                 'sender_id' => 1,
+            //                 'subject' => 'CASHBACK 10%',
+            //                 'is_reply' => 1,
+            //                 'is_bonus' => 1,
+            //                 'content' => 'Selamat Anda Mendapatkan CASHBACK 10% = '.$cashback10,
+            //                 'created_at' => Carbon::now(),
+            //             ]);
+            //         }
+            //     }
+            // }
+
+            // #update is_cash to be 0
+            // if ($dt->dayOfWeek == Carbon::SUNDAY) {
+            //     $member = MembersModel::where('id', auth('api')->user()->id);
+            //     $member->update([
+            //         'is_cash' => 0,
+            //     ]);
+            // }
+
+
+            if ($lastBet) {
+                return $this->successResponse($lastBet);
+            }
+
+            return $this->successResponse(null, 'No data', 204);
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+    public function lastWin()
+    {
+        try {
+            $cekKondisi = DepositModel::where('approval_status', 1)
+                ->where('created_by', auth('api')->user()->id)
+                ->orderBy('approval_status_at', 'asc')->count();
+            // dd($cekKondisi);
+            if (is_null($cekKondisi)) {
+                'no data';
+            } elseif ($cekKondisi >= 0 && $cekKondisi <= 2) {
+                $member = MembersModel::where('id', auth('api')->user()->id)->first();
+                $member->update(['is_next_deposit' => 1]);
+            } elseif ($cekKondisi > 2 && $cekKondisi <= 3) {
+                $member = MembersModel::where('id', auth('api')->user()->id)->first();
+                $member->update(['is_next_deposit' => 0]);
+            }
+            $lastWin = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+            ->select([
+                'bets.win',
+                'bets.created_at',
+                'bets.created_by',
+
+            ])->where('bets.type', 'Win')
+            ->where('bets.created_by', auth('api')->user()->id)
+            ->latest()
+            ->limit(1)->get();
+
+            if ($lastWin) {
+                return $this->successResponse($lastWin);
+            }
+
+            return $this->successResponse(null, 'No data', 204);
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+    public function history()
+    {
+        try {
+            $date = Carbon::now()->subDays(7);
+            $history = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+            ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+            ->select([
+                'bets.id as betsId',
+                'bets.constant_provider_id',
+                'bets.bet_id',
+                'bets.game_id',
+                'bets.credit',
+                'bets.deskripsi',
+                'bets.created_by',
+                'bets.bet',
+                'bets.win',
+                'bets.created_at',
+                'bets.player_wl',
+                'members.id as memberId',
+                'members.username',
+                'constant_provider.constant_provider_name',
+            ])
+            ->orderBy('bets.created_at', 'desc')
+            ->where('bets.created_by', auth('api')->user()->id)
+            ->where('bets.created_at', '>=', $date);
+            $this->history = $history->get()->toArray();
+            $arrHistory = $this->paginate($this->history, $this->perPage);
+            if ($arrHistory != null) {
+                return $this->successResponse($arrHistory);
+            } else {
+                return $this->successResponse('No history', 204);
+            }
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        $token = $request->header('Authorization');
+
+        try {
+            $user = auth('api')->user();
+            JWTAuth::parseToken()->invalidate($token);
+
+            UserLogModel::logMemberActivity(
+                'Member Log Out',
+                $user,
+                $user,
+                [
+                    'target' => $user->username,
+                    'activity' => 'Logged Out',
+                ],
+                'Successfully'
+            );
+            auth('api')->user()->update([
+                'last_login_ip' => $request->ip,
+            ]);
+
+            return $this->successResponse(null, 'Member logout successful.', 200);
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return $this->errorResponse('Token expired', 404);
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return $this->errorResponse('Token invalid', 400);
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return $this->errorResponse('Token absent', 500);
+        }
+    }
+
+    /**
+     * Refresh a token.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function refresh()
+    {
+        return $this->createNewToken(auth('api')->refresh());
+    }
+
+    /**
+     * Get the token array structure.
+     *
+     * @param  string $token
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function createNewToken($token)
+    {
+        return $this->successResponse([
+            'token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth('api')->factory()->getTTL(),
+            // 'member' => auth('api')->user(),
+        ]);
+    }
+
+    //register member
+    public function register(Request $request)
+    {
+
+        $date = Carbon::now();
+
+        if ($request->has('ref')) {
+            session(['referrer' => $request->query('ref')]);
+        }
+
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                [
+            'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
+            'email' => 'required|email|max:100|unique:members',
+            'password' => 'required|min:6|regex:/^\S*$/u',
+            'bank_name' => 'required',
+            'account_number' => 'required',
+            'account_name' => 'required',
+            'provider' => 'required',
+            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
+            ],
+                [
+                'password.required' => 'Password tidak boleh kosong.',
+                'password.min' => 'Password harus minimal 6 karakter.',
+                'password.regex' => 'Password tidak boleh menggunakan spasi.',
+            ]
+            );
+
+            if ($validator->fails()) {
+                return $this->errorResponse($validator->errors()->first(), 400);
+            }
+            // $referrer = MembersModel::whereUsername(session()->pull('referrer'))->first();
+
+            $referal = MembersModel::where('username', $request->referral)->first();
+            if (is_null($referal)) {
+                $user = MembersModel::create([
+                    'username' => $request->username,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                    // 'referrer_id' => $referal->id,
+                    // 'constant_rekening_id' => $request->bank_name,
+                    // 'nomor_rekening' => $request->account_number,
+                    // 'nama_rekening' => $request->account_name,
+                    'phone' => $request->phone,
+                    'info_dari' => $request->provider,
+                    // 'referrer_id' => $referrer ? $referrer->id : '',
+                    // 'referrer_id' => $request->referral,
+                    'bonus_referal' => 0,
+                ]);
+                $rekMember = RekMemberModel::create([
+                    'username_member' => $request->username,
+                    'constant_rekening_id' => $request->bank_name,
+                    'nomor_rekening' => $request->account_number,
+                    'nama_rekening' => $request->account_name,
+                    'is_depo' => 1,
+                    'is_default' => 1,
+                    'is_wd' => 1,
+                    'created_by' => $user->id,
+                ]);
+                MembersModel::where('username', $request->username)
+                    ->update([
+                        'rek_member_id' => $rekMember->id,
+                    ]);
+                TurnoverModel::create([
+                    'created_by' => $user->id,
+                ]);
+            } else {
+                $user = MembersModel::create([
+                    'username' => $request->username,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                    'referrer_id' => $referal->id,
+                    // 'constant_rekening_id' => $request->bank_name,
+                    // 'nomor_rekening' => $request->account_number,
+                    // 'nama_rekening' => $request->account_name,
+                    'phone' => $request->phone,
+                    'info_dari' => $request->provider,
+                    // 'referrer_id' => $referrer ? $referrer->id : '',
+                    // 'referrer_id' => $request->referral,
+                    'bonus_referal' => 0,
+                ]);
+                $rekMember = RekMemberModel::create([
+                    'username_member' => $request->username,
+                    'constant_rekening_id' => $request->bank_name,
+                    'nomor_rekening' => $request->account_number,
+                    'nama_rekening' => $request->account_name,
+                    'is_depo' => 1,
+                    'is_default' => 1,
+                    'is_wd' => 1,
+                    'created_by' => $user->id,
+                ]);
+                MembersModel::where('username', $request->username)
+                    ->update([
+                        'rek_member_id' => $rekMember->id,
+                    ]);
+                TurnoverModel::create([
+                    'created_by' => $user->id,
+                ]);
+            }
+            $freeBet = FreeBetModel::get();
+            foreach ($freeBet as $value) {
+                BonusHistoryModel::create([
+                    'free_bet_id' => $value->id,
+                    'constant_bonus_id' => 4,
+                    'type' => 'uang',
+                    'is_use' => 0,
+                    'created_by' => $user->id,
+                    'created_at' => Carbon::now(),
+                ]);
+            }
+
+            $user->update([
+                // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
+                'last_login_ip' => $request->ip,
+            ]);
+
+            UserLogModel::logMemberActivity(
+                'Member Registration',
+                $user,
+                $user,
+                [
+                    'target' => $user->username,
+                    'activity' => 'Registered',
+                    // 'ip' => $request->ip ?? request()->getClientIp(),
+                    'ip' => $request->ip,
+                ],
+                'Successfully'
+            );
+
+            return $this->successResponse(null, 'Member successfully registered.', 201);
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+
+    public function changePassword(Request $request)
+    {
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                [
+                'old_password' => 'required',
+                'new_password' => 'required|min:6|regex:/^\S*$/u',
+                // 'new_password' => [
+                //     'required',
+                //     'string',
+                //     new IsValidPassword(),
+                // ],
+                'confirm_password' => ['same:new_password'],
+            ],
+                [
+                'old_password.required' => 'Password lama tidak boleh kosong.',
+                'new_password.required' => 'Password baru tidak boleh kosong.',
+                'new_password.min' => 'Minimal password harus  6 karakter.',
+                'new_password.regex' => 'Password baru tidak boleh menggunakan spasi.',
+                'confirm_password.same' => 'Konfirmasi password dan password baru harus sama.',
+            ]
+            );
+
+            if ($validator->fails()) {
+                return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+            }
+
+            if (Hash::check($request->old_password, auth('api')->user()->password)) {
+                MembersModel::find(auth('api')->user()->id)->update(['password' => bcrypt($request->new_password)]);
+
+                $user = auth('api')->user();
+                UserLogModel::logMemberActivity(
+                    'Password Change',
+                    $user,
+                    $user,
+                    [
+                        'target' => $user->username,
+                        'activity' => 'Password Change',
+                    ],
+                    'Berhasil Ganti Password.'
+                );
+                auth('api')->user()->update([
+                    'last_login_ip' => $request->ip,
+                ]);
+
+                return $this->successResponse(null, 'Berhasil Ganti Password.', 201);
+            } else {
+                return $this->errorResponse('Passwrod lama yang anda masukan salah', 400);
+            }
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+
+    // pagination
+    public function paginate($items, $perPage, $page = null, $options = [])
+    {
+        $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+        $items = $items instanceof Collection ? $items : Collection::make($items);
+
+        return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
+    }
+}

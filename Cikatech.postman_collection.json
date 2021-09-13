@@ -1,0 +1,194 @@
+{
+	"info": {
+		"_postman_id": "449e67e7-5457-4346-b874-e1636e44deb3",
+		"name": "Cikatech",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Member",
+			"item": [
+				{
+					"name": "Get Member",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{cikatech_base_api}}/v1/member",
+							"host": [
+								"{{cikatech_base_api}}"
+							],
+							"path": [
+								"v1",
+								"member"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{cikatech_base_api}}/v1/member/logout",
+							"host": [
+								"{{cikatech_base_api}}"
+							],
+							"path": [
+								"v1",
+								"member",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Deposit",
+			"item": [
+				{
+					"name": "Create Deposit",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "rekening_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "jumlah",
+									"value": "25000",
+									"type": "text"
+								},
+								{
+									"key": "note",
+									"value": "12131",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{cikatech_base_api}}/v1/member/deposit/create",
+							"host": [
+								"{{cikatech_base_api}}"
+							],
+							"path": [
+								"v1",
+								"member",
+								"deposit",
+								"create"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Withdraw",
+			"item": [
+				{
+					"name": "Request Withdraw",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "jumlah",
+									"value": "50000",
+									"type": "text"
+								},
+								{
+									"key": "note",
+									"value": "312321321",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{cikatech_base_api}}/v1/member/withdraw/create",
+							"host": [
+								"{{cikatech_base_api}}"
+							],
+							"path": [
+								"v1",
+								"member",
+								"withdraw",
+								"create"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "user_account",
+							"value": "kartikasari",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "kartikasari",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{cikatech_base_api}}/v1/member/login",
+					"host": [
+						"{{cikatech_base_api}}"
+					],
+					"path": [
+						"v1",
+						"member",
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

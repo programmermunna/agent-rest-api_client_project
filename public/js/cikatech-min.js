@@ -1,0 +1,1 @@
+function formatRibuan(n){return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",")}function bknFormatRibuan(n){return n.replace(/[,]/g,"")}function onlyNumber(n){return n.replace(/\D[.]/g,"")}function formatUang(n){$(document).on("keyup",n,(function(){var n=bknFormatRibuan($(this).val());n=onlyNumber(n),n=parseFloat(n),isNaN(n)&&(n=""),$(this).val(formatRibuan(n))}))}
