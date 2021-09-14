@@ -12,6 +12,7 @@ use App\Models\RekMemberModel;
 use App\Models\TurnoverModel;
 use App\Models\UserLogModel;
 use App\Models\WithdrawModel;
+use App\Models\BonusHistoryModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -39,7 +40,7 @@ class MemberController extends ApiController
 
     #Rest api history by type
     public $deposit = [];
-    public $memo = [];
+    public $bonus = [];
     public $withdraw = [];
     public $pragmaticBet = [];
     public $habaneroBet = [];
@@ -89,14 +90,25 @@ class MemberController extends ApiController
             $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
                 ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id');
 
-            $memo = MemoModel::join('members', 'members.id', '=', 'memo.member_id')
-                ->where('memo.member_id', auth('api')->user()->id)->where('is_bonus', 1)
+            // $memo = MemoModel::join('members', 'members.id', '=', 'memo.member_id')
+            //     ->where('memo.member_id', auth('api')->user()->id)->where('is_bonus', 1)
+            //     ->select([
+            //         'members.username',
+            //         'memo.is_bonus',
+            //         'memo.subject',
+            //         'memo.content',
+            //         'memo.created_at',
+            //     ]);
+            $bonus = BonusHistoryModel::join('free_bets', 'free_bets.id', '=', 'bonus_history.free_bet_id')
+                ->join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
+                ->where('bonus_history.jumlah', '>', 0)
                 ->select([
-                    'members.username',
-                    'memo.is_bonus',
-                    'memo.subject',
-                    'memo.content',
-                    'memo.created_at',
+                    'bonus_history.id',
+                    'bonus_history.type',
+                    'bonus_history.created_at',
+                    'bonus_history.jumlah',
+                    'bonus_history.hadiah',
+                    'constant_bonus.nama_bonus',
                 ]);
 
 
@@ -389,12 +401,12 @@ class MemberController extends ApiController
                     'pgRef' => $pgRef,
                 ];
             } elseif ($request->type == 'dll') {
-                $this->memo = $memo->get()->toArray();
-                $memoArr = $this->paginate($this->memo, $this->perPage);
+                $this->bonus = $bonus->get()->toArray();
+                $bonusArr = $this->paginate($this->bonus, $this->perPage);
 
                 return $data = [
                     'status' => 'success',
-                    'dll' => $memoArr,
+                    'dll' => $bonusArr,
                 ];
             } else {
                 $this->deposit = $deposit->get()->toArray();
@@ -437,8 +449,8 @@ class MemberController extends ApiController
                 $this->allProviderBet = $allProBet->toArray();
                 $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
 
-                $this->memo = $memo->get()->toArray();
-                $memoArr = $this->paginate($this->memo, $this->perPage);
+                $this->bonus = $bonus->get()->toArray();
+                $bonusArr = $this->paginate($this->bonus, $this->perPage);
 
 
                 return $allData = [
@@ -446,7 +458,7 @@ class MemberController extends ApiController
                     'withdraw' => $wd,
                     'allProviderBet' => $allProviderBet,
                     'allProviderReferal' => $allProviderReferal,
-                    'Bonus/Promo' => $memoArr,
+                    'Bonus/Promo' => $bonusArr,
                 ];
             }
         } catch (\Throwable $th) {

@@ -571,6 +571,59 @@ class ProviderController extends Controller
         }
         return Response::json($res);
     }
+    // result playtech
+    public function resultPlaytech(Request $request)
+    {
+        $this->token = $request->token;
+        $data = JWT::decode($this->token,'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+        $user_id = $data->userId;
+        $member =  MembersModel::where('id', $user_id)->first();
+        $creditMember = $member->credit;
+        $amount = $member->credit + $data->amount;
+
+
+        $exist = BetModel::where('constant_provider_id', 6)->where('round_id', $data->roundId)->where('bet', '>', 0)->first();
+        $result = BetModel::where('bet_id', $data->code)->first();
+        if($exist){
+            $res=[
+                "success" =>  false,
+                "amount" => $creditMember
+            ];
+        }elseif($result){
+            $res=[
+                "id"    => $result->id,
+                "success" =>  true,
+                "amount" => $creditMember
+            ];
+        }else{
+            $member->update([
+                'credit' => $amount
+            ]);
+            $win = [
+                'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
+                'bet_id' => $data->code,
+                'round_id' => $data->roundId,
+                'deskripsi' => 'Game Win' . ' : ' . $data->amount,
+                'game_id' => $data->gameId,
+                'type' => 'Win',
+                'win' =>  $data->amount,
+                'bet' => 0,
+                'game_info' => $data->type,
+                'player_wl' => 0,
+                'created_at' => Carbon::now(),
+                'credit' => $amount,
+                'created_by' => $member->id
+            ];
+            $this->insertWin($win);
+            $result = BetModel::where('bet_id', $data->code)->first();
+            $res = [
+                "id"    => $result->id,
+                "success" => true,
+                "amount"  => $amount
+            ];
+        }
+        return Response::json($res);
+    }
 
     public function gameHistoryPragmatic(Request $request)
     {

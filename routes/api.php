@@ -133,6 +133,7 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result_pragmatic',  [ProviderController::class, 'resultPragmatic']);
     Route::post('balance', [ProviderController::class, 'balance']);
     Route::post('result', [ProviderController::class, 'result']);
+    Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
     Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
 });
