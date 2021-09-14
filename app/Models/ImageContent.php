@@ -43,7 +43,7 @@ class ImageContent extends Model
             return 'http://via.placeholder.com/'.$width.'x'.$height.'/?text=Agent+WL';
         }
 
-        return Storage::url($this->path);
+        return $this->path;
     }
 
     public function getSlidePhotoAttribute()
@@ -62,6 +62,6 @@ class ImageContent extends Model
             return null;
         }
 
-        return Storage::url($this->path);
+        return $this->path;
     }
 }
