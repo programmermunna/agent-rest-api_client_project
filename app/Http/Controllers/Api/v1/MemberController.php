@@ -99,11 +99,14 @@ class MemberController extends ApiController
             //         'memo.content',
             //         'memo.created_at',
             //     ]);
-            $bonus = BonusHistoryModel::join('free_bets', 'free_bets.id', '=', 'bonus_history.free_bet_id')
-                ->join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
-                ->where('bonus_history.jumlah', '>', 0)
+            $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
+                ->where([
+                    ['bonus_history.created_by', '=', auth('api')->user()->id],
+                    ['bonus_history.jumlah', '>', 0]
+                ])
                 ->select([
                     'bonus_history.id',
+                    'bonus_history.created_by',
                     'bonus_history.type',
                     'bonus_history.created_at',
                     'bonus_history.jumlah',
