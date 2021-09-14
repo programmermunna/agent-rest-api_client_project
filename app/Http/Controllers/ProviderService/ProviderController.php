@@ -584,7 +584,7 @@ class ProviderController extends Controller
 
         $exist = BetModel::where('constant_provider_id', 6)->where('round_id', $data->roundId)->where('bet', '>', 0)->first();
         $result = BetModel::where('bet_id', $data->code)->first();
-        if($exist){
+        if(is_null($exist)){
             $res=[
                 "success" =>  false,
                 "amount" => $creditMember
