@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\ApiController;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
+use App\Models\WithdrawModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
@@ -16,6 +17,15 @@ class DepositController extends ApiController
     public function create(Request $request)
     {
         try {
+            $cek_status_wd  = WithdrawModel::where('members_id', auth('api')->user()->id)
+                ->where('approval_status',0)
+                ->first();
+            $cek_status_depo = DepositModel::where('members_id', auth('api')->user()->id)
+                ->where('approval_status',0)
+                ->first();
+            if ($cek_status_depo || $cek_status_wd){
+                return $this->errorResponse("Maaf Anda masih ada transaksi yang belum selsai.", 400);
+            }
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id],['is_depo', 1]])->first();
 
             if ($request->jumlah < DepositModel::MIN_DEPOSIT_AMOUNT) {

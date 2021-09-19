@@ -453,7 +453,7 @@ class MemberController extends ApiController
                 $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
 
                 $this->bonus = $bonus->get()->toArray();
-                $bonusArr = $this->paginate($this->bonus, $this->perPage);
+                $bonusArr = $this->paginate($this->bonus, $this->pageAll);
 
 
                 return $allData = [
