@@ -612,6 +612,7 @@ class ProviderController extends Controller
                 'player_wl' => 0,
                 'created_at' => Carbon::now(),
                 'credit' => $amount,
+                'url_detail' => $data->url,
                 'created_by' => $member->id
             ];
             $this->insertWin($win);
