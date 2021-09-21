@@ -34,6 +34,7 @@ class BetModel extends Model
         'credit',
         'bet',
         'win',
+        'url_detail',
         'player_wl',
         'created_by',
         'created_at',
