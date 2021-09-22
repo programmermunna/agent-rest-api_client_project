@@ -584,6 +584,7 @@ class ProviderController extends Controller
 
         $exist = BetModel::where('constant_provider_id', 6)->where('round_id', $data->roundId)->where('bet', '>', 0)->first();
         $result = BetModel::where('bet_id', $data->code)->first();
+        $getRoundId = BetModel::where('round_id', $data->roundId)->first();
         if(is_null($exist)){
             $res=[
                 "success" =>  false,
@@ -616,6 +617,9 @@ class ProviderController extends Controller
                 'created_by' => $member->id
             ];
             $this->insertWin($win);
+            $getRoundId->update([
+                'url_detail' => $data->url,
+            ]);
             $result = BetModel::where('bet_id', $data->code)->first();
             $res = [
                 "id"    => $result->id,
