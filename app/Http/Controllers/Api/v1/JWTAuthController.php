@@ -366,7 +366,7 @@ class JWTAuthController extends ApiController
             session(['referrer' => $request->query('ref')]);
         }
 
-        // try {
+        try {
             $validator = Validator::make(
                 $request->all(),
                 [
@@ -539,9 +539,9 @@ class JWTAuthController extends ApiController
             );
 
             return $this->successResponse(null, 'Member successfully registered.', 201);
-        // } catch (\Throwable $th) {
-        //     return $this->errorResponse('Internal Server Error', 500);
-        // }
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
     }
 
     public function changePassword(Request $request)
