@@ -1089,8 +1089,6 @@ class MemberController extends ApiController
                 'dana' => $danaAgent,
                 'linkAja' => $linkAjaAgent,
             ];
-            dd($list);
-
             return $this->successResponse($rekMember, 'List Rekening ', 200);
         } catch (\Exception $e) {
             return $this->errorResponse('Internal Server Error', 500);
