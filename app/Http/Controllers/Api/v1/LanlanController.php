@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Domains\Announcement\Services\AnnouncementService;
 use App\Http\Controllers\ApiController;
 use App\Models\AppSetting;
+use Carbon\Carbon;
 use App\Domains\Announcement\Models\Announcement;
 
 class LanlanController extends ApiController
@@ -134,5 +135,43 @@ class LanlanController extends ApiController
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
+    }
+
+
+    public function maintenanceWebsite()
+    {
+        // try {
+            $maintenance = AppSetting::where('name', 'status')->where('type', 'maintenance')->first();
+            //if value on database 503 == maintenance, 
+            if (request()->value == 200) {
+                $response['code'] = 503;
+
+                $response['message'] = AppSetting::where('name', 'main_maintenance')->where('type', 'maintenance')->value('value');
+
+                $response['description'] = AppSetting::where('name', 'main_maintenance_description')->where('type', 'maintenance')->value('value');
+                $maintenance->update(
+                    [
+                        'value' => 503,
+                        'type' => 'maintenance',
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]
+                );
+                //if value on database 200 == website is no maintenance
+                return $this->errorResponse('Maintenance Mode', 200, $response);
+            }elseif(request()->value == 503){
+                $maintenance->update(
+                    [
+                        'value' => 200,
+                        'type' => 'maintenance',
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]
+                );
+                return $this->successResponse('No Maintenance', 200);
+            }
+        // } catch (\Throwable $th) {
+        //     return $this->errorResponse('Internal Server Error', 500);
+        // }
     }
 }
