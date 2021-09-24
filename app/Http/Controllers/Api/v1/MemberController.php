@@ -8,8 +8,10 @@ use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\MembersModel;
 use App\Models\MemoModel;
+use App\Models\RekeningTujuanDepo;
 use App\Models\RekMemberModel;
 use App\Models\TurnoverModel;
+use App\Models\RekeningModel;
 use App\Models\UserLogModel;
 use App\Models\WithdrawModel;
 use App\Models\BonusHistoryModel;
@@ -965,6 +967,129 @@ class MemberController extends ApiController
             ])
             ->where('username_member', auth('api')->user()->username)
             ->get();
+
+            return $this->successResponse($rekMember, 'List Rekening ', 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+    // New list rekening member
+    public function listRekAgent()
+    {
+        try {
+            $rekTujuan = RekeningTujuanDepo::where('created_by', auth('api')->user()->id)->first();
+            $bcaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo1)->get()->toArray();
+            $mandiriAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo2)->get()->toArray();
+            $bniAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo3)->get()->toArray();
+            $briAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo4)->get()->toArray();
+            $cimbAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo5)->get()->toArray();
+            $danamondAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo6)->get()->toArray();
+            $telkomselAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo7)->get()->toArray();
+            $axiataAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo8)->get()->toArray();
+            $ovoAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo9)->get()->toArray();
+            $gopayAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo10)->get()->toArray();
+            $danaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo11)->get()->toArray();
+            $linkAjaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                    'constant_rekening.name',
+                ])
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo12)->get()->toArray();
+
+            $list = [
+                'bca' => $bcaAgent,
+                'mandiri' => $mandiriAgent,
+                'bni' => $bniAgent,
+                'bri' => $briAgent,
+                'cimb' => $cimbAgent,
+                'danamon' => $danamondAgent,
+                'telkomsel' => $telkomselAgent,
+                'axiata' => $axiataAgent,
+                'ovo' => $ovoAgent,
+                'gopay' => $gopayAgent,
+                'dana' => $danaAgent,
+                'linkAja' => $linkAjaAgent,
+            ];
+            dd($list);
 
             return $this->successResponse($rekMember, 'List Rekening ', 200);
         } catch (\Exception $e) {
