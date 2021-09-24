@@ -112,6 +112,11 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/', 'LanlanController@maintenance');
         });
 
+        // maintenance-website staging
+        Route::group(['prefix' => 'maintenance-website'], function () {
+            Route::post('/', 'LanlanController@maintenanceWebsite');
+        });
+
         Route::group(['prefix' => 'setting'], function () {
             Route::get('/limit', 'SettingController@limit');
             Route::get('/referral_game/{type}', 'SettingController@referral_game');
