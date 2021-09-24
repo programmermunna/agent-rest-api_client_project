@@ -8,11 +8,13 @@ use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\MembersModel;
 use App\Models\MemoModel;
+use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
 use App\Models\FreeBetModel;
 use App\Models\BonusHistoryModel;
 use App\Models\TurnoverModel;
 use App\Models\UserLogModel;
+use App\Models\RekeningTujuanDepo;
 use App\Rules\IsValidPassword;
 use Carbon\Carbon;
 use DB;
@@ -364,7 +366,7 @@ class JWTAuthController extends ApiController
             session(['referrer' => $request->query('ref')]);
         }
 
-        try {
+        // try {
             $validator = Validator::make(
                 $request->all(),
                 [
@@ -390,7 +392,31 @@ class JWTAuthController extends ApiController
             // $referrer = MembersModel::whereUsername(session()->pull('referrer'))->first();
 
             $referal = MembersModel::where('username', $request->referral)->first();
+            //bank agent
+            $bankAgent = [];
+            for ($i=1; $i <= 14 ; $i++) { 
+                array_push($bankAgent, RekeningModel::where('constant_rekening_id', $i)->inRandomOrder()->take(1)->first());
+            }
+            // dd($bankAgent[0]);
             if (is_null($referal)) {
+                $dataRekening = RekeningTujuanDepo::create([
+                    'rekening_id_tujuan_depo1' => $bankAgent[0] == [] ? Null : $bankAgent[0]['id'],
+                    'rekening_id_tujuan_depo2' => $bankAgent[1] == [] ? Null : $bankAgent[1]['id'],
+                    'rekening_id_tujuan_depo3' => $bankAgent[2] == [] ? Null : $bankAgent[2]['id'],
+                    'rekening_id_tujuan_depo4' => $bankAgent[3] == [] ? Null : $bankAgent[3]['id'],
+                    'rekening_id_tujuan_depo5' => $bankAgent[4] == [] ? Null : $bankAgent[4]['id'],
+                    'rekening_id_tujuan_depo6' => $bankAgent[5] == [] ? Null : $bankAgent[5]['id'],
+                    'rekening_id_tujuan_depo7' => $bankAgent[6] == [] ? Null : $bankAgent[6]['id'],
+                    'rekening_id_tujuan_depo8' => $bankAgent[7] == [] ? Null : $bankAgent[7]['id'],
+                    'rekening_id_tujuan_depo9' => $bankAgent[8] == [] ? Null : $bankAgent[8]['id'],
+                    'rekening_id_tujuan_depo10' => $bankAgent[9] == [] ? Null : $bankAgent[9]['id'],
+                    'rekening_id_tujuan_depo11' => $bankAgent[10] == [] ? Null : $bankAgent[10]['id'],
+                    'rekening_id_tujuan_depo12' => $bankAgent[11] == [] ? Null : $bankAgent[11]['id'],
+                    'rekening_id_tujuan_depo13' => $bankAgent[12] == [] ? Null : $bankAgent[12]['id'],
+                    'rekening_id_tujuan_depo14' => $bankAgent[13] == [] ? Null : $bankAgent[13]['id'],
+                ]);
+
+
                 $user = MembersModel::create([
                     'username' => $request->username,
                     'email' => $request->email,
@@ -404,6 +430,11 @@ class JWTAuthController extends ApiController
                     // 'referrer_id' => $referrer ? $referrer->id : '',
                     // 'referrer_id' => $request->referral,
                     'bonus_referal' => 0,
+                    'rekening_tujuan_depo_id' => $dataRekening->id,
+                ]);
+                $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
+                $updateRek->update([
+                    'created_by' => $user->id
                 ]);
                 $rekMember = RekMemberModel::create([
                     'username_member' => $request->username,
@@ -423,6 +454,23 @@ class JWTAuthController extends ApiController
                     'created_by' => $user->id,
                 ]);
             } else {
+                $dataRekening = RekeningTujuanDepo::create([
+                    'rekening_id_tujuan_depo1' => $bankAgent[0] == [] ? Null : $bankAgent[0]['id'],
+                    'rekening_id_tujuan_depo2' => $bankAgent[1] == [] ? Null : $bankAgent[1]['id'],
+                    'rekening_id_tujuan_depo3' => $bankAgent[2] == [] ? Null : $bankAgent[2]['id'],
+                    'rekening_id_tujuan_depo4' => $bankAgent[3] == [] ? Null : $bankAgent[3]['id'],
+                    'rekening_id_tujuan_depo5' => $bankAgent[4] == [] ? Null : $bankAgent[4]['id'],
+                    'rekening_id_tujuan_depo6' => $bankAgent[5] == [] ? Null : $bankAgent[5]['id'],
+                    'rekening_id_tujuan_depo7' => $bankAgent[6] == [] ? Null : $bankAgent[6]['id'],
+                    'rekening_id_tujuan_depo8' => $bankAgent[7] == [] ? Null : $bankAgent[7]['id'],
+                    'rekening_id_tujuan_depo9' => $bankAgent[8] == [] ? Null : $bankAgent[8]['id'],
+                    'rekening_id_tujuan_depo10' => $bankAgent[9] == [] ? Null : $bankAgent[9]['id'],
+                    'rekening_id_tujuan_depo11' => $bankAgent[10] == [] ? Null : $bankAgent[10]['id'],
+                    'rekening_id_tujuan_depo12' => $bankAgent[11] == [] ? Null : $bankAgent[11]['id'],
+                    'rekening_id_tujuan_depo13' => $bankAgent[12] == [] ? Null : $bankAgent[12]['id'],
+                    'rekening_id_tujuan_depo14' => $bankAgent[13] == [] ? Null : $bankAgent[13]['id'],
+                ]);
+
                 $user = MembersModel::create([
                     'username' => $request->username,
                     'email' => $request->email,
@@ -436,6 +484,11 @@ class JWTAuthController extends ApiController
                     // 'referrer_id' => $referrer ? $referrer->id : '',
                     // 'referrer_id' => $request->referral,
                     'bonus_referal' => 0,
+                    'rekening_tujuan_depo_id' => $dataRekening->id,
+                ]);
+                $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
+                $updateRek->update([
+                    'created_by' => $user->id
                 ]);
                 $rekMember = RekMemberModel::create([
                     'username_member' => $request->username,
@@ -486,9 +539,9 @@ class JWTAuthController extends ApiController
             );
 
             return $this->successResponse(null, 'Member successfully registered.', 201);
-        } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
-        }
+        // } catch (\Throwable $th) {
+        //     return $this->errorResponse('Internal Server Error', 500);
+        // }
     }
 
     public function changePassword(Request $request)

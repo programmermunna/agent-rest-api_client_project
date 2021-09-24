@@ -58,6 +58,9 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::post('/create_rekening_member', 'MemberController@createRekeningMember');
         //list rekening member
         Route::get('/list_rekening_member', 'MemberController@listRekMember');
+
+        //New list rekening agent
+        Route::get('/list_rek_agent', 'MemberController@listRekAgent');
         //rekening member is_depo
         Route::get('/rekening_member_wd', 'MemberController@rekMemberWd');
         // update rekening member

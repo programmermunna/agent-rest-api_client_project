@@ -78,6 +78,7 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
         'is_new_member',
         'is_next_deposit',
         'constant_rekening_id',
+        'rekening_tujuan_depo_id',
         'nama_rekening',
         'email',
         'rekening_id_tujuan_depo',
