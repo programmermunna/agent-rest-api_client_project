@@ -1074,7 +1074,7 @@ class MemberController extends ApiController
                     'constant_rekening.name',
                 ])
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo12)->first();
-            $bankName = ['bca', 'mandiri', 'bni', 'cimb', 'bri', 'cimb', 'danamond', 'telkomsel', 'axiata', 'ovo', 'gopay', 'dana', 'linkAja'];
+            $bankName = ['bca', 'mandiri', 'bni', 'bri', 'cimb', 'danamond', 'telkomsel', 'axiata', 'ovo', 'gopay', 'dana', 'linkAja'];
             $listRek = [];
 
             for ($i=0; $i < count($bankName); $i++) { 
