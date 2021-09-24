@@ -985,7 +985,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo1)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo1)->first();
             $mandiriAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -993,7 +993,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo2)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo2)->first();
             $bniAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1001,7 +1001,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo3)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo3)->first();
             $briAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1009,7 +1009,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo4)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo4)->first();
             $cimbAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1017,7 +1017,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo5)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo5)->first();
             $danamondAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1025,7 +1025,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo6)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo6)->first();
             $telkomselAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1033,7 +1033,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo7)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo7)->first();
             $axiataAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1041,7 +1041,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo8)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo8)->first();
             $ovoAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1049,7 +1049,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo9)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo9)->first();
             $gopayAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1057,7 +1057,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo10)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo10)->first();
             $danaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1065,7 +1065,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo11)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo11)->first();
             $linkAjaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
                     'rekening.id',
@@ -1073,23 +1073,14 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
-                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo12)->get()->toArray();
+                ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo12)->first();
+            $bankName = ['bca', 'mandiri', 'bni', 'cimb', 'bri', 'cimb', 'danamond', 'telkomsel', 'axiata', 'ovo', 'gopay', 'dana', 'linkAja'];
+            $listRek = [];
 
-            $list = [
-                'bca' => $bcaAgent,
-                'mandiri' => $mandiriAgent,
-                'bni' => $bniAgent,
-                'bri' => $briAgent,
-                'cimb' => $cimbAgent,
-                'danamon' => $danamondAgent,
-                'telkomsel' => $telkomselAgent,
-                'axiata' => $axiataAgent,
-                'ovo' => $ovoAgent,
-                'gopay' => $gopayAgent,
-                'dana' => $danaAgent,
-                'linkAja' => $linkAjaAgent,
-            ];
-            return $this->successResponse($rekMember, 'List Rekening ', 200);
+            for ($i=0; $i < count($bankName); $i++) { 
+                array_push($listRek, ${$bankName[$i]."Agent"});
+            }
+            return $this->successResponse($listRek, 'List Rekening Agent', 200);
         } catch (\Exception $e) {
             return $this->errorResponse('Internal Server Error', 500);
         }
