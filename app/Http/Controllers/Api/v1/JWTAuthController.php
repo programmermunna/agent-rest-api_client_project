@@ -395,7 +395,7 @@ class JWTAuthController extends ApiController
             //bank agent
             $bankAgent = [];
             for ($i=1; $i <= 14 ; $i++) { 
-                array_push($bankAgent, RekeningModel::where('constant_rekening_id', $i)->inRandomOrder()->take(1)->first());
+                array_push($bankAgent, RekeningModel::where('constant_rekening_id', $i)->where('is_depo', 1)->inRandomOrder()->take(1)->first());
             }
             // dd($bankAgent[0]);
             if (is_null($referal)) {
