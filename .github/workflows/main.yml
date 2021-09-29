@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: master 
-      - name: deploy agent cika loka to production server 
+      - name: Deploy Rest Api Agent 
         uses: appleboy/ssh-action@master 
         with:
           host: ${{ secrets.IP_AGENT_REST_STAGING }}

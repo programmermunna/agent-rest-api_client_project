@@ -16,14 +16,15 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: master 
-      - name: deploy agent cika loka to production server 
+      - name: Deploy Agent Rest API 
         uses: appleboy/ssh-action@master 
         with:
-          host: ${{ secrets.IP_AGENT }}
+          host: ${{ secrets.IP_AGENT_REST_STAGING }}
           username: ${{ secrets.AGENT_HOSTNAME }}
           key: ${{ secrets.KEY}}
           port: ${{ secrets.SSH_PORT }}
-          script: sudo ./hanan.sh
+          script: |
+            whoami
         
   slackNotification:
     needs: deploy
