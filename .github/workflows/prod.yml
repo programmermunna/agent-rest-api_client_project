@@ -16,11 +16,11 @@ jobs:
         uses: appleboy/ssh-action@master 
         with:
           host: ${{ secrets.IP_PROD }}
-          username: ${{ secrets.HOSTNAME }}
+          username: 'root' 
           password: ${{ secrets.PASS }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /var/www/html
+            cd agen-rest-api 
             git fetch
             git pull origin master
         
