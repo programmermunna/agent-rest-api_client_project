@@ -2,6 +2,7 @@ name: Deploy To Staging
 
 on:
   pull_request:
+    types: [closed , assigned, opened]
     branches:
       - staging
 
@@ -19,7 +20,11 @@ jobs:
           username: ${{ secrets.HOSTNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: ./rest.sh 
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./rest.sh
         
   slackNotification:
     needs: deploy
@@ -33,7 +38,7 @@ jobs:
         SLACK_USERNAME: "Cikatech 🚀🚀"
         SLACK_ICON_EMOJI: ':rocket:'
         SLACK_LINK_NAMES: true
-        SLACK_MESSAGE: 'Success Deploy Productions :rocket: Agent deployed @backdev-team @frontdev-team '
+        SLACK_MESSAGE: 'Success Deploy Staging :rocket: Agent REST API deployed @backdev-team @frontdev-team '
         SLACK_TITLE:   ${{ github.event.head_commit.message }}
         SLACK_WEBHOOK: ${{ secrets.CIKATECH_SLACK_HOOK}}
         SLACK_FOOTER: "Efforts don't betray the results"
