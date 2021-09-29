@@ -23,8 +23,6 @@ jobs:
             cd /var/www/html
             git fetch
             git pull origin master
-            php artisan migrate
-            composer dump
         
   slackNotification:
     needs: deploy
