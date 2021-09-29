@@ -19,11 +19,12 @@ jobs:
       - name: deploy agent cika loka to production server 
         uses: appleboy/ssh-action@master 
         with:
-          host: ${{ secrets.IP_AGENT }}
+          host: ${{ secrets.IP_AGENT_REST_STAGING }}
           username: ${{ secrets.AGENT_HOSTNAME }}
           key: ${{ secrets.KEY}}
           port: ${{ secrets.SSH_PORT }}
-          script: sudo ./hanan.sh
+          script: |
+            whoami
         
   slackNotification:
     needs: deploy
