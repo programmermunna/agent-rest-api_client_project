@@ -15,7 +15,7 @@ jobs:
       - name: Deploy Agent Rest API  PROD
         uses: appleboy/ssh-action@master 
         with:
-          host: ${{ secrets.IP_AGENT_REST_STAGING }}
+          host: ${{ secrets.IP_PROD }}
           username: ${{ secrets.HOSTNAME }}
           password: ${{ secrets.PASS }}
           port: ${{ secrets.SSH_PORT }}
