@@ -1,10 +1,6 @@
+name: Deploy To Staging 
 
-name: Deploy To Productions 
 on:
-  push:
-    branches:
-      - staging
-
   pull_request:
     branches:
       - staging
@@ -16,15 +12,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: master 
-      - name: deploy agent cika loka to production server 
+      - name: Deploy Rest Api Agent To Staging 
         uses: appleboy/ssh-action@master 
         with:
           host: ${{ secrets.IP_AGENT_REST_STAGING }}
-          username: ${{ secrets.AGENT_HOSTNAME }}
-          key: ${{ secrets.KEY}}
+          username: ${{ secrets.HOSTNAME }}
+          key: ${{ secrets.KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: |
-            whoami
+          script: ./rest.sh 
         
   slackNotification:
     needs: deploy
