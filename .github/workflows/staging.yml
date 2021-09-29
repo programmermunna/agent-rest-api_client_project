@@ -19,7 +19,10 @@ jobs:
           username: ${{ secrets.HOSTNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: ./rest.sh 
+          script: |
+            pwd
+            whoami
+            ls -la
         
   slackNotification:
     needs: deploy
