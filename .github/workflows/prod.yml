@@ -20,7 +20,7 @@ jobs:
         uses: appleboy/ssh-action@master 
         with:
           host: ${{ secrets.IP_AGENT_REST_STAGING }}
-          username: ${{ secrets.AGENT_HOSTNAME }}
+          username: ${{ secrets.HOSTNAME }}
           key: ${{ secrets.KEY}}
           port: ${{ secrets.SSH_PORT }}
           script: |
