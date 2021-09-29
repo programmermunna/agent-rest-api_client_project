@@ -1,13 +1,10 @@
 
-name: Deploy To Productions 
+name: Deploy branch mater to server
+
 on:
   push:
     branches:
-      - staging
-
-  pull_request:
-    branches:
-      - staging
+      - master 
 
 jobs:
   deploy:

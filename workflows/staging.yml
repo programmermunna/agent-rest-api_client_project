@@ -1,13 +1,11 @@
 
-name: Deploy To Productions 
+
+name: Deploy branch mater to server
+
 on:
   push:
     branches:
-      - staging
-
-  pull_request:
-    branches:
-      - staging
+      - staging 
 
 jobs:
   deploy:
@@ -19,12 +17,12 @@ jobs:
       - name: deploy agent cika loka to production server 
         uses: appleboy/ssh-action@master 
         with:
-          host: ${{ secrets.IP_AGENT }}
+          host: ${{ secrets.IP_AGENT_STAGGING }}
           username: ${{ secrets.AGENT_HOSTNAME }}
           key: ${{ secrets.KEY}}
           port: ${{ secrets.SSH_PORT }}
-          script: sudo ./hanan.sh
-        
+          script: sudo ./agent-dep.sh
+
   slackNotification:
     needs: deploy
     name: Slack Notification
