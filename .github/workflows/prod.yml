@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.PASS }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd agen-rest-api 
+            cd /home/ubuntu/agent-rest-api 
             git fetch
             git pull origin master
         
