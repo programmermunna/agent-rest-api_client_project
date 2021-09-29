@@ -1,8 +1,7 @@
 name: Deploy To Productions 
 
 on:
-  pull_request:
-    types: [closed , assigned, opened]
+  push:
     branches:
       - master
 
@@ -21,7 +20,11 @@ jobs:
           password: ${{ secrets.PASS }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            whoami
+            cd /var/www/html
+            git fetch
+            git pull origin master
+            php artisan migrate
+            composer dump
         
   slackNotification:
     needs: deploy
