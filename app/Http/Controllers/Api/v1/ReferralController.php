@@ -3,11 +3,8 @@
 namespace App\Http\Controllers\Api\v1;
 
 use Hashids\Hashids;
-use Illuminate\Http\Request;
 use App\Models\MembersModel;
 use App\Http\Controllers\ApiController;
-use Illuminate\Support\Facades\Validator;
-use App\Http\Resources\Api\v1\ReferralResource;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\WithPagination;
 use Illuminate\Pagination\Paginator;            # pagination pake ini

@@ -1,9 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\EndPointController;
+use App\Http\Controllers\Api\v2\OutResult;
 use App\Http\Controllers\ProviderService\ProviderController;
-use Illuminate\Contracts\Queue\Job;
-
+use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -144,4 +143,5 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
     Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
+	Route::get('list_out_result' , [OutResult::class , 'getAllResult']);
 });
