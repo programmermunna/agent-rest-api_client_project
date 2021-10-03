@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ConstantRekeningSeeder::class);
         $this->call(AppSettingSeeder::class);
         $this->call(RekeningAgentSeeder::class);
-
+		$this->call(TogelResultNumberSeeder::class);
         Model::reguard();
     }
 }
