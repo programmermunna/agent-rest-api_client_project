@@ -8,7 +8,6 @@ use App\Models\TogelResultNumberModel;
 use App\Traits\CustomPaginate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
 
 /**
  * @author Hanan Asyrawi Rivai 
@@ -23,25 +22,23 @@ class OutResult extends ApiController
 	 */
 	public function getAllResult()
 	{
-		$result = DB::table('togel_results_number')
-		->join("constant_provider_togel", 'togel_results_number.constant_provider_togel_id', '=', 'constant_provider_togel.id')
-		->select([
-			'constant_provider_togel.name',
-			'constant_provider_togel.name_initial',
-			'togel_results_number.period',
-			'togel_results_number.result_date',
-			'togel_results_number.number_result_1',
-			'togel_results_number.number_result_2',
-			'togel_results_number.number_result_3',
-			'togel_results_number.number_result_4',
-			'togel_results_number.number_result_4',
-			'togel_results_number.number_result_5',
-			'togel_results_number.number_result_6',
-		])
-			->latest('togel_results_number.created_at')
-			->get();
 
-		return $this->paginate($result, 25);
+		$results = TogelResultNumberModel::join('constant_provider_togel', 'togel_results_number.constant_provider_togel_id', '=', 'constant_provider_togel.id')
+		->selectRaw("
+                date_format(cast(togel_results_number.result_date as date), '%d %M %Y') as 'tanggal'
+                , DAYNAME(CAST(togel_results_number.result_date AS DATE)) as 'hari'
+                , concat(constant_provider_togel.name_initial, '-' , togel_results_number.period) as 'pasaran'
+                , concat(
+                    cast(togel_results_number.number_result_1 as char(2))
+                    , cast(togel_results_number.number_result_2 as char(2))
+                    , cast(togel_results_number.number_result_3 as char(2))
+                    , cast(togel_results_number.number_result_4 as char(2))
+                    , cast(togel_results_number.number_result_5 as char(2))
+                    , cast(togel_results_number.number_result_6 as char(2))
+                ) as 'result'
+            ")->get();
+
+		return $results;
 	}
 	/**
 	 * Get Pasaran Blok Angka
