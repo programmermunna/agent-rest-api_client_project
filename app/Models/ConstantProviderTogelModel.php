@@ -20,6 +20,12 @@ class ConstantProviderTogelModel extends Model
 	 */
 	public function resultNumber() : HasMany
 	{
-		return $this->hasMany(TogelResultNumberModel::class , 'constant_provider_togel_id');
+		 return $this->hasMany(TogelResultNumberModel::class , 'constant_provider_togel_id')
+			  ->select([
+				  'id' , 'constant_provider_togel_id' , 'number_result_1' , 'number_result_2',
+				  'number_result_3' , 'number_result_4' , 'number_result_5' , 'number_result_6',
+				  'result_date'
+			  ])
+			  ->orderByDesc('result_date'); 
 	}
 }

@@ -42,31 +42,48 @@ class OutResult extends ApiController
 			->get();
 
 		return $this->paginate($result, 25);
-	}	
+	}
 	/**
 	 * Get Pasaran Blok Angka
 	 * @return LengthAwarePaginator 
 	 */
-	public function getPasaran() : LengthAwarePaginator
+	public function getPasaran()
 	{
-	  $results = ConstantProviderTogelModel::select([
-             'constant_provider_togel.name_initial as Nama ID',
-             'constant_provider_togel.name as Nama Pasaran',
-             'constant_provider_togel.website_url as Web',
-             'constant_provider_togel.hari_diundi as Hari di Undi',
-             'constant_provider_togel.libur as Libur',
-             'constant_provider_togel.tutup as Tutup',
-             'constant_provider_togel.jadwal as Jadwal',
-        ])->get();
 
-	   return $this->paginate($results , 20);
+		$results = ConstantProviderTogelModel::select([
+			'constant_provider_togel.id',
+			'constant_provider_togel.name_initial as nama_id',
+			'constant_provider_togel.name as pasaran',
+			'constant_provider_togel.website_url as web',
+			'constant_provider_togel.hari_diundi as hari_undi',
+			'constant_provider_togel.libur as libur',
+			'constant_provider_togel.tutup as tutup',
+			'constant_provider_togel.jadwal as jadwal',
+		])
+		  ->with('resultNumber')
+	  	  ->orderByDesc('id')
+		  ->get()
+	  	  ->toArray();
+		
+		return $this->paginate($results , 20);
 	}
 
 	public function getResultByProvider()
 	{
-		$provider = ConstantProviderTogelModel::query()->with(['resultNumber' => function ($res) {
-			$res->whereBetween('result_date', [now()->startOfWeek(), now()->endOfWeek()]);
-		}])
+		$provider = ConstantProviderTogelModel::query()
+			->select([
+				'constant_provider_togel.id',
+				'constant_provider_togel.name_initial as nama_id',
+				'constant_provider_togel.name as pasaran',
+				'constant_provider_togel.website_url as web',
+				'constant_provider_togel.hari_diundi as hari_undi',
+				'constant_provider_togel.libur as libur',
+				'constant_provider_togel.tutup as tutup',
+				'constant_provider_togel.jadwal as jadwal',
+			])
+			->with(['resultNumber' => function ($res) {
+				$res->whereBetween('result_date', [now()->startOfWeek(), now()->endOfWeek()]);
+			}])
 			->get()
 			->toArray();
 		return $this->paginate($provider, 20);
