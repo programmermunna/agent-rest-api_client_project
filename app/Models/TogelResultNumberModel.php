@@ -14,6 +14,8 @@ class TogelResultNumberModel extends Model
 
     protected $table = 'togel_results_number';
 
+	// CONSTANT VALUE	
+	public static $POOLS = ['SINGAPORE' , 'HONGKONG' , 'JINAN' , 'Sydney'];
 
     public $timestamps = true;
 

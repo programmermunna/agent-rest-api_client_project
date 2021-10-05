@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v2;
 
 use App\Http\Controllers\ApiController;
 use App\Models\ConstantProviderTogelModel;
+use App\Models\TogelResultNumberModel;
 use App\Traits\CustomPaginate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -49,15 +50,25 @@ class OutResult extends ApiController
 	public function getPasaran() : LengthAwarePaginator
 	{
 	  $results = ConstantProviderTogelModel::select([
-            'constant_provider_togel.name_initial as Nama ID'
-            , 'constant_provider_togel.name as Nama Pasaran'
-            , 'constant_provider_togel.website_url as Web'
-            , 'constant_provider_togel.hari_diundi as Hari di Undi'
-            , 'constant_provider_togel.libur as Libur'
-            , 'constant_provider_togel.tutup as Tutup'
-            , 'constant_provider_togel.jadwal as Jadwal'
+             'constant_provider_togel.name_initial as Nama ID',
+             'constant_provider_togel.name as Nama Pasaran',
+             'constant_provider_togel.website_url as Web',
+             'constant_provider_togel.hari_diundi as Hari di Undi',
+             'constant_provider_togel.libur as Libur',
+             'constant_provider_togel.tutup as Tutup',
+             'constant_provider_togel.jadwal as Jadwal',
         ])->get();
 
 	   return $this->paginate($results , 20);
+	}
+
+	public function getResultByProvider()
+	{
+		$provider = ConstantProviderTogelModel::query()->with(['resultNumber' => function ($res) {
+			$res->whereBetween('result_date', [now()->startOfWeek(), now()->endOfWeek()]);
+		}])
+			->get()
+			->toArray();
+		return $this->paginate($provider, 20);
 	}
 }
