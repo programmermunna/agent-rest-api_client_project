@@ -147,4 +147,5 @@ Route::group(['prefix' => 'endpoint'], function () {
 	# Togel
 	Route::get('list_out_result' , [OutResult::class , 'getAllResult']);
 	Route::get('pasaran' , [OutResult::class , 'getPasaran']);
+	Route::get('provider' , [OutResult::class , 'getResultByProvider']);
 });
