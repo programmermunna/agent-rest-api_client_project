@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v2;
 
 use App\Http\Controllers\ApiController;
+use App\Http\Resources\Api\v2\OutResultResource;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\TogelResultNumberModel;
 use App\Traits\CustomPaginate;
@@ -38,7 +39,7 @@ class OutResult extends ApiController
                 ) as 'result'
             ")->get();
 
-		return $results;
+		return $this->paginate($results, 10); 
 	}
 	/**
 	 * Get Pasaran Blok Angka
@@ -78,11 +79,9 @@ class OutResult extends ApiController
 				'constant_provider_togel.tutup as tutup',
 				'constant_provider_togel.jadwal as jadwal',
 			])
-			->with(['resultNumber' => function ($res) {
-				$res->whereBetween('result_date', [now()->startOfWeek(), now()->endOfWeek()]);
-			}])
-			->get()
-			->toArray();
-		return $this->paginate($provider, 20);
+			->with('resultNumber')
+			->get();
+
+		return OutResultResource::collection($provider);
 	}
 }
