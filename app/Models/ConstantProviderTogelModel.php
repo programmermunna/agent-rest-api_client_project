@@ -28,4 +28,5 @@ class ConstantProviderTogelModel extends Model
 			  ])
 			  ->orderByDesc('result_date'); 
 	}
+
 }
