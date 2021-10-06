@@ -78,6 +78,7 @@ class OutResult extends ApiController
 				'constant_provider_togel.libur as libur',
 				'constant_provider_togel.tutup as tutup',
 				'constant_provider_togel.jadwal as jadwal',
+				'constant_provider_togel.period as periode',
 			])
 			->with('resultNumber')
 			->get();
