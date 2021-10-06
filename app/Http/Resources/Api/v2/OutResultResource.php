@@ -23,6 +23,7 @@ class OutResultResource extends JsonResource
 			'url'     => $this->web,
 			'tutup'   => $this->tutup,
 			'jadwal'  => $this->jadwal,
+			'periode' => $this->periode,
 			'result'  => $this->resultNumber()->orderByDesc('result_date')->first(),
 		];
 	}
