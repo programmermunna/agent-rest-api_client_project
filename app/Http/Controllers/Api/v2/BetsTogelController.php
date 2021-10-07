@@ -7,7 +7,6 @@ use App\Http\Requests\BetsTogelRequest;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\TogelGame;
 use Exception as NewException;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
