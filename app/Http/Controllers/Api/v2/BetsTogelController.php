@@ -22,12 +22,12 @@ class BetsTogelController extends ApiController
 		$providerGame = ConstantProviderTogelModel::query()->get()->pluck(['id'], 'name');
 		// Cek From Request or Body Has Value Type Of Games
 		$this->checkType();
-		$this->checkProvider();
 		// take type of game and provider
 		$gameType = $togelGames[$request->type];
 		$provider = $providerGame[$request->provider];
 
 		$bets = [];
+		// Loop the validated data and take key data and remapping the key
 		foreach ($request->validationData()['data'] as $togel) {
 			array_push($bets, array_merge($togel, [
 				"togel_game_id" => $gameType,
@@ -40,21 +40,18 @@ class BetsTogelController extends ApiController
 		return response()->json(['message' => 'success', 'code' => 200], 200);
 	}
 
-	protected function checkType()
+	// Check if exist on request 
+	protected function checkType() : void
 	{
 		if (!isset(request()->type) || empty(request()->type)) {
 			throw new NewException("type is empty please fill", 400);
-		}
-	}
-
-	protected function checkProvider()
-	{
-		if (!isset(request()->provider) || empty(request()->provider)) {
+		}else if (!isset(request()->provider) || empty(request()->provider)) {
 			throw new NewException("Provider Cannot  empty please fill", 400);
 		}
 	}
 
-	protected function InsertTheBets(array $bets)
+	// Persistance to Database
+	protected function InsertTheBets(array $bets) 
 	{
 		try {
 			DB::beginTransaction();
