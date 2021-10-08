@@ -8,6 +8,7 @@ use App\Models\ConstantProviderTogelModel;
 use App\Models\TogelGame;
 use Exception as NewException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class BetsTogelController extends ApiController
@@ -35,9 +36,15 @@ class BetsTogelController extends ApiController
 			]));
 		}
 
-		$this->InsertTheBets($bets);
+		try {
+			DB::table('bets_togel')->insert($bets);
+			return response()->json(['message' => 'success', 'code' => 200], 200);
+		} catch (Throwable $error) {
+			DB::rollBack();
+			Log::error($error->getMessage());
+			return $error->getMessage(); 
+		}
 
-		return response()->json(['message' => 'success', 'code' => 200], 200);
 	}
 
 	// Check if exist on request 
@@ -57,9 +64,11 @@ class BetsTogelController extends ApiController
 			DB::beginTransaction();
 			DB::table('bets_togel')->insert($bets);
 			DB::commit();
+			return true;
 		} catch (Throwable $error) {
 			DB::rollBack();
-			return response($error);
+			Log::error($error->getMessage());
+			return false; 
 		}
 	}
 }
