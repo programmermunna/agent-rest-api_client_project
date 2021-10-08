@@ -89,10 +89,13 @@ class TogelSettingGames extends Model
 	{
 		return $query
 			->join('togel_game', 'togel_game.id', '=', 'togel_setting_game.togel_game_id')
+			->join('togel_game' , 'togel_game.id' , '=' , 'togel_setting_game.togel_game_id')
+
 			->where("constant_provider_togel_id", '=', $provider)
 			->whereIn('togel_game_id', $type)
 			->select([
 				'togel_game.name as game_name',
+				'constant_provider_togel.name as provider_name',
 				'constant_provider_togel_id',
 				'togel_game_id',
 				'togel_shio_name_id',
@@ -148,9 +151,11 @@ class TogelSettingGames extends Model
 	{
 		return $query
 			->join('togel_game' , 'togel_game.id' , '=' , 'togel_setting_game.togel_game_id')
+			->join('constant_provider_togel' , 'constant_provider_togel.id' , '=' , 'togel_setting_game.constant_provider_togel_id')
 			->whereIn('togel_game_id', $type)
 		    ->where('constant_provider_togel_id' , $provider)
 			->select([
+				'constant_provider_togel.name as provider_name',
 				'togel_game.name as game_name',
 				'togel_game.name',
 				'disc',
@@ -167,10 +172,12 @@ class TogelSettingGames extends Model
 	{
 		return $query
 			->join('togel_game' , 'togel_game.id' , '=' , 'togel_setting_game.togel_game_id')
+			->join('constant_provider_togel' , 'constant_provider_togel.id' , '=' , 'togel_setting_game.constant_provider_togel_id')
 			->where("constant_provider_togel_id", '=', $provider)
 			->whereIn('togel_game_id', $type)
 			->select([
 				'togel_game.name as game_id',
+				'constant_provider_togel.name as provider_name',
 				'constant_provider_togel_id', 'togel_game_id', 'togel_shio_name_id', 'min_bet', 'max_bet', 'win_x'
 				// -- 4D	
 				, 'max_bet_4d', 'win_4d_x', 'disc_4d', 'limit_buang_4d', 'limit_total_4d'
