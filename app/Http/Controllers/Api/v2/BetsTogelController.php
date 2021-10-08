@@ -6,7 +6,9 @@ use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\TogelGame;
+use App\Models\TogelSettingGames;
 use Exception as NewException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -21,11 +23,15 @@ class BetsTogelController extends ApiController
 		// First For All Take The Type Of Game 
 		$togelGames = TogelGame::query()->get()->pluck(['id'], 'name');
 		$providerGame = ConstantProviderTogelModel::query()->get()->pluck(['id'], 'name');
+
 		// Cek From Request or Body Has Value Type Of Games
 		$this->checkType();
 		// take type of game and provider
 		$gameType = $togelGames[$request->type];
 		$provider = $providerGame[$request->provider];
+
+		// get setting games 
+		$settingGames = $this->getSettingGames($gameType , $provider)->first()->id;
 
 		$bets = [];
 		// Loop the validated data and take key data and remapping the key
@@ -33,6 +39,7 @@ class BetsTogelController extends ApiController
 			array_push($bets, array_merge($togel, [
 				"togel_game_id" => $gameType,
 				"constant_provider_togel_id" => $provider,
+				'togel_setting_game_id' => $settingGames,
 			]));
 		}
 
@@ -70,5 +77,14 @@ class BetsTogelController extends ApiController
 			Log::error($error->getMessage());
 			return false; 
 		}
+	}
+
+	protected function getSettingGames(int $gameType, int $gameProvider) : Builder
+	{
+		$result = TogelSettingGames::query()
+					->where('constant_provider_togel_id' ,'=' , $gameProvider)
+					->where('togel_game_id' , '=' , $gameType);
+
+		return $result;
 	}
 }

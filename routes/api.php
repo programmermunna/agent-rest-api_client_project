@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\v2\BetsTogelController;
 use App\Http\Controllers\Api\v2\OutResult;
 use App\Http\Controllers\ProviderService\ProviderController;
+use App\Http\Controllers\TogelSettingGameController;
 use App\Models\TogelGame;
 use Illuminate\Support\Facades\Route;
 /*
@@ -150,6 +151,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 	Route::get('list_out_result' , [OutResult::class , 'getAllResult']);
 	Route::get('pasaran' , [OutResult::class , 'getPasaran']);
 	Route::get('provider' , [OutResult::class , 'getResultByProvider']);
-  Route::post('storeTogel' , [BetsTogelController::class , 'store']);
+    Route::post('storeTogel' , [BetsTogelController::class , 'store']);
+	Route::get("settingGames" , [TogelSettingGameController::class , 'getTogelSettingGame']);
 
 });

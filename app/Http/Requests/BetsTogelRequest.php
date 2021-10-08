@@ -42,15 +42,10 @@ class BetsTogelRequest extends FormRequest
 			"data.*.tebak_mono_stereo"            => ['nullable', 'string'],
 			"data.*.tebak_kembang_kempis_kembar"  => ['nullable', 'string'],
 			"data.*.tebak_shio"                   => ['nullable', 'string'],
-			"data.*.win_lose_status"              => ['nullable', 'bool'],
-			"data.*.togel_results_number_id"      => ['nullable', 'string'],
-			"data.*.win_nominal"                  => ['nullable', 'string'],
 			"data.*.bet_amount"                   => ['nullable', 'string'],
-			"data.*.togel_setting_game_id"        => ['nullable', 'numeric'],
-			"data.*.discount_kei_amount_result"   => ['nullable', 'string'],
+		//	"data.*.togel_setting_game_id"        => ['nullable', 'numeric'], // Before insret must marge to this request 
 			"data.*.tax_amount"                   => ['nullable', 'string'],
 			"data.*.pay_amout"                    => ['nullable', 'string'],
-			"data.*.created_by"                   => ['required', 'numeric'],
 		];
     }
 }
