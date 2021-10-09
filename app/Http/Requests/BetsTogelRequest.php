@@ -23,10 +23,10 @@ class BetsTogelRequest extends FormRequest
     public function rules() : array
     {
 		return [
-			"type"     => ["required", 'string'],
-			"provider" => ["required", "string"],
-			"period"   => ["required", "string"],
-			"data"     => ['required', 'array'],
+			"type"                                => ["required", 'string'],
+			"provider"                            => ["required", "string"],
+			"period"                              => ["required", "string"],
+			"data"                                => ['required', 'array'],
 			"data.*.period"                    	  => ['required'],
 			"data.*.number_1"                     => ['nullable', 'numeric'],
 			"data.*.number_2"                     => ['nullable', 'numeric'],
@@ -43,7 +43,6 @@ class BetsTogelRequest extends FormRequest
 			"data.*.tebak_kembang_kempis_kembar"  => ['nullable', 'string'],
 			"data.*.tebak_shio"                   => ['nullable', 'string'],
 			"data.*.bet_amount"                   => ['nullable', 'string'],
-		//	"data.*.togel_setting_game_id"        => ['nullable', 'numeric'], // Before insret must marge to this request 
 			"data.*.tax_amount"                   => ['nullable', 'string'],
 			"data.*.pay_amout"                    => ['nullable', 'string'],
 		];

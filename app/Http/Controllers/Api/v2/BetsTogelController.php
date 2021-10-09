@@ -40,6 +40,7 @@ class BetsTogelController extends ApiController
 				"togel_game_id" => $gameType,
 				"constant_provider_togel_id" => $provider,
 				'togel_setting_game_id' => $settingGames,
+				'created_by' => auth('api')->user()->id, // Laravel Can Handler which user has login please cek config.auth folder
 			]));
 		}
 
