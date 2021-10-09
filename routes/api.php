@@ -145,15 +145,17 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result', [ProviderController::class, 'result']);
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
-    Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
-	
+
 	# Togel
+    Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
+	Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
+	Route::get('provider', [OutResult::class, 'getResultByProvider']);
+	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
+	Route::get('pasaran', [OutResult::class, 'getPasaran']);
+	# Togel Must Secure when betting
 	Route::middleware(['jwt.verify'])->group(function () {
-		Route::get('list_out_result', [OutResult::class, 'getAllResult']);
-		Route::get('pasaran', [OutResult::class, 'getPasaran']);
-		Route::get('provider', [OutResult::class, 'getResultByProvider']);
 		Route::post('storeTogel', [BetsTogelController::class, 'store']);
-		Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
+		
 	});
 
 });
