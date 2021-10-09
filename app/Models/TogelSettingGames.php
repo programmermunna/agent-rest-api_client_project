@@ -94,6 +94,7 @@ class TogelSettingGames extends Model
 			->whereIn('togel_game_id', $type)
 			->select([
 				'togel_game.name as game_name',
+				'constant_provider_togel.name as provider_name',
 				'constant_provider_togel_id',
 				'togel_game_id',
 				'togel_shio_name_id',
