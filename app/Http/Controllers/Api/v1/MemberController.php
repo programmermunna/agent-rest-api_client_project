@@ -74,7 +74,7 @@ class MemberController extends ApiController
                     'deposit.approval_status',
                     'deposit.created_at',
                 ])
-                ->where('created_by', auth('api')->user()->id)
+                ->where('deposit.created_by', auth('api')->user()->id)
                 ->where('approval_status', 1)
                 ->orderBy('created_at', 'desc');
 
@@ -84,7 +84,7 @@ class MemberController extends ApiController
                     'withdraw.approval_status',
                     'withdraw.created_at',
                 ])
-                ->where('created_by', auth('api')->user()->id)
+                ->where('withdraw.created_by', auth('api')->user()->id)
                 ->where('approval_status', 1)
                 ->orderBy('created_at', 'desc');
 
@@ -467,7 +467,7 @@ class MemberController extends ApiController
                 ];
             }
         } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse($th->getMessage(), 500);
         }
     }
 
