@@ -31,26 +31,34 @@ class BetsTogelController extends ApiController
 		$provider = $providerGame[$request->provider];
 
 		// get setting games 
-		$settingGames = $this->getSettingGames($gameType , $provider)->first()->id;
-
+		$settingGames = $this->getSettingGames($gameType , $provider)->first();
+		
 		$bets = [];
 		// Loop the validated data and take key data and remapping the key
 		foreach ($request->validationData()['data'] as $togel) {
 			array_push($bets, array_merge($togel, [
 				"togel_game_id" => $gameType,
 				"constant_provider_togel_id" => $provider,
-				'togel_setting_game_id' => $settingGames,
+				'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
 				'created_by' => auth('api')->user()->id, // Laravel Can Handler which user has login please cek config.auth folder
 			]));
 		}
 
 		try {
-			DB::table('bets_togel')->insert($bets);
+			DB::beginTransaction();
+			$idx = [];
+			foreach ($bets as $bet) {
+				$idx[] = DB::table('bets_togel')->insertGetId($bet);
+			}
+			/// will be convert to 1,2,3,4,5
+			$bets_id  = implode(",", $idx);
+			DB::select("CALL TriggerInsertAfterBetsTogel('" . $bets_id. "')"); // will be return empty
+			DB::commit();
 			return response()->json(['message' => 'success', 'code' => 200], 200);
 		} catch (Throwable $error) {
 			DB::rollBack();
 			Log::error($error->getMessage());
-			return $error->getMessage(); 
+			return $error->getMessage();
 		}
 
 	}
@@ -65,20 +73,6 @@ class BetsTogelController extends ApiController
 		}
 	}
 
-	// Persistance to Database
-	protected function InsertTheBets(array $bets) 
-	{
-		try {
-			DB::beginTransaction();
-			DB::table('bets_togel')->insert($bets);
-			DB::commit();
-			return true;
-		} catch (Throwable $error) {
-			DB::rollBack();
-			Log::error($error->getMessage());
-			return false; 
-		}
-	}
 
 	protected function getSettingGames(int $gameType, int $gameProvider) : Builder
 	{
