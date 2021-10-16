@@ -1,9 +1,12 @@
 <?php
 
-use App\Http\Controllers\Api\EndPointController;
+use App\Http\Controllers\Api\v2\BetsTogelController;
+use App\Http\Controllers\Api\v2\OutResult;
 use App\Http\Controllers\ProviderService\ProviderController;
-use Illuminate\Contracts\Queue\Job;
-
+use App\Http\Controllers\TogelDreamsBookController;
+use App\Http\Controllers\TogelSettingGameController;
+use App\Models\TogelGame;
+use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -143,5 +146,18 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result', [ProviderController::class, 'result']);
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
+
+	# Togel
     Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
+	Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
+	Route::get('provider', [OutResult::class, 'getResultByProvider']);
+	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
+	Route::get('pasaran', [OutResult::class, 'getPasaran']);
+	Route::get('dreamBooks', [TogelDreamsBookController::class, 'getDreamsBook']);
+	# Togel Must Secure when betting
+	Route::middleware(['jwt.verify'])->group(function () {
+		Route::post('storeTogel', [BetsTogelController::class, 'store']);
+		
+	});
+
 });

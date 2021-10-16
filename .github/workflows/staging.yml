@@ -2,7 +2,7 @@ name: Deploy To Staging
 
 on:
   pull_request:
-    types: [closed , assigned, opened]
+    types: [closed]
     branches:
       - staging
 

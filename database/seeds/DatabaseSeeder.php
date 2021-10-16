@@ -5,27 +5,28 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use TruncateTable;
+  use TruncateTable;
 
-    /**
-     * Seed the application's database.
-     */
-    public function run()
-    {
-        Model::unguard();
+  /**
+   * Seed the application's database.
+   */
+  public function run()
+  {
+    Model::unguard();
 
-        $this->truncateMultiple([
-            'activity_log',
-            'failed_jobs',
-        ]);
+    $this->truncateMultiple([
+      'activity_log',
+      'failed_jobs',
+    ]);
 
-        $this->call(AuthSeeder::class);
-        $this->call(AnnouncementSeeder::class);
-        $this->call(ConstantProviderSeeder::class);
-        $this->call(ConstantRekeningSeeder::class);
-        $this->call(AppSettingSeeder::class);
-        $this->call(RekeningAgentSeeder::class);
-
-        Model::reguard();
-    }
+    $this->call(AuthSeeder::class);
+    $this->call(AnnouncementSeeder::class);
+    $this->call(ConstantProviderSeeder::class);
+    $this->call(ConstantRekeningSeeder::class);
+    $this->call(AppSettingSeeder::class);
+    $this->call(RekeningAgentSeeder::class);
+    $this->call(TogelResultNumberSeeder::class);
+    $this->call(BetsTogelSeeder::class);
+    Model::reguard();
+  }
 }

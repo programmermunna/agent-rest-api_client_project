@@ -74,7 +74,7 @@ class MemberController extends ApiController
                     'deposit.approval_status',
                     'deposit.created_at',
                 ])
-                ->where('created_by', auth('api')->user()->id)
+                ->where('deposit.created_by', auth('api')->user()->id)
                 ->where('approval_status', 1)
                 ->orderBy('created_at', 'desc');
 
@@ -84,7 +84,7 @@ class MemberController extends ApiController
                     'withdraw.approval_status',
                     'withdraw.created_at',
                 ])
-                ->where('created_by', auth('api')->user()->id)
+                ->where('withdraw.created_by', auth('api')->user()->id)
                 ->where('approval_status', 1)
                 ->orderBy('created_at', 'desc');
 
@@ -413,7 +413,34 @@ class MemberController extends ApiController
                     'status' => 'success',
                     'dll' => $bonusArr,
                 ];
-            } else {
+			} else if ($request->type == 'togel') {
+				$result = DB::select(DB::raw("
+				select
+					if (
+						a.created_at is null
+						, a.updated_at
+						, a.created_at
+					) as 'Tanggal'
+					, a.pasaran as 'Pasaran'
+					, c.name as 'Game'
+					, b.id as 'Bet ID'
+					, a.description as 'Deskripsi'
+					, a.debit as 'Debit'
+					, a.kredit as 'Kredit'
+					, a.balance as 'Balance'
+					from
+						bets_togel_history_transaksi a
+						join bets_togel b on a.created_by = b.created_by and a.created_at = b.created_at
+						join togel_game c on b.togel_game_id = c.id
+						group by b.id
+			     "));
+
+				return [
+					"status" => "success",
+					'data'   => $result
+				];
+
+			} else {
                 $this->deposit = $deposit->get()->toArray();
                 $depo = $this->paginate($this->deposit, $this->pageAll);
 
@@ -467,7 +494,7 @@ class MemberController extends ApiController
                 ];
             }
         } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse($th->getMessage(), 500);
         }
     }
 
