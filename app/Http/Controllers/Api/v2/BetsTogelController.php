@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v2;
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
 use App\Models\ConstantProviderTogelModel;
+use App\Models\TogelBlokAngka;
 use App\Models\TogelGame;
 use App\Models\TogelSettingGames;
 use Exception as NewException;
@@ -29,13 +30,14 @@ class BetsTogelController extends ApiController
 		// take type of game and provider
 		$gameType = $togelGames[$request->type];
 		$provider = $providerGame[$request->provider];
-
+		
+		$this->checkBlokedNumber($request , $provider);
 		// get setting games 
 		$settingGames = $this->getSettingGames($gameType , $provider)->first();
 		
 		$bets = [];
 		// Loop the validated data and take key data and remapping the key
-		foreach ($request->validationData()['data'] as $togel) {
+		foreach ($this->checkBlokedNumber($request , $provider) as $togel) {
 			array_push($bets, array_merge($togel, [
 				"togel_game_id" => $gameType,
 				"constant_provider_togel_id" => $provider,
@@ -81,5 +83,32 @@ class BetsTogelController extends ApiController
 					->where('togel_game_id' , '=' , $gameType);
 
 		return $result;
+	}
+
+	/**
+	 * this will cek the bloked number 
+	 * and return safe number after the we be marging the data 
+	 * @param BetsTogelRequest $request
+	 * @param array $number
+	 */
+	protected function checkBlokedNumber(BetsTogelRequest $request , int $provider)
+	{
+		$blokedsNumber = [] ;
+		foreach ($request->validationData()['data'] as $key => $data) {
+			$number_1 = $data['number_1'] != null ? "number_1 = {$data['number_1']} and " : null;
+			$number_2 = $data['number_2'] != null ? "number_2 = {$data['number_2']} and " : null;
+			$number_3 = $data['number_3'] != null ? "number_3 = {$data['number_3']} and " : null;
+			$number_4 = $data['number_4'] != null ? "number_4 = {$data['number_4']} and " : null;
+			$number_5 = $data['number_5'] != null ? "number_5 = {$data['number_5']} and " : null;
+			$number_6 = $data['number_6'] != null ? "number_6 = {$data['number_6']} and " : null;
+
+			$query = $number_1 . $number_2 . $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
+			$result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
+
+			if($result[0]->nomor == null) {
+				array_push($blokedsNumber , $request->validationData()['data'][$key]);
+			}
+		}
+		return $blokedsNumber;
 	}
 }
