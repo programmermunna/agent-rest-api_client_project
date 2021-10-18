@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v2;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
+use App\Models\BetsTogel;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\TogelBlokAngka;
 use App\Models\TogelGame;
@@ -56,8 +57,17 @@ class BetsTogelController extends ApiController
 			/// will be convert to 1,2,3,4,5
 			$bets_id  = implode(",", $idx);
 			DB::select("CALL TriggerInsertAfterBetsTogel('" . $bets_id. "')"); // will be return empty
-		    DB::select("CALL is_buangan_before_terpasang('" . $bets_id. "')"); // after bets run procedure to update buangan 
-
+			DB::select("SET @bet_ids=' a.id in (". $bets_id .")';");
+		  $response = DB::select("CALL is_buangan_before_terpasang(@bet_ids)"); // will be return empty
+			foreach (json_decode($response[0]->Result) as $bet) {
+				BetsTogel::query()
+					->where('id', $bet->bets_togel_id)
+					->where('constant_provider_togel_id' , $bet->constant_provider_togel_id)
+					->update([
+						'is_bets_buangan' => $bet->is_bets_buangan,
+						'buangan_before_submit' => $bet->buangan_before_submit
+					]);
+			}
 			DB::commit();
 			return response()->json(['message' => 'success', 'code' => 200], 200);
 		} catch (Throwable $error) {
