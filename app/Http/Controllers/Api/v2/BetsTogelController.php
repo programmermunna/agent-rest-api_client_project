@@ -18,6 +18,7 @@ class BetsTogelController extends ApiController
 {
 	/**
 	 * storingBetsTogel place the bet togels  
+	 * @param BetsTogelRequest $request
 	 */
 	public function store(BetsTogelRequest $request)
 	{
@@ -55,6 +56,8 @@ class BetsTogelController extends ApiController
 			/// will be convert to 1,2,3,4,5
 			$bets_id  = implode(",", $idx);
 			DB::select("CALL TriggerInsertAfterBetsTogel('" . $bets_id. "')"); // will be return empty
+		    DB::select("CALL is_buangan_before_terpasang('" . $bets_id. "')"); // after bets run procedure to update buangan 
+
 			DB::commit();
 			return response()->json(['message' => 'success', 'code' => 200], 200);
 		} catch (Throwable $error) {
@@ -66,6 +69,7 @@ class BetsTogelController extends ApiController
 	}
 
 	// Check if exist on request 
+	// @return void
 	protected function checkType() : void
 	{
 		if (!isset(request()->type) || empty(request()->type)) {
@@ -75,7 +79,12 @@ class BetsTogelController extends ApiController
 		}
 	}
 
-
+	/**
+	 * Get Setting Games 
+	 * @param int $gameType
+	 * @param int $gameProvider
+	 * @return Builder
+	 */
 	protected function getSettingGames(int $gameType, int $gameProvider) : Builder
 	{
 		$result = TogelSettingGames::query()
