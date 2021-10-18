@@ -65,7 +65,8 @@ class BetsTogelController extends ApiController
 					->where('constant_provider_togel_id' , $bet->constant_provider_togel_id)
 					->update([
 						'is_bets_buangan' => $bet->is_bets_buangan,
-						'buangan_before_submit' => $bet->buangan_before_submit
+						'buangan_before_submit' => $bet->buangan_before_submit,
+						'created_at' => now()
 					]);
 			}
 			DB::commit();
