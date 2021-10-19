@@ -155,11 +155,10 @@ Route::group(['prefix' => 'endpoint'], function () {
 	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
 	Route::get('pasaran', [OutResult::class, 'getPasaran']);
 	Route::get('dreamBooks', [TogelDreamsBookController::class, 'getDreamsBook']);
+	Route::get('globalSetting' , [TogelSettingGameController::class , 'getGlobalSettingGame']);
 	Route::get('rules' , [TogelPeraturanGame::class , 'getPeraturanGame']);
 	# Togel Must Secure when betting
 	Route::middleware(['jwt.verify'])->group(function () {
 		Route::post('storeTogel', [BetsTogelController::class, 'store']);
-		
 	});
-
 });
