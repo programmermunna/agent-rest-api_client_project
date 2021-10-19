@@ -48,6 +48,14 @@ class BetsTogelController extends ApiController
 			// Sum pay_amount
 			array_push($total_bets_after_disc , floatval($togel['pay_amount']));
 		}
+	
+		if (empty($bets)) {
+			return response()->json([
+				'code' => 422,
+				'messages' => 'Data is empty Or number bloked first please add more number'
+			], 422);
+		}
+
 		try {
 			DB::beginTransaction();
 
@@ -61,7 +69,7 @@ class BetsTogelController extends ApiController
 			DB::select("CALL TriggerInsertAfterBetsTogel('" . $bets_id . "')"); // will be return empty
 			DB::select("SET @bet_ids=' a.id in (" . $bets_id . ")';");
 			$response = DB::select("CALL is_buangan_before_terpasang(@bet_ids)"); // will be return empty
-
+			// Cek This is Bet Buangan 
 			if ($response[0]->results != null ) {
 				foreach (json_decode($response[0]->results) as $bet) {
 					BetsTogel::query()
@@ -121,6 +129,7 @@ class BetsTogelController extends ApiController
 	protected function checkBlokedNumber(BetsTogelRequest $request , int $provider)
 	{
 		$blokedsNumber = [] ;
+
 		foreach ($request->validationData()['data'] as $key => $data) {
 			$number_1 = $data['number_1'] != null ? "number_1 = {$data['number_1']} and " : null;
 			$number_2 = $data['number_2'] != null ? "number_2 = {$data['number_2']} and " : null;
@@ -132,10 +141,13 @@ class BetsTogelController extends ApiController
 			$query = $number_1 . $number_2 . $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
 			$result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
 
-			if($result[0]->nomor == null) {
-				array_push($blokedsNumber , $request->validationData()['data'][$key]);
+			// Cek if result from bloked number is null is approved number
+			if ($result[0]->nomor == null) {
+				array_push($blokedsNumber, $request->validationData()['data'][$key]);
 			}
+
 		}
+
 		return $blokedsNumber;
 	}
 
