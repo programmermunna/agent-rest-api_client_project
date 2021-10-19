@@ -6,7 +6,6 @@ use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
 use App\Models\BetsTogel;
 use App\Models\ConstantProviderTogelModel;
-use App\Models\TogelBlokAngka;
 use App\Models\TogelGame;
 use App\Models\TogelSettingGames;
 use Exception as NewException;
@@ -33,11 +32,11 @@ class BetsTogelController extends ApiController
 		$gameType = $togelGames[$request->type];
 		$provider = $providerGame[$request->provider];
 		
-		$this->checkBlokedNumber($request , $provider);
 		// get setting games 
 		$settingGames = $this->getSettingGames($gameType , $provider)->first();
 		
 		$bets = [];
+		$total_bets_after_disc = [];
 		// Loop the validated data and take key data and remapping the key
 		foreach ($this->checkBlokedNumber($request , $provider) as $togel) {
 			array_push($bets, array_merge($togel, [
@@ -46,11 +45,14 @@ class BetsTogelController extends ApiController
 				'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
 				'created_by' => auth('api')->user()->id, // Laravel Can Handler which user has login please cek config.auth folder
 			]));
+			// Sum pay_amount
+			array_push($total_bets_after_disc , floatval($togel['pay_amount']));
 		}
-
 		try {
 			DB::beginTransaction();
+
 			$idx = [];
+
 			foreach ($bets as $bet) {
 				$idx[] = DB::table('bets_togel')->insertGetId($bet);
 			}
@@ -72,6 +74,8 @@ class BetsTogelController extends ApiController
 						]);
 				}
 			}
+
+			$this->updateCredit($total_bets_after_disc);	
 			DB::commit();
 			return response()->json(['message' => 'success', 'code' => 200], 200);
 		} catch (Throwable $error) {
@@ -133,5 +137,25 @@ class BetsTogelController extends ApiController
 			}
 		}
 		return $blokedsNumber;
+	}
+
+	/**
+	 * update The Credit
+	 * @param array $totalBets
+	 */
+	protected function updateCredit($totalBets)
+	{
+
+		if (auth('api')->user()->credit === 0) {
+			return response()->json([
+				'code' => 422,
+				'message' => 'saldo kurang'
+			], 422);
+		}
+
+		$credit = floatval(auth('api')->user()->credit) - array_sum($totalBets);
+		auth('api')->user()->update([
+			'credit' => $credit
+		]);
 	}
 }
