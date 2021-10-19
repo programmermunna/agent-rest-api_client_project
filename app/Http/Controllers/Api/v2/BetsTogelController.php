@@ -44,6 +44,7 @@ class BetsTogelController extends ApiController
 				"constant_provider_togel_id" => $provider,
 				'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
 				'created_by' => auth('api')->user()->id, // Laravel Can Handler which user has login please cek config.auth folder
+				'created_at' => now()
 			]));
 			// Sum pay_amount
 			array_push($total_bets_after_disc , floatval($togel['pay_amount']));
@@ -78,7 +79,6 @@ class BetsTogelController extends ApiController
 						->update([
 							'is_bets_buangan' => $bet->is_bets_buangan,
 							'buangan_before_submit' => $bet->buangan_before_submit,
-							'created_at' => now()
 						]);
 				}
 			}
