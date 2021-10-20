@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ConstantProviderTogelModel;
+use App\Models\TogelGame;
 use App\Models\TogelSettingGames;
 use Illuminate\Http\Request;
 
@@ -28,5 +30,34 @@ class TogelSettingGameController extends ApiController
 				return response('Missing Type');	
 				break;
 		}
+	}
+
+    /**
+	 * Get Global Setting Games 
+	 */	
+	public function getGlobalSettingGame(Request $request)
+	{
+		$provider = $request->provider;		
+
+		if(!isset($provider) && empty($provider)) {
+			return response()->json([
+				'code' => 422,
+				'message' => 'Hmm provider and type of game must exist on params'
+			]);	
+		}
+
+		$settingGames = TogelSettingGames::query()
+			->addSelect([
+					'togel_game' => TogelGame::select('name')->whereColumn('togel_game.id', 'togel_setting_game.togel_game_id')])
+			->whereHas('constant_provider_togel', function ($value) use ($provider) {
+				$value
+					->where('name', $provider);
+			})
+			->latest()
+			->orderBy('id' , 'desc')
+			->get();
+
+		return $settingGames;
+
 	}	
 }

@@ -66,7 +66,7 @@ class TogelSettingGames extends Model
 
 	public function togel_game()
 	{
-		return $this->belongsTo(TogelGameModel::class, 'togel_category_game_id', 'id');
+		return $this->belongsTo(TogelGame::class, 'togel_game_id', 'id');
 	}
 
 	public function constant_provider_togel()

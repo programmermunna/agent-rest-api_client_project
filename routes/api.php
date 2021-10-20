@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\v2\BetsTogelController;
 use App\Http\Controllers\Api\v2\OutResult;
 use App\Http\Controllers\ProviderService\ProviderController;
 use App\Http\Controllers\TogelDreamsBookController;
+use App\Http\Controllers\TogelPeraturanGame;
 use App\Http\Controllers\TogelSettingGameController;
 use App\Models\TogelGame;
 use Illuminate\Support\Facades\Route;
@@ -154,10 +155,10 @@ Route::group(['prefix' => 'endpoint'], function () {
 	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
 	Route::get('pasaran', [OutResult::class, 'getPasaran']);
 	Route::get('dreamBooks', [TogelDreamsBookController::class, 'getDreamsBook']);
+	Route::get('globalSetting' , [TogelSettingGameController::class , 'getGlobalSettingGame']);
+	Route::get('rules' , [TogelPeraturanGame::class , 'getPeraturanGame']);
 	# Togel Must Secure when betting
 	Route::middleware(['jwt.verify'])->group(function () {
 		Route::post('storeTogel', [BetsTogelController::class, 'store']);
-		
 	});
-
 });
