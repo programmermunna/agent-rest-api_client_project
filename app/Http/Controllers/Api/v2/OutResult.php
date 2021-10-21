@@ -92,6 +92,7 @@ class OutResult extends ApiController
 	public function getShioTables() 
 	{
 		$result = DB::select("select
+								a.id as id ,
 								a.name as 'shio'
 								, group_concat(b.numbers) as 'numbers'
 								from
