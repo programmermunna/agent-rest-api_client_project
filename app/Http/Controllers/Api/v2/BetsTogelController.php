@@ -49,7 +49,7 @@ class BetsTogelController extends ApiController
 			// Sum pay_amount
 			array_push($total_bets_after_disc , floatval($togel['pay_amount']));
 		}
-	
+
 		if (empty($bets)) {
 			return response()->json([
 				'code' => 422,
@@ -129,26 +129,32 @@ class BetsTogelController extends ApiController
 	protected function checkBlokedNumber(BetsTogelRequest $request , int $provider)
 	{
 		$blokedsNumber = [] ;
+		
+		$stackNumber = ['number_1' , 'number_2' , 'number_3' , 'number_4' , 'number_5' , 'number_6'];
 
-		foreach ($request->validationData()['data'] as $key => $data) {
-			$number_1 = $data['number_1'] != null ? "number_1 = {$data['number_1']} and " : null;
-			$number_2 = $data['number_2'] != null ? "number_2 = {$data['number_2']} and " : null;
-			$number_3 = $data['number_3'] != null ? "number_3 = {$data['number_3']} and " : null;
-			$number_4 = $data['number_4'] != null ? "number_4 = {$data['number_4']} and " : null;
-			$number_5 = $data['number_5'] != null ? "number_5 = {$data['number_5']} and " : null;
-			$number_6 = $data['number_6'] != null ? "number_6 = {$data['number_6']} and " : null;
+		if (in_array($stackNumber , $request->validationData()['data'])) {
+			foreach ($request->validationData()['data'] as $key => $data) {
+				$number_1 = $data['number_1'] != null ? "number_1 = {$data['number_1']} and " : null;
+				$number_2 = $data['number_2'] != null ? "number_2 = {$data['number_2']} and " : null;
+				$number_3 = $data['number_3'] != null ? "number_3 = {$data['number_3']} and " : null;
+				$number_4 = $data['number_4'] != null ? "number_4 = {$data['number_4']} and " : null;
+				$number_5 = $data['number_5'] != null ? "number_5 = {$data['number_5']} and " : null;
+				$number_6 = $data['number_6'] != null ? "number_6 = {$data['number_6']} and " : null;
 
-			$query = $number_1 . $number_2 . $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
-			$result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
+				$query = $number_1 . $number_2 . $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
+				$result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
 
-			// Cek if result from bloked number is null is approved number
-			if ($result[0]->nomor == null) {
-				array_push($blokedsNumber, $request->validationData()['data'][$key]);
+				// Cek if result from bloked number is null is approved number
+				if ($result[0]->nomor == null) {
+					array_push($blokedsNumber, $request->validationData()['data'][$key]);
+				}
 			}
 
+			return $blokedsNumber;
 		}
 
-		return $blokedsNumber;
+		return $request->validationData()['data'];
+
 	}
 
 	/**
