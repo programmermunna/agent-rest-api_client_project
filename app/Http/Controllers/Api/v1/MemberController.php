@@ -415,7 +415,7 @@ class MemberController extends ApiController
                     'dll' => $bonusArr,
                 ];
 			} else if ($request->type == 'togel') {
-				return $this->getTogel();
+				return $this->getTogel($this->perPage);
 			} else {
                 $this->deposit = $deposit->get()->toArray();
                 $depo = $this->paginate($this->deposit, $this->pageAll);
@@ -466,7 +466,7 @@ class MemberController extends ApiController
                     'allProviderBet' => $allProviderBet,
                     'allProviderReferal' => $allProviderReferal,
                     'Bonus/Promo' => $bonusArr,
-					'togel' => $this->getTogel(),
+					'togel' => $this->getTogel($this->pageAll),
                 ];
             }
         } catch (\Throwable $th) {
@@ -474,7 +474,7 @@ class MemberController extends ApiController
         }
     }
 
-	public function getTogel()
+	public function getTogel(int $perPage)
 	{
 		$result = DB::select(DB::raw("
 				select
@@ -498,7 +498,7 @@ class MemberController extends ApiController
 			     "));
 		$this->togel = $result;
 
-		return $this->paginate($this->togel, $this->perPage);
+		return $this->paginate($this->togel, $perPage);
 	}	
 
 
