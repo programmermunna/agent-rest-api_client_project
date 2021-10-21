@@ -58,6 +58,7 @@ class OutResult extends ApiController
 			'constant_provider_togel.tutup as tutup',
 			'constant_provider_togel.jadwal as jadwal',
 		])
+		  ->where('status' , true)
 		  ->with('resultNumber')
 	  	  ->orderByDesc('id')
 		  ->get()
@@ -80,6 +81,7 @@ class OutResult extends ApiController
 				'constant_provider_togel.jadwal as jadwal',
 				'constant_provider_togel.period as periode',
 			])
+			->where('status' , true)
 			->with('resultNumber')
 			->get();
 
