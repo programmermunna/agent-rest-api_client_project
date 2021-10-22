@@ -49,7 +49,6 @@ class BetsTogelController extends ApiController
 			// Sum pay_amount
 			array_push($total_bets_after_disc , floatval($togel['pay_amount']));
 		}
-
 		if (empty($bets)) {
 			return response()->json([
 				'code' => 422,
@@ -129,7 +128,7 @@ class BetsTogelController extends ApiController
 	protected function checkBlokedNumber(BetsTogelRequest $request , int $provider)
 	{
 		$blokedsNumber = [] ;
-		
+	
 		$stackNumber = ['number_1' , 'number_2' , 'number_3' , 'number_4' , 'number_5' , 'number_6'];
 
 		if (in_array($stackNumber , $request->validationData()['data'])) {
@@ -154,7 +153,6 @@ class BetsTogelController extends ApiController
 		}
 
 		return $request->validationData()['data'];
-
 	}
 
 	/**
