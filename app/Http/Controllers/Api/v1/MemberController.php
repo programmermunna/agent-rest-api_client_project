@@ -59,6 +59,7 @@ class MemberController extends ApiController
     public $allProviderBet = [];
     public $allProviderReferal = [];
     public $pageAll = 5;
+	public $togel = [];
 
 
 
@@ -414,32 +415,11 @@ class MemberController extends ApiController
                     'dll' => $bonusArr,
                 ];
 			} else if ($request->type == 'togel') {
-				$result = DB::select(DB::raw("
-				select
-					if (
-						a.created_at is null
-						, a.updated_at
-						, a.created_at
-					) as 'Tanggal'
-					, a.pasaran as 'Pasaran'
-					, c.name as 'Game'
-					, b.id as 'Bet ID'
-					, a.description as 'Deskripsi'
-					, a.debit as 'Debit'
-					, a.kredit as 'Kredit'
-					, a.balance as 'Balance'
-					from
-						bets_togel_history_transaksi a
-						join bets_togel b on a.created_by = b.created_by and a.created_at = b.created_at
-						join togel_game c on b.togel_game_id = c.id
-						group by b.id
-			     "));
-
+			    $togel = $this->paginate($this->getTogel(), $this->perPage);
 				return [
-					"status" => "success",
-					'data'   => $result
+					'status' => 'success',
+					'togel' => $togel,
 				];
-
 			} else {
                 $this->deposit = $deposit->get()->toArray();
                 $depo = $this->paginate($this->deposit, $this->pageAll);
@@ -483,20 +463,47 @@ class MemberController extends ApiController
 
                 $this->bonus = $bonus->get()->toArray();
                 $bonusArr = $this->paginate($this->bonus, $this->pageAll);
-
-
-                return $allData = [
+				$togel = $this->paginate($this->togel , $this->perPage);
+                return [
                     'deposit' => $depo,
                     'withdraw' => $wd,
                     'allProviderBet' => $allProviderBet,
                     'allProviderReferal' => $allProviderReferal,
                     'Bonus/Promo' => $bonusArr,
+					'togel' => $this->paginate($this->getTogel() , $this->perPage) 
                 ];
             }
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
+
+	public function getTogel()
+	{
+		$result = DB::select(DB::raw("
+				select
+					if (
+						a.created_at is null
+						, a.updated_at
+						, a.created_at
+					) as 'Tanggal'
+					, a.pasaran as 'Pasaran'
+					, c.name as 'Game'
+					, b.id as 'Bet ID'
+					, a.description as 'Deskripsi'
+					, a.debit as 'Debit'
+					, a.kredit as 'Kredit'
+					, a.balance as 'Balance'
+					from
+						bets_togel_history_transaksi a
+						join bets_togel b on a.created_by = b.created_by and a.created_at = b.created_at
+						join togel_game c on b.togel_game_id = c.id
+						group by b.id
+			     "));
+		$this->togel = $result;
+
+		return $result;
+	}	
 
 
     public function __construct()

@@ -9,6 +9,7 @@ use App\Models\TogelResultNumberModel;
 use App\Traits\CustomPaginate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @author Hanan Asyrawi Rivai 
@@ -58,6 +59,7 @@ class OutResult extends ApiController
 			'constant_provider_togel.tutup as tutup',
 			'constant_provider_togel.jadwal as jadwal',
 		])
+		  ->where('status' , true)
 		  ->with('resultNumber')
 	  	  ->orderByDesc('id')
 		  ->get()
@@ -79,10 +81,29 @@ class OutResult extends ApiController
 				'constant_provider_togel.tutup as tutup',
 				'constant_provider_togel.jadwal as jadwal',
 				'constant_provider_togel.period as periode',
+				'constant_provider_togel.status as is_active',
 			])
 			->with('resultNumber')
 			->get();
 
 		return OutResultResource::collection($provider);
+	}
+
+	public function getShioTables() 
+	{
+		$result = DB::select("select
+								a.id as id ,
+								a.name as 'shio'
+								, group_concat(b.numbers) as 'numbers'
+								from
+								togel_shio_name a
+								join togel_shio_number b on a.id = b.togel_shio_name_id
+								group by a.id;");
+
+		return response()->json([
+			'status' => 'success',
+			'code'   => 200,
+			'data'   => $result
+		]);
 	}
 }
