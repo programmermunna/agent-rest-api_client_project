@@ -490,7 +490,7 @@ class MemberController extends ApiController
 				'kredit'  		=> $value->kredit,
 				'balance' 		=> $value->balance,
 				'created_by'    => auth('api')->user()->username,
-				'url'   		=> url("/api/endpoint/getDetailTransaksi?detail=$value->bet_id"),
+				'url'   		=> "/endpoint/getDetailTransaksi?detail=$value->bet_id",
 			];
 		});
 	}	
