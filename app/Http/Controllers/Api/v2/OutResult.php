@@ -106,4 +106,12 @@ class OutResult extends ApiController
 			'data'   => $result
 		]);
 	}
+
+	public function getDetailTransaksi()
+	{
+		$params = request()->get('detail'); 
+		$id = explode("," , $params);
+		$result = DB::table('bets_togel')->whereIn('id' , $id)->get();
+		return $result;
+	}
 }

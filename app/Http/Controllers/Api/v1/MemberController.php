@@ -480,25 +480,19 @@ class MemberController extends ApiController
 
 	public function getTogel()
 	{
-		$result = DB::select(DB::raw("SELECT
-			if(a.created_at IS NULL, a.updated_at, a.created_at) AS 'Tanggal',
-				a.pasaran AS 'Pasaran',
-				c.name AS 'Game',
-				b.id AS 'Bet ID',
-				a.description AS 'Deskripsi',
-				a.debit AS 'Debit',
-				a.kredit AS 'Kredit',
-				a.balance AS 'Balance'
-			FROM
-				bets_togel_history_transaksi a
-				JOIN bets_togel b ON a.created_by = b.created_by AND a.created_at = b.created_at
-				JOIN togel_game c ON b.togel_game_id = c.id
-				WHERE b.created_by = ".auth('api')->user()->id."
-			GROUP BY
-		b.id"));
-		$this->togel = $result;
-
-		return $result;
+		$result = DB::table('bets_togel_history_transaksi')->where('created_by' , '=' , auth('api')->user()->id)->get()->toArray();
+		return $this->togel = collect($result)->map(function($value) { 
+			return [
+				'bets_togel_id' => $value->bets_togel_id,
+				'pasaran'       => $value->pasaran,
+				'description'   => $value->description,
+				'debit' 		=> $value->debit,
+				'kredit'  		=> $value->kredit,
+				'balance' 		=> $value->balance,
+				'created_by'    => auth('api')->user()->username,
+				'url'   		=> url("/api/endpoint/getDetailTransaksi?detail=$value->bet_id"),
+			];
+		});
 	}	
 
 
