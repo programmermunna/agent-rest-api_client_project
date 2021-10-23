@@ -415,7 +415,7 @@ class MemberController extends ApiController
                     'dll' => $bonusArr,
                 ];
 			} else if ($request->type == 'togel') {
-			    $togel = $this->paginate($this->getTogel(), $this->perPage);
+			    $togel = $this->paginate($this->getTogel(), $this->pageAll);
 				return [
 					'status' => 'success',
 					'togel' => $togel,
@@ -470,7 +470,7 @@ class MemberController extends ApiController
                     'allProviderBet' => $allProviderBet,
                     'allProviderReferal' => $allProviderReferal,
                     'Bonus/Promo' => $bonusArr,
-					'togel' => $this->paginate($this->getTogel() , $this->perPage) 
+					'togel' => $this->paginate($this->getTogel() , $this->pageAll) 
                 ];
             }
         } catch (\Throwable $th) {
@@ -480,26 +480,22 @@ class MemberController extends ApiController
 
 	public function getTogel()
 	{
-		$result = DB::select(DB::raw("
-				select
-					if (
-						a.created_at is null
-						, a.updated_at
-						, a.created_at
-					) as 'Tanggal'
-					, a.pasaran as 'Pasaran'
-					, c.name as 'Game'
-					, b.id as 'Bet ID'
-					, a.description as 'Deskripsi'
-					, a.debit as 'Debit'
-					, a.kredit as 'Kredit'
-					, a.balance as 'Balance'
-					from
-						bets_togel_history_transaksi a
-						join bets_togel b on a.created_by = b.created_by and a.created_at = b.created_at
-						join togel_game c on b.togel_game_id = c.id
-						group by b.id
-			     "));
+		$result = DB::select(DB::raw("SELECT
+			if(a.created_at IS NULL, a.updated_at, a.created_at) AS 'Tanggal',
+				a.pasaran AS 'Pasaran',
+				c.name AS 'Game',
+				b.id AS 'Bet ID',
+				a.description AS 'Deskripsi',
+				a.debit AS 'Debit',
+				a.kredit AS 'Kredit',
+				a.balance AS 'Balance'
+			FROM
+				bets_togel_history_transaksi a
+				JOIN bets_togel b ON a.created_by = b.created_by AND a.created_at = b.created_at
+				JOIN togel_game c ON b.togel_game_id = c.id
+				WHERE b.created_by = ".auth('api')->user()->id."
+			GROUP BY
+		b.id"));
 		$this->togel = $result;
 
 		return $result;
