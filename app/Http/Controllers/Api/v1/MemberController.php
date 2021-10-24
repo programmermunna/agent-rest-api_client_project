@@ -415,7 +415,9 @@ class MemberController extends ApiController
                     'dll' => $bonusArr,
                 ];
 			} else if ($request->type == 'togel') {
-			    $togel = $this->paginate($this->getTogel(), $this->perPage);
+
+			    $togel = $this->paginate($this->getTogel(), $this->pageAll);
+
 				return [
 					'status' => 'success',
 					'togel' => $togel,
@@ -470,7 +472,9 @@ class MemberController extends ApiController
                     'allProviderBet' => $allProviderBet,
                     'allProviderReferal' => $allProviderReferal,
                     'Bonus/Promo' => $bonusArr,
-					'togel' => $this->paginate($this->getTogel() , $this->perPage) 
+
+					'togel' => $this->paginate($this->getTogel() , $this->pageAll) 
+
                 ];
             }
         } catch (\Throwable $th) {
@@ -480,29 +484,21 @@ class MemberController extends ApiController
 
 	public function getTogel()
 	{
-		$result = DB::select(DB::raw("
-				select
-					if (
-						a.created_at is null
-						, a.updated_at
-						, a.created_at
-					) as 'Tanggal'
-					, a.pasaran as 'Pasaran'
-					, c.name as 'Game'
-					, b.id as 'Bet ID'
-					, a.description as 'Deskripsi'
-					, a.debit as 'Debit'
-					, a.kredit as 'Kredit'
-					, a.balance as 'Balance'
-					from
-						bets_togel_history_transaksi a
-						join bets_togel b on a.created_by = b.created_by and a.created_at = b.created_at
-						join togel_game c on b.togel_game_id = c.id
-						group by b.id
-			     "));
-		$this->togel = $result;
 
-		return $result;
+		$result = DB::table('bets_togel_history_transaksi')->where('created_by' , '=' , auth('api')->user()->id)->get()->toArray();
+		return $this->togel = collect($result)->map(function($value) { 
+			return [
+				'bets_togel_id' => $value->bets_togel_id,
+				'pasaran'       => $value->pasaran,
+				'description'   => $value->description,
+				'debit' 		=> $value->debit,
+				'kredit'  		=> $value->kredit,
+				'balance' 		=> $value->balance,
+				'created_by'    => auth('api')->user()->username,
+				'url'   		=> "/endpoint/getDetailTransaksi?detail=$value->bet_id",
+			];
+		});
+
 	}	
 
 

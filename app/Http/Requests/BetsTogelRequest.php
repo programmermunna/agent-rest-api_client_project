@@ -25,9 +25,7 @@ class BetsTogelRequest extends FormRequest
 		return [
 			"type"                                => ["required", 'string'],
 			"provider"                            => ["required", "string"],
-			"period"                              => ["required", "string"],
 			"data"                                => ['required', 'array'],
-			"data.*.period"                    	  => ['required'],
 			"data.*.number_1"                     => ['nullable', 'numeric'],
 			"data.*.number_2"                     => ['nullable', 'numeric'],
 			"data.*.number_3"                     => ['nullable', 'numeric'],

@@ -158,6 +158,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 	Route::get('dreamBooks', [TogelDreamsBookController::class, 'getDreamsBook']);
 	Route::get('globalSetting' , [TogelSettingGameController::class , 'getGlobalSettingGame']);
 	Route::get('rules' , [TogelPeraturanGame::class , 'getPeraturanGame']);
+	Route::get('getDetailTransaksi' , [OutResult::class , 'getDetailTransaksi']);
 	# Togel Must Secure when betting
 	Route::middleware(['jwt.verify'])->group(function () {
 		Route::post('storeTogel', [BetsTogelController::class, 'store']);

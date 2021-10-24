@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v2;
 
+use App\Helpers\History;
 use App\Http\Controllers\ApiController;
 use App\Http\Resources\Api\v2\OutResultResource;
 use App\Models\ConstantProviderTogelModel;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  */
 class OutResult extends ApiController
 {
-	use CustomPaginate;
+	use CustomPaginate, History;
 
 	/**
 	 * Get all Togel Result Number 
@@ -106,4 +107,14 @@ class OutResult extends ApiController
 			'data'   => $result
 		]);
 	}
+
+	public function getDetailTransaksi()
+	{
+		$params = request()->get('detail');
+		$id = explode(",", $params);
+		return $this->get()
+			->whereIn('bets_togel.id', $id)
+			->get();
+	}
+
 }
