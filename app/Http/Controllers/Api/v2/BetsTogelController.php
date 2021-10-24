@@ -38,7 +38,6 @@ class BetsTogelController extends ApiController
 			->latest('result_date')
 			->first();
 
-
 		// get setting games 
 		$settingGames = $this->getSettingGames($gameType, $provider)->first();
 
@@ -47,7 +46,7 @@ class BetsTogelController extends ApiController
 		// Loop the validated data and take key data and remapping the key
 		foreach ($this->checkBlokedNumber($request, $provider) as $togel) {
 			array_push($bets, array_merge($togel, [
-				'period'  		=> empty($togel_result_number->period) ? 1 : intval($togel_result_number->period) + 1,
+				'period'  		=> is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
 				"togel_game_id" => $gameType,
 				"constant_provider_togel_id" => $provider,
 				'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
@@ -93,7 +92,7 @@ class BetsTogelController extends ApiController
 			$this->updateCredit($total_bets_after_disc);
 			ConstantProviderTogelModel::query()
 				->where('id', '=', $provider)
-				->update(['period' => $togel_result_number->period + 1]);
+				->update(['period' => is_null($togel_result_number) ? 1 : $togel_result_number->period]);
 			DB::commit();
 			return response()->json(['message' => 'success', 'code' => 200], 200);
 		} catch (Throwable $error) {
