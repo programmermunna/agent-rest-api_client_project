@@ -415,7 +415,9 @@ class MemberController extends ApiController
                     'dll' => $bonusArr,
                 ];
 			} else if ($request->type == 'togel') {
+
 			    $togel = $this->paginate($this->getTogel(), $this->pageAll);
+
 				return [
 					'status' => 'success',
 					'togel' => $togel,
@@ -470,7 +472,9 @@ class MemberController extends ApiController
                     'allProviderBet' => $allProviderBet,
                     'allProviderReferal' => $allProviderReferal,
                     'Bonus/Promo' => $bonusArr,
+
 					'togel' => $this->paginate($this->getTogel() , $this->pageAll) 
+
                 ];
             }
         } catch (\Throwable $th) {
@@ -480,6 +484,7 @@ class MemberController extends ApiController
 
 	public function getTogel()
 	{
+
 		$result = DB::table('bets_togel_history_transaksi')->where('created_by' , '=' , auth('api')->user()->id)->get()->toArray();
 		return $this->togel = collect($result)->map(function($value) { 
 			return [
@@ -493,6 +498,7 @@ class MemberController extends ApiController
 				'url'   		=> "/endpoint/getDetailTransaksi?detail=$value->bet_id",
 			];
 		});
+
 	}	
 
 

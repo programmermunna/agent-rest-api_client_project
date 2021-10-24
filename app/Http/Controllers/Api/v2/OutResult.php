@@ -12,7 +12,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
-
 /**
  * @author Hanan Asyrawi Rivai 
  */
@@ -117,4 +116,5 @@ class OutResult extends ApiController
 			->whereIn('bets_togel.id', $id)
 			->get();
 	}
+
 }
