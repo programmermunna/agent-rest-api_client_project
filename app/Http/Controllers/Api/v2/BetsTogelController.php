@@ -7,6 +7,7 @@ use App\Http\Requests\BetsTogelRequest;
 use App\Models\BetsTogel;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\TogelGame;
+use App\Models\TogelResultNumberModel;
 use App\Models\TogelSettingGames;
 use Exception as NewException;
 use Illuminate\Database\Eloquent\Builder;
@@ -31,15 +32,22 @@ class BetsTogelController extends ApiController
 		// take type of game and provider
 		$gameType = $togelGames[$request->type];
 		$provider = $providerGame[$request->provider];
-		
+
+		$togel_result_number = TogelResultNumberModel::query()
+			->where('constant_provider_togel_id', $provider)
+			->latest('result_date')
+			->first();
+
+
 		// get setting games 
-		$settingGames = $this->getSettingGames($gameType , $provider)->first();
-		
+		$settingGames = $this->getSettingGames($gameType, $provider)->first();
+
 		$bets = [];
 		$total_bets_after_disc = [];
 		// Loop the validated data and take key data and remapping the key
-		foreach ($this->checkBlokedNumber($request , $provider) as $togel) {
+		foreach ($this->checkBlokedNumber($request, $provider) as $togel) {
 			array_push($bets, array_merge($togel, [
+				'period'  		=> empty($togel_result_number->period) ? 1 : intval($togel_result_number->period) + 1,
 				"togel_game_id" => $gameType,
 				"constant_provider_togel_id" => $provider,
 				'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
@@ -47,7 +55,7 @@ class BetsTogelController extends ApiController
 				'created_at' => now()
 			]));
 			// Sum pay_amount
-			array_push($total_bets_after_disc , floatval($togel['pay_amount']));
+			array_push($total_bets_after_disc, floatval($togel['pay_amount']));
 		}
 		if (empty($bets)) {
 			return response()->json([
@@ -70,7 +78,7 @@ class BetsTogelController extends ApiController
 			DB::select("SET @bet_ids=' a.id in (" . $bets_id . ")';");
 			$response = DB::select("CALL is_buangan_before_terpasang(@bet_ids)"); // will be return empty
 			// Cek This is Bet Buangan 
-			if ($response[0]->results != null ) {
+			if ($response[0]->results != null) {
 				foreach (json_decode($response[0]->results) as $bet) {
 					BetsTogel::query()
 						->where('id', $bet->bet_id)
@@ -82,7 +90,10 @@ class BetsTogelController extends ApiController
 				}
 			}
 
-			$this->updateCredit($total_bets_after_disc);	
+			$this->updateCredit($total_bets_after_disc);
+			ConstantProviderTogelModel::query()
+				->where('id', '=', $provider)
+				->update(['period' => $togel_result_number->period + 1]);
 			DB::commit();
 			return response()->json(['message' => 'success', 'code' => 200], 200);
 		} catch (Throwable $error) {
@@ -90,16 +101,15 @@ class BetsTogelController extends ApiController
 			Log::error($error->getMessage());
 			return $error->getMessage();
 		}
-
 	}
 
 	// Check if exist on request 
 	// @return void
-	protected function checkType() : void
+	protected function checkType(): void
 	{
 		if (!isset(request()->type) || empty(request()->type)) {
 			throw new NewException("type is empty please fill", 400);
-		}else if (!isset(request()->provider) || empty(request()->provider)) {
+		} else if (!isset(request()->provider) || empty(request()->provider)) {
 			throw new NewException("Provider Cannot  empty please fill", 400);
 		}
 	}
@@ -110,11 +120,11 @@ class BetsTogelController extends ApiController
 	 * @param int $gameProvider
 	 * @return Builder
 	 */
-	protected function getSettingGames(int $gameType, int $gameProvider) : Builder
+	protected function getSettingGames(int $gameType, int $gameProvider): Builder
 	{
 		$result = TogelSettingGames::query()
-					->where('constant_provider_togel_id' ,'=' , $gameProvider)
-					->where('togel_game_id' , '=' , $gameType);
+			->where('constant_provider_togel_id', '=', $gameProvider)
+			->where('togel_game_id', '=', $gameType);
 
 		return $result;
 	}
@@ -125,13 +135,13 @@ class BetsTogelController extends ApiController
 	 * @param BetsTogelRequest $request
 	 * @param array $number
 	 */
-	protected function checkBlokedNumber(BetsTogelRequest $request , int $provider)
+	protected function checkBlokedNumber(BetsTogelRequest $request, int $provider)
 	{
-		$blokedsNumber = [] ;
-	
-		$stackNumber = ['number_1' , 'number_2' , 'number_3' , 'number_4' , 'number_5' , 'number_6'];
+		$blokedsNumber = [];
 
-		if (in_array($stackNumber , $request->validationData()['data'])) {
+		$stackNumber = ['number_1', 'number_2', 'number_3', 'number_4', 'number_5', 'number_6'];
+
+		if (in_array($stackNumber, $request->validationData()['data'])) {
 			foreach ($request->validationData()['data'] as $key => $data) {
 				$number_1 = $data['number_1'] != null ? "number_1 = {$data['number_1']} and " : null;
 				$number_2 = $data['number_2'] != null ? "number_2 = {$data['number_2']} and " : null;
