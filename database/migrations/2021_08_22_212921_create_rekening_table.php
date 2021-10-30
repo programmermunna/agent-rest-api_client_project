@@ -21,7 +21,7 @@ class CreateRekeningTable extends Migration
             $table->string('user_banking', 50)->nullable();
             $table->string('password_banking', 50)->nullable();
             $table->string('keterangan', 100)->nullable();
-            $table->decimal('nett', 13, 2);
+            $table->decimal('nett', 13, 2)->default(0.00);
             $table->boolean('is_bank')->default(true)->comment('0 = non bank; 1 = bank');
             $table->boolean('is_default')->default(false);
             $table->boolean('is_depo')->default(false)->comment('1 = rekening untuk deposit');
@@ -31,12 +31,12 @@ class CreateRekeningTable extends Migration
             $table->string('koreksi', 50)->nullable()->comment('update, plus, minus');
             $table->decimal('jumlah_koreksi_balance', 13, 2)->nullable()->default(0.00);
             $table->string('deskripsi')->nullable();
-            $table->integer('created_by')->nullable();
-            $table->integer('updated_by')->nullable();
-            $table->integer('deleted_by')->nullable();
-            $table->timestamp('created_at')->nullable();
-            $table->timestamp('updated_at')->nullable();
-            $table->timestamp('deleted_at')->nullable();
+            $table->integer('created_by')->nullable()->default(null);
+            $table->integer('updated_by')->nullable()->default(null);
+            $table->integer('deleted_by')->nullable()->default(null);
+            $table->timestamp('created_at')->nullable()->default(null);
+            $table->timestamp('updated_at')->nullable()->default(null);
+            $table->timestamp('deleted_at')->nullable()->default(null);
         });
     }
 

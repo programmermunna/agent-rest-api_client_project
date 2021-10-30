@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddDeviceToMembersTable extends Migration
+class AddMorphableToBetsTogelHistoryTransaksi extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,9 @@ class AddDeviceToMembersTable extends Migration
      */
     public function up()
     {
-        Schema::table('members', function (Blueprint $table) {
-            $table->string('device')->after('username')->nullalbe();
+        Schema::table('bets_togel_history_transaksi', function (Blueprint $table) {
+            $table->string('model_type')->nullable();
+            $table->string('model_id')->nullable();
         });
     }
 
@@ -25,7 +26,7 @@ class AddDeviceToMembersTable extends Migration
      */
     public function down()
     {
-        Schema::table('members', function (Blueprint $table) {
+        Schema::table('bets_togel_history_transaksi', function (Blueprint $table) {
             //
         });
     }

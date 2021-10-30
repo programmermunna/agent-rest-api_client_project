@@ -19,26 +19,15 @@ class UserSeeder extends Seeder
 
         // Add the master administrator, user id of 1
         User::create([
-            'type' => User::TYPE_ADMIN,
+            'id' => 1,
+            'type' => 'user',
             'username' => 'admin',
             'name' => 'Super Admin',
             'email' => 'admin@admin.com',
-            'password' => 'secret',
+            'password' => 'admin123',
             'email_verified_at' => now(),
             'active' => true,
         ]);
-
-        // if (app()->environment(['local', 'testing'])) {
-        //     User::create([
-        //         'type' => User::TYPE_USER,
-        //         'name' => 'Test User',
-        //         'email' => 'user@user.com',
-        //         'password' => 'secret',
-        //         'email_verified_at' => now(),
-        //         'active' => true,
-        //     ]);
-        // }
-
-        $this->enableForeignKeys();
+        // $this->enableForeignKeys();
     }
 }

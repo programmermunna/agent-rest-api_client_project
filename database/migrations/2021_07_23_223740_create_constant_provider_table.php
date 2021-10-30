@@ -16,6 +16,8 @@ class CreateConstantProviderTable extends Migration
         // Schema::dropIfExists('constant_provider');
         Schema::create('constant_provider', function (Blueprint $table) {
             $table->id();
+            $table->string('api_key', 191);
+            $table->string('brand_id', 191);
             $table->string('constant_provider_name');
             $table->integer('created_by')->nullable();
             $table->integer('updated_by')->nullable();

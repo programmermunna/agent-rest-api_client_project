@@ -19,12 +19,12 @@ class CreatePermissionTables extends Migration
 
         Schema::create($tableNames['permissions'], function (Blueprint $table) use ($tableNames) {
             $table->bigIncrements('id');
-            $table->enum('type', [User::TYPE_ADMIN, User::TYPE_USER]);
-            $table->string('guard_name');
-            $table->string('name');
-            $table->string('description')->nullable();
-            $table->unsignedBigInteger('parent_id')->nullable();
-            $table->tinyInteger('sort')->default(1);
+            $table->enum('type', [User::TYPE_ADMIN, User::TYPE_USER])->comment('to differentiate user roles');
+            $table->string('guard_name')->comment('to differentiate between web and api in routes');
+            $table->string('name')->comment('permission name');
+            $table->string('description')->nullable()->comment('permission description');
+            $table->unsignedBigInteger('parent_id')->nullable()->comment('hierarchical permissions');
+            $table->tinyInteger('sort')->default(1)->comment('The sort query parameter is used to determine by which property the results collection will be ordered. Sorting is ascending by default and can be reversed by adding a hyphen (-) to the start of the property name.');
             $table->timestamps();
 
             $table->foreign('parent_id')
@@ -35,14 +35,15 @@ class CreatePermissionTables extends Migration
 
         Schema::create($tableNames['roles'], function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->enum('type', [User::TYPE_ADMIN, User::TYPE_USER]);
-            $table->string('name');
-            $table->string('guard_name');
+            $table->enum('type', [User::TYPE_ADMIN, User::TYPE_USER])->comment('to differentiate user roles');
+            $table->string('name')->comment('role name');
+            $table->string('guard_name')->comment('role name');
             $table->timestamps();
         });
 
+        // This model is built in spatie
         Schema::create($tableNames['model_has_permissions'], function (Blueprint $table) use ($tableNames, $columnNames) {
-            $table->unsignedBigInteger('permission_id');
+            $table->unsignedBigInteger('permission_id')->comment('row id in permission table');
 
             $table->string('model_type');
             $table->unsignedBigInteger($columnNames['model_morph_key']);
@@ -60,7 +61,7 @@ class CreatePermissionTables extends Migration
         });
 
         Schema::create($tableNames['model_has_roles'], function (Blueprint $table) use ($tableNames, $columnNames) {
-            $table->unsignedBigInteger('role_id');
+            $table->unsignedBigInteger('role_id')->comment('row id in roles table');
 
             $table->string('model_type');
             $table->unsignedBigInteger($columnNames['model_morph_key']);
@@ -78,8 +79,8 @@ class CreatePermissionTables extends Migration
         });
 
         Schema::create($tableNames['role_has_permissions'], function (Blueprint $table) use ($tableNames) {
-            $table->unsignedBigInteger('permission_id');
-            $table->unsignedBigInteger('role_id');
+            $table->unsignedBigInteger('permission_id')->comment('row id in permission table');
+            $table->unsignedBigInteger('role_id')->comment('row id in roles table');
 
             $table->foreign('permission_id')
                 ->references('id')

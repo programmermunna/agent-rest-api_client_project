@@ -16,7 +16,7 @@ class CreateConstantBonusTable extends Migration
         Schema::create('constant_bonus', function (Blueprint $table) {
             $table->id();
             $table->string('nama_bonus');
-            $table->integer('created_by')->nullalbe();
+            $table->integer('created_by')->nullable();
             $table->integer('updated_by')->nullable();
             $table->integer('deleted_by')->nullable();
             $table->timestamps();

@@ -1,9 +1,8 @@
 <?php
 
-use App\Models\TogelResultNumberModel;
 use Illuminate\Database\Seeder;
 
-class TogelResultNumberSeeder extends Seeder
+class RekeningSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -12,6 +11,7 @@ class TogelResultNumberSeeder extends Seeder
      */
     public function run()
     {
-        factory(TogelResultNumberModel::class , 200)->create(); 
+        
+
     }
 }

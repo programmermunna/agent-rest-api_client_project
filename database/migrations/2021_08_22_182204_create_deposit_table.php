@@ -15,8 +15,8 @@ class CreateDepositTable extends Migration
     {
         Schema::create('deposit', function (Blueprint $table) {
             $table->id();
-            $table->integer('members_id')->comment('user id di front panel');
-            $table->integer('rekening_id')->comment('Rekening bank tujuan');
+            $table->integer('members_id')->comment('user id di front panel')->nullable();
+            $table->integer('rekening_id')->comment('Rekening bank tujuan')->nullable();
             $table->decimal('jumlah', 13, 2)->nullable()->default(0.00);
             $table->integer('rek_member_id');
             $table->boolean('is_claim_next_deposit')->default(false)->comment('1 = Claim Bonus Next Deposit');

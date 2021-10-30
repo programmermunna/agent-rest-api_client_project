@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateBetsTogelsTable extends Migration
+class AddUrlDetailToBetsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,8 @@ class CreateBetsTogelsTable extends Migration
      */
     public function up()
     {
-        Schema::create('bets_togels', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('bets', function (Blueprint $table) {
+            // $table->string('url_detail')->nullable()->after('credit');
         });
     }
 
@@ -26,6 +25,8 @@ class CreateBetsTogelsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('bets_togels');
+        Schema::table('bets', function (Blueprint $table) {
+            //
+        });
     }
 }

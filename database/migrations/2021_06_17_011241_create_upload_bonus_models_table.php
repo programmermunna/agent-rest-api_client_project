@@ -15,7 +15,7 @@ class CreateUploadBonusModelsTable extends Migration
     {
         Schema::create('upload_bonus', function (Blueprint $table) {
             $table->id();
-            $table->string('path');
+            $table->string('path', 255);
             $table->string('description');
             $table->integer('created_by')->nullable();
             $table->integer('updated_by')->nullable();

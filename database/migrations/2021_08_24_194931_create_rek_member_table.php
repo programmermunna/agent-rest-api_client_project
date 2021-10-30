@@ -29,6 +29,8 @@ class CreateRekMemberTable extends Migration
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
             $table->timestamp('deleted_at')->nullable();
+
+            $table->foreign('constant_rekening_id')->references('id')->on('constant_rekening');
         });
     }
 
