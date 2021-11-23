@@ -12,7 +12,6 @@ use App\Models\CancelBetModel;
 use App\Models\BetModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
-use JWTAuth;
 use App\Models\AppSetting;
 use Illuminate\Support\Facades\Response;
 

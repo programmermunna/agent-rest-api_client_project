@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\v2\BetsTogelController;
 use App\Http\Controllers\Api\v2\OutResult;
+use App\Http\Controllers\ProviderService\GameHallController;
 use App\Http\Controllers\ProviderService\ProviderController;
 use App\Http\Controllers\TogelDreamsBookController;
 use App\Http\Controllers\TogelPeraturanGame;
@@ -147,6 +148,9 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result', [ProviderController::class, 'result']);
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
+    # Game Gall 
+    Route::post("bet_gameHall" , [GameHallController::class , "betGameHall"]);
+    Route::post("result_gameHall" , [GameHallController::class , "resultGameHall"]);
 
 	# Togel
     Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
