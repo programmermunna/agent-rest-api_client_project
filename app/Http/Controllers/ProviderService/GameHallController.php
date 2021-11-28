@@ -34,7 +34,11 @@ class GameHallController extends Controller
                 break;
 
             case 'cancelBet':
-                return $this->bet();
+                return [
+                    "status" => '0000',
+                    "balance" => 100000,
+                    "balanceTs" => "2020-12-03T07:14:44.767Z"   
+                ];
                 break;
 
             case 'voidBet':
@@ -92,7 +96,7 @@ class GameHallController extends Controller
                 $this->insertBet($bet);
                 $result =  BetModel::where('game_id', $token->data->txns[0]->gameCode)->first();
                 return [
-                    "status" => 0000,
+                    "status" => '0000',
                     "balance" => $token->amount,
                     "balanceTs"   => $result->created_at
                 ];
