@@ -56,10 +56,10 @@ class DepositController extends ApiController
 
             $deposit = DepositModel::create($payload);
 
-            MembersModel::where('id', auth('api')->user()->id)
-                    ->update([
-                        'rekening_id_tujuan_depo' => $request->rekening_id,
-                    ]);
+            // MembersModel::where('id', auth('api')->user()->id)
+            //         ->update([
+            //             'rekening_id_tujuan_depo' => $request->rekening_id,
+            //         ]);
 
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(

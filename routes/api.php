@@ -149,7 +149,7 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
     # Game Gall 
-    Route::post("bet_gameHall" , [GameHallController::class , "betGameHall"]);
+    Route::post("bet_gameHall" , [GameHallController::class , "listenTransaction"]);
     Route::post("result_gameHall" , [GameHallController::class , "resultGameHall"]);
 
 	# Togel
