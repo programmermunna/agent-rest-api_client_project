@@ -172,14 +172,19 @@ class GameHallController extends Controller
             $amountWin = $tokenRaw->winAmount;
             $creditMember = $member->credit;
             $amount = $creditMember + $amountWin;
-
-            // check if bet already exist
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
             // update credit to table member
             $member->update([
                 'credit' => $amount,
                 'updated_at' => $tokenRaw->betTime,
             ]);
+            
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            if ($bets == null) {
+                return [
+                    "status" => '0000',
+                ];
+            }
+
             if ($tokenRaw->winAmount == 0) {
                 $bets->update([
                     'type' => 'Settle',
