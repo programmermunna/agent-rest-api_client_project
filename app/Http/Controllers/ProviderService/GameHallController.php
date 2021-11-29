@@ -19,15 +19,17 @@ class GameHallController extends Controller
     // Before this Controller is called, we need to check if the user is logged in
     public function __construct()
     {
+        
         $this->token =  request()->token;
         $this->transaction = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+        
     }
 
     // Listen Transaction From Decoded Token
     public function listenTransaction()
     {
         $action = $this->transaction->action;
-
+       
         switch ($action) {
             case 'bet':
                 return $this->Bet();
@@ -38,11 +40,7 @@ class GameHallController extends Controller
                 break;
 
             case 'cancelBet':
-                return [
-                    "status" => '0000',
-                    "balance" => 100000,
-                    "balanceTs" => "2020-12-03T07:14:44.767Z"   
-                ];
+                return $this->CancelBet();
                 break;
 
             case 'voidBet':
@@ -90,7 +88,7 @@ class GameHallController extends Controller
                         'credit' => $amount,
                         'updated_at' => $tokenRaw->betTime,
                     ]);
-    
+
                     $bets = BetModel::create([
                         'created_by' => $tokenRaw->userId,
                         'updated_by' => $tokenRaw->userId,
@@ -149,13 +147,25 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $creditMember = $member->credit;
+            $creditMember = $member->credit + $tokenRaw->betAmount;
+            try {
+                MembersModel::query()->where('id' , $tokenRaw->userId)->update([
+                    'credit' => $creditMember
+                ]);
+                BetModel::query()->where('bet_id' , '=' , $tokenRaw->platformTxID)
+                    ->update([
+                        'type' => 'Cancel'
+                    ]);
+            } catch (\Throwable $th) {
+                throw $th->error;
+            } 
         }
         return [
             "status" => '0000',
             "balance" => $creditMember,
-            "balanceTs"   => $member->updated_at
+            "balanceTs"   => now() 
         ];
+
     }
 
     public function VoidBet()
@@ -172,7 +182,7 @@ class GameHallController extends Controller
             }else{
                 $bets->update([
                     'type' => 'Void',
-                    'bet' => $amountWin * $tokenRaw->gameInfo->odds,
+                    'bet' => $amountbet * $tokenRaw->gameInfo->odds,
                     'updated_at' => $tokenRaw->updateTime,
                 ]);
 
@@ -189,7 +199,6 @@ class GameHallController extends Controller
 
     public function AdjustBet()
     {
-
     }
 
     public function UnVoidBet()
@@ -288,5 +297,4 @@ class GameHallController extends Controller
     public function CancelTip()
     {
     }
-        
 }
