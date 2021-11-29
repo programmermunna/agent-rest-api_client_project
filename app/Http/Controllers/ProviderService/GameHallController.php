@@ -30,8 +30,9 @@ class GameHallController extends Controller
 
         switch ($action) {
             case 'bet':
-                return $this->bet();
+                return $this->Bet();
                 break;
+
             case 'settle':
                 return $this->Settle();
                 break;
@@ -45,7 +46,11 @@ class GameHallController extends Controller
                 break;
 
             case 'voidBet':
-                return $this->bet();
+                return $this->VoidBet();
+                break;
+
+            case 'unvoidSettle':
+                return $this->UnVoidSettle();
                 break;
         }
         return response()->json([
@@ -144,6 +149,27 @@ class GameHallController extends Controller
 
     public function VoidBet()
     {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $amountbet = $tokenRaw->betAmount;
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            if($bets == null){
+                return [
+                    "status" => '0000',
+                ];
+            }else{
+                $bets->update([
+                    'type' => 'Void',
+                    'bet' => $amountWin * 0.95,
+                    'updated_at' => $tokenRaw->updateTime,
+                ]);
+
+            }
+        }
+        return [
+            "status" => '0000',
+        ];
     }
 
     public function SettleBet()
@@ -218,6 +244,26 @@ class GameHallController extends Controller
 
     public function UnVoidSettle()
     {
+            // call betInformation
+            $token = $this->betInformation();
+            foreach ($token->data->txns as $tokenRaw) {
+                $amountbet = $tokenRaw->betAmount;
+                $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+                if($bets == null){
+                    return [
+                        "status" => '0000',
+                    ];
+                }else{
+                    $bets->update([
+                        'type' => 'Settle',
+                        'updated_at' => $tokenRaw->updateTime,
+                    ]);
+    
+                }
+            }
+            return [
+                "status" => '0000',
+            ];
     }
 
     public function Give()
