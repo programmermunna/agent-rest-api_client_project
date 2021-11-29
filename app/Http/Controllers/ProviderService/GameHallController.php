@@ -50,6 +50,10 @@ class GameHallController extends Controller
             case 'unvoidSettle':
                 return $this->UnVoidSettle();
                 break;
+
+            case 'unvoidBet':
+                return $this->UnVoidBet();
+                break;
         }
         return response()->json([
             'status' => 'error',
@@ -203,6 +207,23 @@ class GameHallController extends Controller
 
     public function UnVoidBet()
     {
+            $token = $this->betInformation();
+            foreach ($token->data->txns as $tokenRaw) {
+                $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+                if($bets == null){
+                    return [
+                        "status" => '0000',
+                    ];
+                }else{
+                    $bets->update([
+                        'type' => 'Bet',
+                        'updated_at' => $tokenRaw->updateTime,
+                    ]);
+                }
+            }
+            return [
+                "status" => '0000',
+            ];
     }
 
     public function RefunBet()
