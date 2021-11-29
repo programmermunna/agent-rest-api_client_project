@@ -145,6 +145,17 @@ class GameHallController extends Controller
 
     public function CancelBet()
     {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $creditMember = $member->credit;
+        }
+        return [
+            "status" => '0000',
+            "balance" => $creditMember,
+            "balanceTs"   => $member->updated_at
+        ];
     }
 
     public function VoidBet()
@@ -161,7 +172,7 @@ class GameHallController extends Controller
             }else{
                 $bets->update([
                     'type' => 'Void',
-                    'bet' => $amountWin * 0.95,
+                    'bet' => $amountWin * $tokenRaw->gameInfo->odds,
                     'updated_at' => $tokenRaw->updateTime,
                 ]);
 
