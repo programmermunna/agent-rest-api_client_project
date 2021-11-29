@@ -32,6 +32,9 @@ class GameHallController extends Controller
             case 'bet':
                 return $this->bet();
                 break;
+            case 'settle':
+                return $this->Settle();
+                break;
 
             case 'cancelBet':
                 return [
@@ -92,7 +95,6 @@ class GameHallController extends Controller
                         'type' => 'Bet',
                         'game' => $tokenRaw->gameName,
                         'bet' => $amountbet,
-                        'game_info' => $tokenRaw->gameType,
                         'created_at' => $tokenRaw->betTime,
                         'constant_provider_id' => 7,
                         'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
@@ -162,6 +164,60 @@ class GameHallController extends Controller
 
     public function Settle()
     {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $amountWin = $tokenRaw->winAmount;
+            $creditMember = $member->credit;
+            $amount = $creditMember + $amountWin;
+
+            // check if bet already exist
+            $bets = BetModel::where('round_id', $tokenRaw->roundId)->where('type', 'Bet')->first();
+                // update credit to table member
+            $member->update([
+                'credit' => $amount,
+                'updated_at' => $tokenRaw->betTime,
+            ]);
+            if ($tokenRaw->winAmount == 0) {
+                $bets->update([
+                    'type' => 'Settle',
+                    'created_at' => $tokenRaw->betTime,
+                    'updated_at' => $tokenRaw->updateTime,
+                    'deskripsi' => 'Game Bet/Lose' . ' : ' . $tokenRaw->betAmount,
+                ]);
+            }else {
+                $bets->update([
+                    'type' => 'Settle',
+                    'win' => $amountWin,
+                    'created_at' => $tokenRaw->betTime,
+                    'updated_at' => $tokenRaw->updateTime,
+                    'deskripsi' => 'Game win' . ' : ' . $amountWin,
+                ]);
+
+            }
+
+
+            $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+                ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+                ->where('bets.id', $bets->id)->first();
+            $member =  MembersModel::where('id', $bets->created_by)->first();
+            UserLogModel::logMemberActivity(
+                'create bet',
+                $member,
+                $bets,
+                [
+                    'target' => $nameProvider->username,
+                    'activity' => 'Bet',
+                    'device' => $nameProvider->device,
+                    'ip' => $nameProvider->last_login_ip,
+                ],
+                "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->amountWin"
+            );
+        }
+        return [
+            "status" => '0000',
+        ];
     }
 
     public function UnSettle()
