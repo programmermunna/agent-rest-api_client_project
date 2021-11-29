@@ -304,6 +304,26 @@ class GameHallController extends Controller
 
     public function UnSettle()
     {
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $amountbet = $tokenRaw->betAmount;
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            if($bets == null){
+                return [
+                    "status" => '0000',
+                ];
+            }else{
+                $bets->update([
+                    'type' => 'Bet',
+                    'bet' => $amountbet * $tokenRaw->gameInfo->odds,
+                    'updated_at' => $tokenRaw->updateTime,
+                ]);
+
+            }
+        }
+        return [
+            "status" => '0000',
+        ];
     }
 
     public function VoidSettle()
@@ -323,7 +343,7 @@ class GameHallController extends Controller
                     ];
                 }else{
                     $bets->update([
-                        'type' => 'Settle',
+                        'type' => 'Bet',
                         'updated_at' => $tokenRaw->updateTime,
                     ]);
     
