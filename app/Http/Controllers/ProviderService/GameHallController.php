@@ -167,7 +167,7 @@ class GameHallController extends Controller
         foreach ($token->data->txns as $tokenRaw) {
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             $creditMember = $member->credit;
-            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxID)
+            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
                 ->update([
                     'type' => 'Cancel'
                 ]);
