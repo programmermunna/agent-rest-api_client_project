@@ -63,6 +63,10 @@ class GameHallController extends Controller
                 return $this->UnVoidSettle();
                 break;
 
+            case 'refund':
+                return $this->RefunBet();
+                break;
+
             case 'unvoidBet':
                 return $this->UnVoidBet();
                 break;
@@ -263,6 +267,39 @@ class GameHallController extends Controller
 
     public function RefunBet()
     {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $amountWin = $tokenRaw->winAmount;
+            $amountBet = $tokenRaw->betAmount;
+            $creditMember = $member->credit;
+
+            // calculate balance member
+            $amount = $creditMember + $amountBet - $amountWin;
+
+            // update credit to table member
+            $member->update([
+                'credit' => $amount,
+            ]);
+            
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            if ($bets == null) {
+                return [
+                    "status" => '0000',
+                ];
+            }else{
+                $bets->update([
+                    'type' => 'Refund',
+                    'created_at' => $tokenRaw->betTime,
+                    'updated_at' => $tokenRaw->updateTime,
+                    'deskripsi' => 'Game Refund',
+                ]);
+            }
+        }
+        return [
+            "status" => '0000',
+        ];
     }
 
     public function Settle()
