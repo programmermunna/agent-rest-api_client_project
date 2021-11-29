@@ -19,17 +19,16 @@ class GameHallController extends Controller
     // Before this Controller is called, we need to check if the user is logged in
     public function __construct()
     {
-        
+
         $this->token =  request()->token;
         $this->transaction = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
-        
     }
 
     // Listen Transaction From Decoded Token
     public function listenTransaction()
     {
         $action = $this->transaction->action;
-       
+
         switch ($action) {
             case 'bet':
                 return $this->Bet();
@@ -42,7 +41,7 @@ class GameHallController extends Controller
             case 'cancelBet':
                 return $this->CancelBet();
                 break;
-                
+
             case 'adjustBet':
                 return $this->AdjustBet();
                 break;
@@ -167,22 +166,17 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $creditMember = $member->credit; 
-            try {
-                BetModel::query()->where('bet_id' , '=' , $tokenRaw->platformTxID)
-                    ->update([
-                        'type' => 'Cancel'
-                    ]);
-            } catch (\Throwable $th) {
-                throw $th->error;
-            } 
+            $creditMember = $member->credit;
+            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxID)
+                ->update([
+                    'type' => 'Cancel'
+                ]);
         }
         return [
             "status" => '0000',
             "balance" => $creditMember,
-            "balanceTs"   => now() 
+            "balanceTs"   => now()
         ];
-
     }
 
     public function VoidBet()
@@ -192,17 +186,16 @@ class GameHallController extends Controller
         foreach ($token->data->txns as $tokenRaw) {
             $amountbet = $tokenRaw->betAmount;
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
-            if($bets == null){
+            if ($bets == null) {
                 return [
                     "status" => '0000',
                 ];
-            }else{
+            } else {
                 $bets->update([
                     'type' => 'Void',
                     'bet' => $amountbet * $tokenRaw->gameInfo->odds,
                     'updated_at' => $tokenRaw->updateTime,
                 ]);
-
             }
         }
         return [
@@ -223,11 +216,11 @@ class GameHallController extends Controller
             $creditMember = $member->credit;
             $amountbet = $tokenRaw->betAmount;
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
-            if($bets == null){
+            if ($bets == null) {
                 return [
                     "status" => '0000',
                 ];
-            }else{
+            } else {
                 $bets->update([
                     'bet' => $amountbet * $tokenRaw->gameInfo->odds,
                     'updated_at' => $tokenRaw->updateTime,
@@ -237,29 +230,29 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $creditMember,
-            "balanceTs"   => now() 
+            "balanceTs"   => now()
         ];
     }
 
     public function UnVoidBet()
     {
-            $token = $this->betInformation();
-            foreach ($token->data->txns as $tokenRaw) {
-                $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
-                if($bets == null){
-                    return [
-                        "status" => '0000',
-                    ];
-                }else{
-                    $bets->update([
-                        'type' => 'Bet',
-                        'updated_at' => $tokenRaw->updateTime,
-                    ]);
-                }
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            if ($bets == null) {
+                return [
+                    "status" => '0000',
+                ];
+            } else {
+                $bets->update([
+                    'type' => 'Bet',
+                    'updated_at' => $tokenRaw->updateTime,
+                ]);
             }
-            return [
-                "status" => '0000',
-            ];
+        }
+        return [
+            "status" => '0000',
+        ];
     }
 
     public function RefunBet()
@@ -279,13 +272,13 @@ class GameHallController extends Controller
             $member->update([
                 'credit' => $amount,
             ]);
-            
+
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
             if ($bets == null) {
                 return [
                     "status" => '0000',
                 ];
-            }else{
+            } else {
                 $bets->update([
                     'type' => 'Refund',
                     'created_at' => $tokenRaw->betTime,
@@ -313,7 +306,7 @@ class GameHallController extends Controller
                 'credit' => $amount,
                 'updated_at' => $tokenRaw->betTime,
             ]);
-            
+
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
             if ($bets == null) {
                 return [
@@ -328,7 +321,7 @@ class GameHallController extends Controller
                     'updated_at' => $tokenRaw->updateTime,
                     'deskripsi' => 'Game Bet/Lose' . ' : ' . $tokenRaw->betAmount,
                 ]);
-            }else {
+            } else {
                 $bets->update([
                     'type' => 'Settle',
                     'win' => $amountWin,
@@ -336,7 +329,6 @@ class GameHallController extends Controller
                     'updated_at' => $tokenRaw->updateTime,
                     'deskripsi' => 'Game win' . ' : ' . $amountWin,
                 ]);
-
             }
         }
         return [
@@ -350,17 +342,16 @@ class GameHallController extends Controller
         foreach ($token->data->txns as $tokenRaw) {
             $amountbet = $tokenRaw->betAmount;
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
-            if($bets == null){
+            if ($bets == null) {
                 return [
                     "status" => '0000',
                 ];
-            }else{
+            } else {
                 $bets->update([
                     'type' => 'Bet',
                     'bet' => $amountbet * $tokenRaw->gameInfo->odds,
                     'updated_at' => $tokenRaw->updateTime,
                 ]);
-
             }
         }
         return [
@@ -375,17 +366,16 @@ class GameHallController extends Controller
         foreach ($token->data->txns as $tokenRaw) {
             $amountbet = $tokenRaw->betAmount;
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
-            if($bets == null){
+            if ($bets == null) {
                 return [
                     "status" => '0000',
                 ];
-            }else{
+            } else {
                 $bets->update([
                     'type' => 'Void',
                     'bet' => $amountbet * $tokenRaw->gameInfo->odds,
                     'updated_at' => $tokenRaw->updateTime,
                 ]);
-
             }
         }
         return [
@@ -395,26 +385,25 @@ class GameHallController extends Controller
 
     public function UnVoidSettle()
     {
-            // call betInformation
-            $token = $this->betInformation();
-            foreach ($token->data->txns as $tokenRaw) {
-                $amountbet = $tokenRaw->betAmount;
-                $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
-                if($bets == null){
-                    return [
-                        "status" => '0000',
-                    ];
-                }else{
-                    $bets->update([
-                        'type' => 'Bet',
-                        'updated_at' => $tokenRaw->updateTime,
-                    ]);
-    
-                }
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $amountbet = $tokenRaw->betAmount;
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            if ($bets == null) {
+                return [
+                    "status" => '0000',
+                ];
+            } else {
+                $bets->update([
+                    'type' => 'Bet',
+                    'updated_at' => $tokenRaw->updateTime,
+                ]);
             }
-            return [
-                "status" => '0000',
-            ];
+        }
+        return [
+            "status" => '0000',
+        ];
     }
 
     public function Give()
