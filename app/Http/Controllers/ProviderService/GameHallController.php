@@ -167,11 +167,8 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $creditMember = $member->credit + $tokenRaw->betAmount;
+            $creditMember = $member->credit; 
             try {
-                MembersModel::query()->where('id' , $tokenRaw->userId)->update([
-                    'credit' => $creditMember
-                ]);
                 BetModel::query()->where('bet_id' , '=' , $tokenRaw->platformTxID)
                     ->update([
                         'type' => 'Cancel'
