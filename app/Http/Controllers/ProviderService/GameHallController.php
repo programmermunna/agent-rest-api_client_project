@@ -42,6 +42,10 @@ class GameHallController extends Controller
             case 'cancelBet':
                 return $this->CancelBet();
                 break;
+                
+            case 'adjustBet':
+                return $this->AdjustBet();
+                break;
 
             case 'voidBet':
                 return $this->VoidBet();
@@ -203,6 +207,29 @@ class GameHallController extends Controller
 
     public function AdjustBet()
     {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $creditMember = $member->credit;
+            $amountbet = $tokenRaw->betAmount;
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            if($bets == null){
+                return [
+                    "status" => '0000',
+                ];
+            }else{
+                $bets->update([
+                    'bet' => $amountbet * $tokenRaw->gameInfo->odds,
+                    'updated_at' => $tokenRaw->updateTime,
+                ]);
+            }
+        }
+        return [
+            "status" => '0000',
+            "balance" => $creditMember,
+            "balanceTs"   => now() 
+        ];
     }
 
     public function UnVoidBet()
