@@ -202,10 +202,10 @@ class GameHallController extends Controller
                 ]);
 
             }
-            return [
-                "status" => '0000',
-            ];
         }
+        return [
+            "status" => '0000',
+        ];
     }
 
     public function UnSettle()
