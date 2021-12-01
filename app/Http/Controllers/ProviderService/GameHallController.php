@@ -104,10 +104,9 @@ class GameHallController extends Controller
                 $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
                 if ($bets) {
                     return [
-                        "id" => $bets->id,
-                        "success" => true,
-                        "amout"   => $creditMember,
-                        "message"   => 'Bet already exist'
+                        "status" => '0000',
+                        "balance" => $creditMember,
+                        "balanceTs"   => now() 
                     ];
                 } else {
                     // update credit to table member
@@ -278,14 +277,14 @@ class GameHallController extends Controller
                     "balanceTs"   => now()
                 ];
             } else {
-                
+
                 $amountWin = $tokenRaw->winAmount;
                 $amountBet = $tokenRaw->betAmount;
                 $creditMember = $member->credit;
-    
+
                 // calculate balance member
                 $amount = $creditMember + $amountBet - $amountWin;
-    
+
                 // update credit to table member
                 $member->update([
                     'credit' => $amount,
@@ -311,9 +310,11 @@ class GameHallController extends Controller
         // call betInformation
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
+
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)
-                        ->where('platform', $tokenRaw->platform)
-                        ->first();
+                ->where('type' , 'Bet')
+                ->first();
+
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             if ($bets == null) {
                 return [
@@ -321,8 +322,8 @@ class GameHallController extends Controller
                     "balance" => $member->credit,
                     "balanceTs"   => now()
                 ];
-            }else{
-                
+            } else {
+
                 $amountWin = $tokenRaw->winAmount;
                 $creditMember = $member->credit;
                 $amount = $creditMember + $amountWin;
@@ -349,9 +350,7 @@ class GameHallController extends Controller
                         'deskripsi' => 'Game win' . ' : ' . $amountWin,
                     ]);
                 }
-
             }
-
         }
         return [
             "status" => '0000',
@@ -505,21 +504,21 @@ class GameHallController extends Controller
 
     public function CancelTip()
     {
-          // call betInformation
-          $token = $this->betInformation();
-          foreach ($token->data->txns as $tokenRaw) {
-              $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-              $creditMember = $member->credit;
-              BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
-                  ->update([
-                      'type' => 'Cancel'
-                  ]);
-          }
-          return [
-              "status" => '0000',
-              "desc" => 'succes',
-              "balance" => $creditMember,
-              "balanceTs"   => now()
-          ];
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $creditMember = $member->credit;
+            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+                ->update([
+                    'type' => 'Cancel'
+                ]);
+        }
+        return [
+            "status" => '0000',
+            "desc" => 'succes',
+            "balance" => $creditMember,
+            "balanceTs"   => now()
+        ];
     }
 }
