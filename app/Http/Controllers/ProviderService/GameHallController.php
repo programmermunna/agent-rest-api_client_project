@@ -117,6 +117,7 @@ class GameHallController extends Controller
                     ]);
 
                     $bets = BetModel::create([
+                        'platform'  => $tokenRaw->platform,
                         'created_by' => $tokenRaw->userId,
                         'updated_by' => $tokenRaw->userId,
                         'bet_id' => $tokenRaw->platformTxId,
@@ -310,7 +311,9 @@ class GameHallController extends Controller
         // call betInformation
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)
+                        ->where('platform', $tokenRaw->platform)
+                        ->first();
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             if ($bets == null) {
                 return [
