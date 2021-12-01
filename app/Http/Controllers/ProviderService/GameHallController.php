@@ -114,7 +114,7 @@ class GameHallController extends Controller
                         'credit' => $amount,
                         'updated_at' => $tokenRaw->betTime,
                     ]);
-
+                    ray($tokenRaw->platform);
                     $bets = BetModel::create([
                         'platform'  => $tokenRaw->platform,
                         'created_by' => $tokenRaw->userId,
@@ -176,6 +176,7 @@ class GameHallController extends Controller
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             $creditMember = $member->credit;
             BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+                ->where('platform' , $tokenRaw->platform)
                 ->update([
                     'type' => 'Cancel'
                 ]);
@@ -193,7 +194,9 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $amountbet = $tokenRaw->betAmount;
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+                    ->where('platform' , $tokenRaw->platform)
+                    ->first();
             if ($bets == null) {
                 return [
                     "status" => '0000',
@@ -211,9 +214,6 @@ class GameHallController extends Controller
         ];
     }
 
-    public function SettleBet()
-    {
-    }
 
     public function AdjustBet()
     {
@@ -223,7 +223,10 @@ class GameHallController extends Controller
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             $creditMember = $member->credit;
             $amountbet = $tokenRaw->betAmount;
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+                    ->where('platform' , $tokenRaw->platform)
+                    ->first();
+
             if ($bets == null) {
                 return [
                     "status" => '0000',
@@ -246,7 +249,9 @@ class GameHallController extends Controller
     {
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+                    ->where('platform' , $tokenRaw->platform)
+                    ->first();
             if ($bets == null) {
                 return [
                     "status" => '0000',
@@ -268,8 +273,12 @@ class GameHallController extends Controller
         // call betInformation
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)
+                        ->where('platform' , $tokenRaw->platform)
+                        ->first();
+
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+
             if ($bets == null) {
                 return [
                     "status" => '0000',
@@ -312,6 +321,7 @@ class GameHallController extends Controller
         foreach ($token->data->txns as $tokenRaw) {
 
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)
+                ->where('platform' , $tokenRaw->platform)
                 ->where('type' , 'Bet')
                 ->first();
 
@@ -364,7 +374,9 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $amountbet = $tokenRaw->betAmount;
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $bets = BetModel::query()
+            ->where('platform' , $tokenRaw->platform)
+            ->where('bet_id', $tokenRaw->platformTxId)->first();
             if ($bets == null) {
                 return [
                     "status" => '0000',
@@ -388,7 +400,9 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $amountbet = $tokenRaw->betAmount;
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+                    ->where('platform' , $tokenRaw->platform)
+                    ->first();
             if ($bets == null) {
                 return [
                     "status" => '0000',
@@ -411,8 +425,9 @@ class GameHallController extends Controller
         // call betInformation
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
-            $amountbet = $tokenRaw->betAmount;
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+                    ->where('platform' , $tokenRaw->platform)
+                    ->first();
             if ($bets == null) {
                 return [
                     "status" => '0000',
@@ -431,10 +446,13 @@ class GameHallController extends Controller
 
     public function Give()
     {
+        // @todo Need Changes or Waiting For UAT
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+                    ->where('platform' , $tokenRaw->platform)
+                    ->first();
 
             $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
                 ->leftJoin('members', 'members.id', '=', 'bets.created_by')
@@ -478,26 +496,18 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $tipAmount = $tokenRaw->tip;
-            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             $creditMember = $member->credit;
-            $amount = $creditMember + $tipAmount;
+            $amount = $creditMember - $tipAmount;
             // update credit to table member
             $member->update([
                 'credit' => $amount,
                 'updated_at' => now(),
             ]);
-            if ($bets == null) {
-                return [
-                    "status" => '0000',
-                    "balance" => 0.0,
-                    "balanceTs" => now(),
-                ];
-            }
         }
         return [
             "status" => '0000',
-            "balance" => $amount ?? 0.0,
+            "balance" => $creditMember ?? 0.0,
             "balanceTs" => now()
         ];
     }
@@ -507,13 +517,16 @@ class GameHallController extends Controller
         // call betInformation
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
+            $tipAmount = $tokenRaw->tip;
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             $creditMember = $member->credit;
-            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
-                ->update([
-                    'type' => 'Cancel'
-                ]);
+            $amount = $creditMember + $tipAmount;
+            $member->update([
+                'credit' => $amount,
+                'updated_at' => now(),
+            ]);
         }
+        // For $creditMember will be Call on last index of loop and return again
         return [
             "status" => '0000',
             "desc" => 'succes',
