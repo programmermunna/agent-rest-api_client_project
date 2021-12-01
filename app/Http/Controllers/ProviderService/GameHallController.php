@@ -69,6 +69,14 @@ class GameHallController extends Controller
             case 'unvoidBet':
                 return $this->UnVoidBet();
                 break;
+
+            case 'tip':
+                return $this->Tip();
+                break;
+
+            case 'give':
+                return $this->Give();
+                break;
         }
         return response()->json([
             'status' => 'error',
@@ -464,6 +472,32 @@ class GameHallController extends Controller
 
     public function Tip()
     {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $tipAmount = $tokenRaw->tip;
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $creditMember = $member->credit;
+            $amount = $creditMember + $tipAmount;
+            // update credit to table member
+            $member->update([
+                'credit' => $amount,
+                'updated_at' => now(),
+            ]);
+            if ($bets == null) {
+                return [
+                    "status" => '0000',
+                    "balance" => 0.0,
+                    "balanceTs" => now(),
+                ];
+            }
+        }
+        return [
+            "status" => '0000',
+            "balance" => $amount ?? 0.0,
+            "balanceTs" => now()
+        ];
     }
 
     public function CancelTip()
