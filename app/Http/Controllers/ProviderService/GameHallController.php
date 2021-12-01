@@ -10,7 +10,7 @@ use App\Models\UserLogModel;
 
 class GameHallController extends Controller
 {
-    // Token From Casino Provider 
+    // Token From Casino Provider
     protected string $token;
 
     // this As Object From Token Decoded
@@ -421,6 +421,45 @@ class GameHallController extends Controller
 
     public function Give()
     {
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+
+            $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+                ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+                ->where('bets.id', $bets->id)->first();
+
+            if ($bets == null) {
+                return [
+                    "status" => '0000',
+                ];
+            } else {
+                $bonusAmount = $tokenRaw->amount;
+                $creditMember = $member->credit;
+                $amount = $creditMember + $bonusAmount;
+                $member->update([
+                    'credit' => $amount,
+                    'updated_at' => now(),
+                ]);
+
+                UserLogModel::logMemberActivity(
+                    'Member Bonus',
+                    $member,
+                    $bets,
+                    [
+                        'target' => $nameProvider->username,
+                        'activity' => 'Credit Bonus',
+                        'device' => $nameProvider->device,
+                        'ip' => $nameProvider->last_login_ip,
+                    ],
+                    "$nameProvider->username Received Bonus On $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+                );
+            }
+        }
+        return [
+            "status" => '0000',
+        ];
     }
 
     public function Tip()
