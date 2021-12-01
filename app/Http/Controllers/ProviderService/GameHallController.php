@@ -114,7 +114,7 @@ class GameHallController extends Controller
                         'credit' => $amount,
                         'updated_at' => $tokenRaw->betTime,
                     ]);
-
+                    ray($tokenRaw->platform);
                     $bets = BetModel::create([
                         'platform'  => $tokenRaw->platform,
                         'created_by' => $tokenRaw->userId,
@@ -312,6 +312,7 @@ class GameHallController extends Controller
         foreach ($token->data->txns as $tokenRaw) {
 
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)
+                ->where('platform' , $tokenRaw->platform)
                 ->where('type' , 'Bet')
                 ->first();
 
