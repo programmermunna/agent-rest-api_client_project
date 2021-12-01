@@ -416,5 +416,21 @@ class GameHallController extends Controller
 
     public function CancelTip()
     {
+          // call betInformation
+          $token = $this->betInformation();
+          foreach ($token->data->txns as $tokenRaw) {
+              $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+              $creditMember = $member->credit;
+              BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+                  ->update([
+                      'type' => 'Cancel'
+                  ]);
+          }
+          return [
+              "status" => '0000',
+              "desc" => 'succes',
+              "balance" => $creditMember,
+              "balanceTs"   => now()
+          ];
     }
 }
