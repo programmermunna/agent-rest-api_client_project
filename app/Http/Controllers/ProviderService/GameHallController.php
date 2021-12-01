@@ -260,25 +260,28 @@ class GameHallController extends Controller
         // call betInformation
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
-            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $amountWin = $tokenRaw->winAmount;
-            $amountBet = $tokenRaw->betAmount;
-            $creditMember = $member->credit;
-
-            // calculate balance member
-            $amount = $creditMember + $amountBet - $amountWin;
-
-            // update credit to table member
-            $member->update([
-                'credit' => $amount,
-            ]);
-
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             if ($bets == null) {
                 return [
                     "status" => '0000',
+                    "balance" => $member->credit,
+                    "balanceTs"   => now()
                 ];
             } else {
+                
+                $amountWin = $tokenRaw->winAmount;
+                $amountBet = $tokenRaw->betAmount;
+                $creditMember = $member->credit;
+    
+                // calculate balance member
+                $amount = $creditMember + $amountBet - $amountWin;
+    
+                // update credit to table member
+                $member->update([
+                    'credit' => $amount,
+                ]);
+
                 $bets->update([
                     'type' => 'Refund',
                     'created_at' => $tokenRaw->betTime,
@@ -289,6 +292,8 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
+            "balance" => $amount,
+            "balanceTs"   => now()
         ];
     }
 
@@ -297,42 +302,50 @@ class GameHallController extends Controller
         // call betInformation
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
-            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $amountWin = $tokenRaw->winAmount;
-            $creditMember = $member->credit;
-            $amount = $creditMember + $amountWin;
-            // update credit to table member
-            $member->update([
-                'credit' => $amount,
-                'updated_at' => $tokenRaw->betTime,
-            ]);
-
             $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             if ($bets == null) {
                 return [
                     "status" => '0000',
+                    "balance" => $member->credit,
+                    "balanceTs"   => now()
                 ];
+            }else{
+                
+                $amountWin = $tokenRaw->winAmount;
+                $creditMember = $member->credit;
+                $amount = $creditMember + $amountWin;
+                // update credit to table member
+                $member->update([
+                    'credit' => $amount,
+                    'updated_at' => $tokenRaw->betTime,
+                ]);
+
+                // check win / lose
+                if ($tokenRaw->winAmount == 0) {
+                    $bets->update([
+                        'type' => 'Settle',
+                        'created_at' => $tokenRaw->betTime,
+                        'updated_at' => $tokenRaw->updateTime,
+                        'deskripsi' => 'Game Bet/Lose' . ' : ' . $tokenRaw->betAmount,
+                    ]);
+                } else {
+                    $bets->update([
+                        'type' => 'Settle',
+                        'win' => $amountWin,
+                        'created_at' => $tokenRaw->betTime,
+                        'updated_at' => $tokenRaw->updateTime,
+                        'deskripsi' => 'Game win' . ' : ' . $amountWin,
+                    ]);
+                }
+
             }
 
-            if ($tokenRaw->winAmount == 0) {
-                $bets->update([
-                    'type' => 'Settle',
-                    'created_at' => $tokenRaw->betTime,
-                    'updated_at' => $tokenRaw->updateTime,
-                    'deskripsi' => 'Game Bet/Lose' . ' : ' . $tokenRaw->betAmount,
-                ]);
-            } else {
-                $bets->update([
-                    'type' => 'Settle',
-                    'win' => $amountWin,
-                    'created_at' => $tokenRaw->betTime,
-                    'updated_at' => $tokenRaw->updateTime,
-                    'deskripsi' => 'Game win' . ' : ' . $amountWin,
-                ]);
-            }
         }
         return [
             "status" => '0000',
+            "balance" => $amount,
+            "balanceTs"   => now()
         ];
     }
 
