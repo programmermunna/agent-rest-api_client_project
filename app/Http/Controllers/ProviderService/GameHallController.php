@@ -96,8 +96,9 @@ class GameHallController extends Controller
             $amount = $creditMember - $amountbet;
             if ($amount < 0) {
                 return response()->json([
-                    'success' => false,
-                    'message' =>  $token->creditMember
+                    "status" => '0000',
+                    "balance" => $creditMember,
+                    "balanceTs"   => now() 
                 ]);
             } else {
                 // check if bet already exist
@@ -114,7 +115,6 @@ class GameHallController extends Controller
                         'credit' => $amount,
                         'updated_at' => $tokenRaw->betTime,
                     ]);
-                    ray($tokenRaw->platform);
                     $bets = BetModel::create([
                         'platform'  => $tokenRaw->platform,
                         'created_by' => $tokenRaw->userId,
