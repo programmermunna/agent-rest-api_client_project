@@ -7,6 +7,7 @@ use Firebase\JWT\JWT;
 use App\Models\MembersModel;
 use App\Models\BetModel;
 use App\Models\UserLogModel;
+use Carbon\Carbon;
 
 class GameHallController extends Controller
 {
@@ -107,7 +108,7 @@ class GameHallController extends Controller
                     return [
                         "status" => '0000',
                         "balance" => $creditMember,
-                        "balanceTs"   => now() 
+                        "balanceTs"   => now()->format("YYYY-MM-DDTHH:mm:ss.SSSZ") 
                     ];
                 } else {
                     // update credit to table member
@@ -155,7 +156,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $amount,
-            "balanceTs"   => $result->created_at
+            "balanceTs"   => Carbon::parse($result->created_at)->format("Y-m-d\TH:i:s.vP") 
         ];
     }
 
@@ -184,7 +185,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $creditMember,
-            "balanceTs"   => now()
+            "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP") 
         ];
     }
 
@@ -330,7 +331,7 @@ class GameHallController extends Controller
                 return [
                     "status" => '0000',
                     "balance" => $member->credit,
-                    "balanceTs"   => now()
+                    "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                 ];
             } else {
 
@@ -365,7 +366,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $amount,
-            "balanceTs"   => now()
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 
@@ -468,7 +469,7 @@ class GameHallController extends Controller
                 $amount = $creditMember + $bonusAmount;
                 $member->update([
                     'credit' => $amount,
-                    'updated_at' => now(),
+                    'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
                 ]);
 
                 UserLogModel::logMemberActivity(
@@ -502,13 +503,13 @@ class GameHallController extends Controller
             // update credit to table member
             $member->update([
                 'credit' => $amount,
-                'updated_at' => now(),
+                'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
             ]);
         }
         return [
             "status" => '0000',
             "balance" => $creditMember ?? 0.0,
-            "balanceTs" => now()
+            "balanceTs" => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 
@@ -523,7 +524,7 @@ class GameHallController extends Controller
             $amount = $creditMember + $tipAmount;
             $member->update([
                 'credit' => $amount,
-                'updated_at' => now(),
+                'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
             ]);
         }
         // For $creditMember will be Call on last index of loop and return again
@@ -531,7 +532,7 @@ class GameHallController extends Controller
             "status" => '0000',
             "desc" => 'succes',
             "balance" => $creditMember,
-            "balanceTs"   => now()
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 }
