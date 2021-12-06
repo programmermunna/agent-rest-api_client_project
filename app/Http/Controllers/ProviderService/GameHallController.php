@@ -469,7 +469,7 @@ class GameHallController extends Controller
                 $amount = $creditMember + $bonusAmount;
                 $member->update([
                     'credit' => $amount,
-                    'updated_at' => now(),
+                    'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
                 ]);
 
                 UserLogModel::logMemberActivity(
@@ -503,7 +503,7 @@ class GameHallController extends Controller
             // update credit to table member
             $member->update([
                 'credit' => $amount,
-                'updated_at' => now(),
+                'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
             ]);
         }
         return [
@@ -524,7 +524,7 @@ class GameHallController extends Controller
             $amount = $creditMember + $tipAmount;
             $member->update([
                 'credit' => $amount,
-                'updated_at' => now(),
+                'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
             ]);
         }
         // For $creditMember will be Call on last index of loop and return again
