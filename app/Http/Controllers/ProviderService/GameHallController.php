@@ -156,7 +156,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $amount,
-            "balanceTs"   => Carbon::parse($result->created_at)->format("YYYY-MM-DDTHH:mm:ss.SSSZ") 
+            "balanceTs"   => Carbon::parse($result->created_at)->format("Y-m-d\TH:i:s.vP") 
         ];
     }
 
@@ -185,7 +185,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $creditMember,
-            "balanceTs"   => Carbon::now()->format("YYYY-MM-DDTHH:mm:ss.SSSZ") 
+            "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP") 
         ];
     }
 
@@ -331,7 +331,7 @@ class GameHallController extends Controller
                 return [
                     "status" => '0000',
                     "balance" => $member->credit,
-                    "balanceTs"   => now()
+                    "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                 ];
             } else {
 
@@ -366,7 +366,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $amount,
-            "balanceTs"   => now()
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 
@@ -509,7 +509,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $creditMember ?? 0.0,
-            "balanceTs" => now()
+            "balanceTs" => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 
@@ -532,7 +532,7 @@ class GameHallController extends Controller
             "status" => '0000',
             "desc" => 'succes',
             "balance" => $creditMember,
-            "balanceTs"   => now()
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 }
