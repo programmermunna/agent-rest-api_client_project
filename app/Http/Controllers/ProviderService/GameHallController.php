@@ -39,6 +39,10 @@ class GameHallController extends Controller
                 return $this->Settle();
                 break;
 
+            case 'unsettle':
+                return $this->UnSettle();
+                break;
+
             case 'cancelBet':
                 return $this->CancelBet();
                 break;
