@@ -153,14 +153,14 @@ class GameHallController extends Controller
                         "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
                     );
 
-                    $result =  BetModel::where('game_id', $tokenRaw->gameCode)->first();
+                    BetModel::where('game_id', $tokenRaw->gameCode)->first();
                 }
             }
         }
         return [
             "status" => '0000',
             "balance" => $amount,
-            "balanceTs"   => Carbon::parse($result->created_at)->format("Y-m-d\TH:i:s.vP") 
+            "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP") 
         ];
     }
 
