@@ -386,7 +386,7 @@ class GameHallController extends Controller
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
-    
+
     public function BetNSettle()
     {
         // call betInformation
@@ -430,9 +430,10 @@ class GameHallController extends Controller
                         'type' => 'Settle',
                         'game' => $tokenRaw->gameName,
                         'bet' => $amountbet,
+                        'win' => $tokenRaw->winAmount,
                         'created_at' => $tokenRaw->betTime, 
                         'constant_provider_id' => 7,
-                        'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+                        'deskripsi' => $tokenRaw->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $tokenRaw->winAmount : 'Game Win' . ' : ' . $tokenRaw->winAmount,
                     ]);
 
                     $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
