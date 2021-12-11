@@ -41,6 +41,14 @@ class GameHallController extends Controller
                 return $this->Settle();
                 break;
 
+            case 'betNSettle':
+                return $this->BetNSettle();
+                break;
+
+            case 'cancelBetNSettle':
+                return $this->CancelBetNSettle();
+                break;
+
             case 'unsettle':
                 return $this->UnSettle();
                 break;
@@ -369,6 +377,84 @@ class GameHallController extends Controller
                         'updated_at' => $tokenRaw->updateTime,
                         'deskripsi' => 'Game win' . ' : ' . $amountWin,
                     ]);
+                }
+            }
+        }
+        return [
+            "status" => '0000',
+            "balance" => $amount,
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+        ];
+    }
+
+    public function BetNSettle()
+    {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $amountbet = $tokenRaw->betAmount;
+            $creditMember = $member->credit;
+            $amount = $creditMember - $amountbet;
+            $this->betTime = $tokenRaw->betTime;
+            if ($amount < 0) {
+                return response()->json([
+                    "status" => '0000',
+                    "balance" => $creditMember,
+                    "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+                ]);
+            } else {
+                // check if bet already exist
+                $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+                if ($bets) {
+                    return [
+                        "status" => '0000',
+                        "balance" => $creditMember,
+                        "balanceTs"   => $this->betTime 
+                    ];
+                } else {
+                    // update credit to table member
+                    $member->update([
+                        'credit' => $amount,
+                        'created_at' => $tokenRaw->betTime,
+                        'updated_at' => $tokenRaw->updateTime,
+                    ]);
+                    $bets = BetModel::create([
+                        'platform'  => $tokenRaw->platform,
+                        'created_by' => $tokenRaw->userId,
+                        'updated_by' => $tokenRaw->userId,
+                        'bet_id' => $tokenRaw->platformTxId,
+                        'game_info' => $tokenRaw->gameType == 'SLOT' ? 'slot' : 'fish',
+                        'game_id' => $tokenRaw->gameCode,
+                        'round_id' => $tokenRaw->roundId,
+                        'type' => 'Settle',
+                        'game' => $tokenRaw->gameName,
+                        'bet' => $amountbet,
+                        'win' => $tokenRaw->winAmount,
+                        'created_at' => $tokenRaw->betTime, 
+                        'constant_provider_id' => 7,
+                        'deskripsi' => $tokenRaw->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $tokenRaw->winAmount : 'Game Win' . ' : ' . $tokenRaw->winAmount,
+                    ]);
+
+                    $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+                        ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+                        ->where('bets.id', $bets->id)->first();
+                    $member =  MembersModel::where('id', $bets->created_by)->first();
+
+                    UserLogModel::logMemberActivity(
+                        'create bet',
+                        $member,
+                        $bets,
+                        [
+                            'target' => $nameProvider->username,
+                            'activity' => 'Bet',
+                            'device' => $nameProvider->device,
+                            'ip' => $nameProvider->last_login_ip,
+                        ],
+                        "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+                    );
+
+                    BetModel::where('game_id', $tokenRaw->gameCode)->first();
                 }
             }
         }
