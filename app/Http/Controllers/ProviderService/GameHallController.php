@@ -393,9 +393,10 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $amountbet = $tokenRaw->betAmount;
+            $amountbet = $tokenRaw->betAmount * 1000;
             $creditMember = $member->credit;
-            $amount = $creditMember - $amountbet;
+            $win = $tokenRaw->winAmount * 1000;
+            $amount = $creditMember - $amountbet + $win;
             $this->betTime = $tokenRaw->betTime;
             if ($amount < 0) {
                 return response()->json([
@@ -430,7 +431,7 @@ class GameHallController extends Controller
                         'type' => 'Settle',
                         'game' => $tokenRaw->gameName,
                         'bet' => $amountbet,
-                        'win' => $tokenRaw->winAmount,
+                        'win' => $tokenRaw->winAmount * 1000,
                         'created_at' => $tokenRaw->betTime, 
                         'constant_provider_id' => 7,
                         'deskripsi' => $tokenRaw->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $tokenRaw->winAmount : 'Game Win' . ' : ' . $tokenRaw->winAmount,
@@ -462,6 +463,31 @@ class GameHallController extends Controller
             "status" => '0000',
             "balance" => $amount,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+        ];
+    }
+    public function CancelBetNSettle()
+    {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $bet = $tokenRaw->betAmount * 1000;
+            $creditMember = $member->credit - $bet;
+            $member->update([
+                'credit' => $creditMember,
+                'created_at' => $tokenRaw->updateTime,
+                'updated_at' => $tokenRaw->updateTime,
+            ]);
+            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+                ->where('platform', $tokenRaw->platform)
+                ->update([
+                    'type' => 'Cancel'
+                ]);
+        }
+        return [
+            "status" => '0000',
+            "balance" => $member->credit,
+            "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 
