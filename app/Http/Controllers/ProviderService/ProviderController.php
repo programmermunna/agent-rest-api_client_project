@@ -80,7 +80,8 @@ class ProviderController extends Controller
         $member = MembersModel::where('id', $userId)->first();
         $res = [
             "success" => true,
-            "amount" => $member->credit
+            "amount" => $member->credit,
+            "balanceTs" => now()->format("Y-m-d\TH:i:s.vP")
         ];
         return Response::json($res);
     }
