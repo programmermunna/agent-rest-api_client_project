@@ -49,7 +49,11 @@ class GameHallController extends Controller
                 return $this->CancelBetNSettle();
                 break;
 
+<<<<<<< HEAD
             case 'freespin':
+=======
+            case 'freeSpin':
+>>>>>>> 0c5d0f70ac169e22c3bcb25625f263de217585b5
                 return $this->FreeSpin();
                 break;
 
@@ -118,7 +122,7 @@ class GameHallController extends Controller
                 return response()->json([
                     "status" => '0000',
                     "balance" => $creditMember,
-                    "balanceTs"   => $this->betTime 
+                    "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
 
                 ]);
             } else {
@@ -128,7 +132,7 @@ class GameHallController extends Controller
                     return [
                         "status" => '0000',
                         "balance" => $creditMember,
-                        "balanceTs"   => $this->betTime 
+                        "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                     ];
                 } else {
                     // update credit to table member
@@ -177,7 +181,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $amount,
-            "balanceTs"   => $this->betTime 
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 
