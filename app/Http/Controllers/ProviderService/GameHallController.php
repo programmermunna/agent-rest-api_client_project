@@ -14,6 +14,9 @@ class GameHallController extends Controller
     // Token From Casino Provider
     protected string $token;
 
+    // ratio for slot
+    protected int $ratio = 1000;
+
     // this As Object From Token Decoded
     protected object $transaction;
 
@@ -405,7 +408,7 @@ class GameHallController extends Controller
             if ($amount < 0) {
                 return response()->json([
                     "status" => '0000',
-                    "balance" => $creditMember,
+                    "balance" => $creditMember / $this->ratio,
                     "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                 ]);
             } else {
@@ -414,7 +417,7 @@ class GameHallController extends Controller
                 if ($bets) {
                     return [
                         "status" => '0000',
-                        "balance" => $creditMember,
+                        "balance" => $creditMember / $this->ratio,
                         "balanceTs"   => $this->betTime 
                     ];
                 } else {
@@ -465,7 +468,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $amount,
+            "balance" => $amount / $this->ratio,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
