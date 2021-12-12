@@ -114,7 +114,7 @@ class GameHallController extends Controller
                 return response()->json([
                     "status" => '0000',
                     "balance" => $creditMember,
-                    "balanceTs"   => $this->betTime 
+                    "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
 
                 ]);
             } else {
@@ -124,7 +124,7 @@ class GameHallController extends Controller
                     return [
                         "status" => '0000',
                         "balance" => $creditMember,
-                        "balanceTs"   => $this->betTime 
+                        "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                     ];
                 } else {
                     // update credit to table member
@@ -173,7 +173,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $amount,
-            "balanceTs"   => $this->betTime 
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 
