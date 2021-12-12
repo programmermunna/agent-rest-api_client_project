@@ -490,6 +490,47 @@ class GameHallController extends Controller
             "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
+    public function FreeSpin()
+    {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)
+                ->where('platform', $tokenRaw->platform)
+                ->first();
+            if ($bets == null) {
+                return [
+                    "status" => '9999',
+                    "desc" => 'bet is not exists'
+                ];
+            } else {
+
+                $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+                $creditMember = $member->credit;
+                $freeSpin = $tokenRaw->winAmount * 1000;
+                $amount = $creditMember + $freeSpinwin;
+
+                // update credit to table member
+                $member->update([
+                    'credit' => $amount,
+                    'updated_at' => $tokenRaw->updateTime,
+                ]);
+
+                // get free spin
+                $bets->update([
+                    'win' => $freeSpin,
+                    'updated_at' => $tokenRaw->updateTime,
+                    'deskripsi' => 'Free Spin' . ' : ' . $freeSpin,
+                ]);
+            }
+
+        }
+        return [
+            "status" => '0000',
+            "balance" => $member->credit,
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+        ];
+    }
 
     public function UnSettle()
     {
