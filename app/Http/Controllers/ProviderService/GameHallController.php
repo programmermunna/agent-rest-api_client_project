@@ -49,7 +49,7 @@ class GameHallController extends Controller
                 return $this->CancelBetNSettle();
                 break;
 
-            case 'freeSpin':
+            case 'freespin':
                 return $this->FreeSpin();
                 break;
 
