@@ -390,7 +390,6 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $amount / $this->ratio,
-            "balance123" => $amount,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
