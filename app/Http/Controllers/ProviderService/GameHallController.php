@@ -136,7 +136,7 @@ class GameHallController extends Controller
                 } else {
                     // update credit to table member
                     $member->update([
-                        'credit' => $amount,
+                        'credit' => $amount * $this->ratio,
                         'updated_at' => $tokenRaw->betTime,
                     ]);
                     $bets = BetModel::create([
