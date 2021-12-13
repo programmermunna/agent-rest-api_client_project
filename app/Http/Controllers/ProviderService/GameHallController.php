@@ -136,7 +136,7 @@ class GameHallController extends Controller
                 } else {
                     // update credit to table member
                     $member->update([
-                        'credit' => $amount * $this->ratio,
+                        'credit' => $amount,
                         'updated_at' => $tokenRaw->betTime,
                     ]);
                     $bets = BetModel::create([
@@ -359,7 +359,7 @@ class GameHallController extends Controller
                 ];
             } else {
 
-                $amountWin = $tokenRaw->winAmount;
+                $amountWin = $tokenRaw->winAmount * $this->ratio;
                 $creditMember = $member->credit;
                 $amount = $creditMember + $amountWin;
                 // update credit to table member
@@ -390,6 +390,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $amount / $this->ratio,
+            "balance123" => $amount,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
