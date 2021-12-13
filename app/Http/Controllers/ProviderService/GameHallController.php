@@ -208,7 +208,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $creditMember,
+            "balance" => $creditMember / $this->ratio,
             "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
@@ -265,7 +265,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $creditMember,
+            "balance" => $creditMember / $this->ratio,
             "balanceTs"   => now()
         ];
     }
@@ -307,7 +307,7 @@ class GameHallController extends Controller
             if ($bets == null) {
                 return [
                     "status" => '0000',
-                    "balance" => $member->credit,
+                    "balance" => $member->credit / $this->ratio,
                     "balanceTs"   => now()
                 ];
             } else {
@@ -334,7 +334,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $amount,
+            "balance" => $amount / $this->ratio,
             "balanceTs"   => now()
         ];
     }
@@ -354,7 +354,7 @@ class GameHallController extends Controller
             if ($bets == null) {
                 return [
                     "status" => '0000',
-                    "balance" => $member->credit,
+                    "balance" => $member->credit / $this->ratio,
                     "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                 ];
             } else {
@@ -389,7 +389,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $amount,
+            "balance" => $amount / $this->ratio,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
@@ -493,7 +493,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $member->credit,
+            "balance" => $member->credit / $this->ratio,
             "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
@@ -534,7 +534,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $member->credit,
+            "balance" => $member->credit / $this->ratio,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
@@ -677,7 +677,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $creditMember ?? 0.0,
+            "balance" => $creditMember / $this->ratio ?? 0.0,
             "balanceTs" => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
@@ -700,7 +700,7 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "desc" => 'succes',
-            "balance" => $creditMember,
+            "balance" => $creditMember / $this->ratio,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
