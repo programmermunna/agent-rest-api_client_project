@@ -117,10 +117,10 @@ class GameHallController extends Controller
             $creditMember = $member->credit;
             $amount = $creditMember - $amountbet;
             $this->betTime = $tokenRaw->betTime;
-            if ($amount < 0) {
+            if ($creditMember < $amountbet) {
                 return response()->json([
-                    "status" => '0000',
-                    "balance" => $creditMember,
+                    "status" => '1018',
+                    "balance" => $creditMember / $this->ratio,
                     "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
 
                 ]);
@@ -129,8 +129,8 @@ class GameHallController extends Controller
                 $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
                 if ($bets) {
                     return [
-                        "status" => '0000',
-                        "balance" => $creditMember,
+                        "status" => '1025',
+                        "balance" => $creditMember / $this->ratio,
                         "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                     ];
                 } else {
