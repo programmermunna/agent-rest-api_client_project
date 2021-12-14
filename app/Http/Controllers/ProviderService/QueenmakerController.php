@@ -43,6 +43,7 @@ class QueenmakerController extends Controller
                 $member->update([
                     'credit' => $balance
                 ]);
+<<<<<<< HEAD
             }
             return response()->json([ 
                 'transactions' => [
@@ -83,6 +84,8 @@ class QueenmakerController extends Controller
                 $member->update([
                     'credit' => $balance
                 ]);
+=======
+>>>>>>> dd9b3dba80b99b3679d01e99ff419a6b1998518e
             }
             return response()->json([ 
                 'transactions' => [
