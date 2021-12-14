@@ -13,7 +13,6 @@ class QueenmakerController extends Controller
     public function getDebitQueenMaker()
     {
         $token =  JWT::decode(request()->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
-        // dd($token);
         // check if any token
         if (!$token && is_null($token)) {
             return response()->json([ 
