@@ -554,8 +554,6 @@ class GameHallController extends Controller
             if ($bets == null) {
                 return [
                     "status" => '1025',
-                    "balance" => $member->credit,
-                    "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                 ];
             } else {
                 $bets->update([
@@ -567,8 +565,6 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $member->credit,
-            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 
