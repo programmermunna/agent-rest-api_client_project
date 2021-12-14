@@ -13,7 +13,7 @@ class QueenmakerController extends Controller
     public function getDebitQueenMaker()
     {
         $token =  JWT::decode(request()->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
-        
+        // dd($token);
         // check if any token
         if (!$token && is_null($token)) {
             return response()->json([ 
@@ -38,13 +38,16 @@ class QueenmakerController extends Controller
                 $member = MembersModel::find($tokenRaw->userid);
                 // calculate balance
                 $balance = $member->credit - $tokenRaw->amt;
+                $member->update([
+                    'credit' => $balance
+                ]);
             }
             return response()->json([ 
                 'transactions' => [
                     ([
                         'txid' => $bet->id,
                         'ptxid' => $bet->bet_id,
-                        'bal' => $balance,
+                        'bal' => $member->credit,
                         'cur' => 'IDR',
                         'dup' => false,
                     ])
