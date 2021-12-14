@@ -546,7 +546,7 @@ class GameHallController extends Controller
             $amountbet = $tokenRaw->betAmount;
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             $member->update([
-                'credit' => $member->credit + $tokenRaw->betAmount
+                'credit' => $member->credit + ($tokenRaw->betAmount * $this->ratio)
             ]);
             $bets = BetModel::query()
                 ->where('platform', $tokenRaw->platform)
