@@ -544,12 +544,16 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $amountbet = $tokenRaw->betAmount;
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $member->update([
+                'credit' => $member->credit + ($tokenRaw->betAmount * $this->ratio)
+            ]);
             $bets = BetModel::query()
                 ->where('platform', $tokenRaw->platform)
                 ->where('bet_id', $tokenRaw->platformTxId)->first();
             if ($bets == null) {
                 return [
-                    "status" => '0000',
+                    "status" => '1025',
                 ];
             } else {
                 $bets->update([
