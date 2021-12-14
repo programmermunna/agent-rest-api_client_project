@@ -153,7 +153,7 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post("bet_gameHall" , [GameHallController::class , "listenTransaction"]);
     Route::post("result_gameHall" , [GameHallController::class , "resultGameHall"]);
     
-    #Queenmaker
+    #Queenmaker api route
     Route::post("debit" , [QueenmakerController::class , "getDebitQueenMaker"]);
 
 
