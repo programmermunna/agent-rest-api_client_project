@@ -155,6 +155,7 @@ Route::group(['prefix' => 'endpoint'], function () {
     
     #Queenmaker api route
     Route::post("debit" , [QueenmakerController::class , "getDebitQueenMaker"]);
+    Route::post("credit" , [QueenmakerController::class , "getCreditQueenMaker"]);
 
 
 	# Togel
