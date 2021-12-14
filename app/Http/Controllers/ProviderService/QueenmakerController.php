@@ -23,6 +23,7 @@ class QueenmakerController extends Controller
             foreach ($token->transactions as $tokenRaw) {
                 $bet = BetModel::create([
                     'bet_id' => $tokenRaw->ptxid,
+                    'refptxid' => $tokenRaw->refptxid,
                     'bet' => $tokenRaw->amt,
                     'platform' => $tokenRaw->gpcode,
                     'game_id' => $tokenRaw->gamecode,

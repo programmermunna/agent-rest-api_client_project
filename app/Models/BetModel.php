@@ -22,8 +22,9 @@ class BetModel extends Model
 
     protected $fillable = [
         'bet_id',
-        'platform',
         'round_id',
+        'platform',
+        'refptxid',
         'constant_provider_id',
         'game',
         'game_info',
