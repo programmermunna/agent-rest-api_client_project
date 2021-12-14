@@ -32,7 +32,7 @@ class QueenmakerController extends Controller
                     'game_info' => $tokenRaw->gametype == 0 ? 'slot' : 'TableGame',
                     'type' => $tokenRaw->txtype === 500 ? 'Bet' : ($tokenRaw->txtype === 510  ? 'Win' : ($tokenRaw->txtype === 511  ? 'Jackpot' : ($tokenRaw->txtype === 520 ? 'Lose' : ($tokenRaw->txtype === 530 ? 'Freebet' : ($tokenRaw->txtype === 540 ? 'Tie' : 'End_round'))))),
                     'round_id' => $tokenRaw->roundid,
-                    'deskripsi' => 'Game Bet' . ' : ' . $tokenRaw->amt,
+                    'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : 'End_round'))))),
                     'created_at' => $tokenRaw->timestamp,
                     'created_by' => $tokenRaw->userid,
                 ]);
@@ -69,12 +69,19 @@ class QueenmakerController extends Controller
         }else{
             foreach ($token->transactions as $tokenRaw) {
                 // create transaction on debit
-                $bet = BetModel::where('bet_id', $tokenRaw->ptxid)->first();
-                $bet->update([
+                $bet = BetModel::create([
+                    'bet_id' => $tokenRaw->ptxid,
+                    'refptxid' => $tokenRaw->refptxid,
                     'win' => $tokenRaw->amt,
-                    'updated_at' => $tokenRaw->timestamp,
+                    'platform' => $tokenRaw->gpcode,
+                    'game_id' => $tokenRaw->gamecode,
+                    'game' => $tokenRaw->gamename,
+                    'game_info' => $tokenRaw->gametype == 0 ? 'slot' : 'TableGame',
                     'type' => $tokenRaw->txtype === 500 ? 'Bet' : ($tokenRaw->txtype === 510  ? 'Win' : ($tokenRaw->txtype === 511  ? 'Jackpot' : ($tokenRaw->txtype === 520 ? 'Lose' : ($tokenRaw->txtype === 530 ? 'Freebet' : ($tokenRaw->txtype === 540 ? 'Tie' : 'End_round'))))),
-                    'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : 'End_round')))))
+                    'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : 'End_round'))))),
+                    'created_by' => $tokenRaw->userid,
+                    'created_at' => $tokenRaw->timestamp,
+                    'updated_at' => $tokenRaw->timestamp,
                 ]);
                 // get credit
                 $member = MembersModel::find($tokenRaw->userid);
