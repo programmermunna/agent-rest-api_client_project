@@ -14,6 +14,7 @@ class QueenmakerController extends Controller
     {
         $token =  JWT::decode(request()->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
         
+        // check if any token
         if (!$token && is_null($token)) {
             return response()->json([ 
                 "err" => 10,
@@ -21,6 +22,7 @@ class QueenmakerController extends Controller
             ]);
         }else{
             foreach ($token->transactions as $tokenRaw) {
+                // create transaction on debit
                 $bet = BetModel::create([
                     'bet_id' => $tokenRaw->ptxid,
                     'refptxid' => $tokenRaw->refptxid,
@@ -34,6 +36,7 @@ class QueenmakerController extends Controller
                 ]);
                 // get credit
                 $member = MembersModel::find($tokenRaw->userid);
+                // calculate balance
                 $balance = $member->credit - $tokenRaw->amt;
             }
             return response()->json([ 
