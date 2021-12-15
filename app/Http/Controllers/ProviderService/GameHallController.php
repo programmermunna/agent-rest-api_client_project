@@ -113,14 +113,14 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $amountbet = $tokenRaw->betAmount * $this->ratio;
+            $amountbet = $tokenRaw->betAmount;
             $creditMember = $member->credit;
             $amount = $creditMember - $amountbet;
             $this->betTime = $tokenRaw->betTime;
             if ($creditMember < $amountbet) {
                 return response()->json([
                     "status" => '1018',
-                    "balance" => $creditMember / $this->ratio,
+                    "balance" => $creditMember,
                     "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
 
                 ]);
@@ -130,7 +130,7 @@ class GameHallController extends Controller
                 if ($bets) {
                     return [
                         "status" => '1025',
-                        "balance" => $creditMember / $this->ratio,
+                        "balance" => $creditMember,
                         "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                     ];
                 } else {
@@ -179,7 +179,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $amount / $this->ratio,
+            "balance" => $amount,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
@@ -208,7 +208,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $creditMember / $this->ratio,
+            "balance" => $creditMember,
             "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
@@ -265,7 +265,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $creditMember / $this->ratio,
+            "balance" => $creditMember,
             "balanceTs"   => now()
         ];
     }
@@ -307,7 +307,7 @@ class GameHallController extends Controller
             if ($bets == null) {
                 return [
                     "status" => '0000',
-                    "balance" => $member->credit / $this->ratio,
+                    "balance" => $member->credit,
                     "balanceTs"   => now()
                 ];
             } else {
@@ -334,7 +334,7 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $amount / $this->ratio,
+            "balance" => $amount,
             "balanceTs"   => now()
         ];
     }
@@ -354,12 +354,12 @@ class GameHallController extends Controller
             if ($bets == null) {
                 return [
                     "status" => '0000',
-                    "balance" => $member->credit / $this->ratio,
+                    "balance" => $member->credit,
                     "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                 ];
             } else {
 
-                $amountWin = $tokenRaw->winAmount * $this->ratio;
+                $amountWin = $tokenRaw->winAmount;
                 $creditMember = $member->credit;
                 $amount = $creditMember + $amountWin;
                 // update credit to table member
@@ -389,11 +389,182 @@ class GameHallController extends Controller
         }
         return [
             "status" => '0000',
-            "balance" => $amount / $this->ratio,
+            "balance" => $amount,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
 
+    public function UnSettle()
+    {
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $amountbet = $tokenRaw->betAmount;
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $member->update([
+                'credit' => $member->credit + $tokenRaw->betAmount
+            ]);
+            $bets = BetModel::query()
+                ->where('platform', $tokenRaw->platform)
+                ->where('bet_id', $tokenRaw->platformTxId)->first();
+            if ($bets == null) {
+                return [
+                    "status" => '1025',
+                ];
+            } else {
+                $bets->update([
+                    'type' => 'Bet',
+                    'bet' => $amountbet * $tokenRaw->gameInfo->odds,
+                    'updated_at' => $tokenRaw->updateTime,
+                ]);
+            }
+        }
+        return [
+            "status" => '0000',
+        ];
+    }
+
+    public function VoidSettle()
+    {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $amountbet = $tokenRaw->betAmount;
+            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+                ->where('platform', $tokenRaw->platform)
+                ->first();
+            if ($bets == null) {
+                return [
+                    "status" => '0000',
+                ];
+            } else {
+                $bets->update([
+                    'type' => 'Void',
+                    'bet' => $amountbet * $tokenRaw->gameInfo->odds,
+                    'updated_at' => $tokenRaw->updateTime,
+                ]);
+            }
+        }
+        return [
+            "status" => '0000',
+        ];
+    }
+
+    public function UnVoidSettle()
+    {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+                ->where('platform', $tokenRaw->platform)
+                ->first();
+            if ($bets == null) {
+                return [
+                    "status" => '0000',
+                ];
+            } else {
+                $bets->update([
+                    'type' => 'Bet',
+                    'updated_at' => $tokenRaw->updateTime,
+                ]);
+            }
+        }
+        return [
+            "status" => '0000',
+        ];
+    }
+
+    public function Give()
+    {
+        // @todo Need Changes or Waiting For UAT
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+                ->where('platform', $tokenRaw->platform)
+                ->first();
+
+            $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+                ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+                ->where('bets.id', $bets->id)->first();
+
+            if ($bets == null) {
+                return [
+                    "status" => '0000',
+                ];
+            } else {
+                $bonusAmount = $tokenRaw->amount;
+                $creditMember = $member->credit;
+                $amount = $creditMember + $bonusAmount;
+                $member->update([
+                    'credit' => $amount,
+                    'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
+                ]);
+
+                UserLogModel::logMemberActivity(
+                    'Member Bonus',
+                    $member,
+                    $bets,
+                    [
+                        'target' => $nameProvider->username,
+                        'activity' => 'Credit Bonus',
+                        'device' => $nameProvider->device,
+                        'ip' => $nameProvider->last_login_ip,
+                    ],
+                    "$nameProvider->username Received Bonus On $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+                );
+            }
+        }
+        return [
+            "status" => '0000',
+        ];
+    }
+
+    public function Tip()
+    {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $tipAmount = $tokenRaw->tip;
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $creditMember = $member->credit;
+            $amount = $creditMember - $tipAmount;
+            // update credit to table member
+            $member->update([
+                'credit' => $amount,
+                'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
+            ]);
+        }
+        return [
+            "status" => '0000',
+            "balance" => $creditMember ?? 0.0,
+            "balanceTs" => now()->format("Y-m-d\TH:i:s.vP")
+        ];
+    }
+
+    public function CancelTip()
+    {
+        // call betInformation
+        $token = $this->betInformation();
+        foreach ($token->data->txns as $tokenRaw) {
+            $tipAmount = $tokenRaw->tip;
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $creditMember = $member->credit;
+            $amount = $creditMember + $tipAmount;
+            $member->update([
+                'credit' => $amount,
+                'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
+            ]);
+        }
+        // For $creditMember will be Call on last index of loop and return again
+        return [
+            "status" => '0000',
+            "desc" => 'succes',
+            "balance" => $creditMember,
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+        ];
+    }
+
+    // slot and fish
     public function BetNSettle()
     {
         // call betInformation
@@ -535,176 +706,6 @@ class GameHallController extends Controller
         return [
             "status" => '0000',
             "balance" => $member->credit / $this->ratio,
-            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
-        ];
-    }
-
-    public function UnSettle()
-    {
-        $token = $this->betInformation();
-        foreach ($token->data->txns as $tokenRaw) {
-            $amountbet = $tokenRaw->betAmount;
-            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $member->update([
-                'credit' => $member->credit + ($tokenRaw->betAmount * $this->ratio)
-            ]);
-            $bets = BetModel::query()
-                ->where('platform', $tokenRaw->platform)
-                ->where('bet_id', $tokenRaw->platformTxId)->first();
-            if ($bets == null) {
-                return [
-                    "status" => '1025',
-                ];
-            } else {
-                $bets->update([
-                    'type' => 'Bet',
-                    'bet' => $amountbet * $tokenRaw->gameInfo->odds,
-                    'updated_at' => $tokenRaw->updateTime,
-                ]);
-            }
-        }
-        return [
-            "status" => '0000',
-        ];
-    }
-
-    public function VoidSettle()
-    {
-        // call betInformation
-        $token = $this->betInformation();
-        foreach ($token->data->txns as $tokenRaw) {
-            $amountbet = $tokenRaw->betAmount;
-            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
-                ->where('platform', $tokenRaw->platform)
-                ->first();
-            if ($bets == null) {
-                return [
-                    "status" => '0000',
-                ];
-            } else {
-                $bets->update([
-                    'type' => 'Void',
-                    'bet' => $amountbet * $tokenRaw->gameInfo->odds,
-                    'updated_at' => $tokenRaw->updateTime,
-                ]);
-            }
-        }
-        return [
-            "status" => '0000',
-        ];
-    }
-
-    public function UnVoidSettle()
-    {
-        // call betInformation
-        $token = $this->betInformation();
-        foreach ($token->data->txns as $tokenRaw) {
-            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
-                ->where('platform', $tokenRaw->platform)
-                ->first();
-            if ($bets == null) {
-                return [
-                    "status" => '0000',
-                ];
-            } else {
-                $bets->update([
-                    'type' => 'Bet',
-                    'updated_at' => $tokenRaw->updateTime,
-                ]);
-            }
-        }
-        return [
-            "status" => '0000',
-        ];
-    }
-
-    public function Give()
-    {
-        // @todo Need Changes or Waiting For UAT
-        $token = $this->betInformation();
-        foreach ($token->data->txns as $tokenRaw) {
-            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
-                ->where('platform', $tokenRaw->platform)
-                ->first();
-
-            $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-                ->leftJoin('members', 'members.id', '=', 'bets.created_by')
-                ->where('bets.id', $bets->id)->first();
-
-            if ($bets == null) {
-                return [
-                    "status" => '0000',
-                ];
-            } else {
-                $bonusAmount = $tokenRaw->amount;
-                $creditMember = $member->credit;
-                $amount = $creditMember + $bonusAmount;
-                $member->update([
-                    'credit' => $amount,
-                    'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
-                ]);
-
-                UserLogModel::logMemberActivity(
-                    'Member Bonus',
-                    $member,
-                    $bets,
-                    [
-                        'target' => $nameProvider->username,
-                        'activity' => 'Credit Bonus',
-                        'device' => $nameProvider->device,
-                        'ip' => $nameProvider->last_login_ip,
-                    ],
-                    "$nameProvider->username Received Bonus On $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
-                );
-            }
-        }
-        return [
-            "status" => '0000',
-        ];
-    }
-
-    public function Tip()
-    {
-        // call betInformation
-        $token = $this->betInformation();
-        foreach ($token->data->txns as $tokenRaw) {
-            $tipAmount = $tokenRaw->tip;
-            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $creditMember = $member->credit;
-            $amount = $creditMember - $tipAmount;
-            // update credit to table member
-            $member->update([
-                'credit' => $amount,
-                'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
-            ]);
-        }
-        return [
-            "status" => '0000',
-            "balance" => $creditMember / $this->ratio ?? 0.0,
-            "balanceTs" => now()->format("Y-m-d\TH:i:s.vP")
-        ];
-    }
-
-    public function CancelTip()
-    {
-        // call betInformation
-        $token = $this->betInformation();
-        foreach ($token->data->txns as $tokenRaw) {
-            $tipAmount = $tokenRaw->tip;
-            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $creditMember = $member->credit;
-            $amount = $creditMember + $tipAmount;
-            $member->update([
-                'credit' => $amount,
-                'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
-            ]);
-        }
-        // For $creditMember will be Call on last index of loop and return again
-        return [
-            "status" => '0000',
-            "desc" => 'succes',
-            "balance" => $creditMember / $this->ratio,
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
     }
