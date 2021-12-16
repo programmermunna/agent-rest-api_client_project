@@ -80,7 +80,7 @@ class QueenmakerController extends Controller
                 $bet = BetModel::create([
                     'bet_id' => $tokenRaw->ptxid,
                     'refptxid' => $tokenRaw->refptxid,
-                    'bet' => $tokenRaw->amt,
+                    'win' => $tokenRaw->amt,
                     'platform' => $tokenRaw->gpcode,
                     'game_id' => $tokenRaw->gamecode,
                     'game' => $tokenRaw->gamename,
