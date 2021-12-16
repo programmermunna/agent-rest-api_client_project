@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\v2\BetsTogelController;
 use App\Http\Controllers\Api\v2\OutResult;
 use App\Http\Controllers\ProviderService\GameHallController;
+use App\Http\Controllers\ProviderService\IONXController;
 use App\Http\Controllers\ProviderService\QueenmakerController;
 use App\Http\Controllers\ProviderService\ProviderController;
 use App\Http\Controllers\TogelDreamsBookController;
@@ -149,10 +150,10 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result', [ProviderController::class, 'result']);
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
-    # Game Gall 
+    # Game Gall
     Route::post("bet_gameHall" , [GameHallController::class , "listenTransaction"]);
     Route::post("result_gameHall" , [GameHallController::class , "resultGameHall"]);
-    
+
     #Queenmaker api route
     Route::post("debit" , [QueenmakerController::class , "getDebitQueenMaker"]);
     Route::post("credit" , [QueenmakerController::class , "getCreditQueenMaker"]);
@@ -173,4 +174,11 @@ Route::group(['prefix' => 'endpoint'], function () {
 	Route::middleware(['jwt.verify'])->group(function () {
 		Route::post('storeTogel', [BetsTogelController::class, 'store']);
 	});
+});
+
+Route::group(['prefix' => 'ionx'], function (){
+    Route::post("deduct-player-balance" , [IONXController::class , "deductPlayerBalance"]);
+    Route::post("get-player-balance" , [IONXController::class , "getPlayerBalance"]);
+    Route::post("rollback-player-balance" , [IONXController::class , "rollbackPlayerBalance"]);
+    Route::post("Insert-running-bet" , [IONXController::class , "InsertRunningBet"]);
 });
