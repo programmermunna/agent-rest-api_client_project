@@ -76,17 +76,20 @@ class QueenmakerController extends Controller
             ]);
         }else{
             foreach ($token->transactions as $tokenRaw) {
-                // update transaction on credit
-                $bet = BetModel::where('refptxid', $tokenRaw->refptxid)->first();
-                $bet->update([
+                // transaction on credit
+                $bet = BetModel::create([
                     'bet_id' => $tokenRaw->ptxid,
                     'refptxid' => $tokenRaw->refptxid,
                     'win' => $tokenRaw->amt,
+                    'platform' => $tokenRaw->gpcode,
+                    'game_id' => $tokenRaw->gamecode,
+                    'game' => $tokenRaw->gamename,
                     'game_info' => $tokenRaw->gametype == 0 ? 'slot' : 'TableGame',
                     'type' => $tokenRaw->txtype === 500 ? 'Bet' : ($tokenRaw->txtype === 510  ? 'Win' : ($tokenRaw->txtype === 511  ? 'Jackpot' : ($tokenRaw->txtype === 520 ? 'Lose' : ($tokenRaw->txtype === 530 ? 'Freebet' : ($tokenRaw->txtype === 540 ? 'Tie' : 'End_round'))))),
+                    'round_id' => $tokenRaw->roundid,
                     'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : 'End_round'))))),
-                    'updated_at' => $tokenRaw->timestamp,
-                    'updated_by' => $tokenRaw->userid,
+                    'created_at' => $tokenRaw->timestamp,
+                    'created_by' => $tokenRaw->userid,
                 ]);
                 // get credit
                 $member = MembersModel::find($tokenRaw->userid);
