@@ -44,7 +44,7 @@ class IONXController extends Controller
 
         return response()->json([
             'Result' => "SUCCESS",
-            'OrderId' => $memberId,
+            'OrderId' => $this->memberId,
         ]);
     }
 
