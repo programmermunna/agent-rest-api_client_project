@@ -25,20 +25,25 @@ class IONXController extends Controller
 
     public function deductPlayerBalance()
     {
-        $this->checkTokenIsValid();
-        foreach ($this->transaction->data->txns as $tokenRaw) {
-            $member = MembersModel::find($tokenRaw->AccountId);
-            $balance = $member->credit - $tokenRaw->stake;
-            $refNo = $tokenRaw->RefNo;
+        // for filter the player id player19 to 19(only take number)
+        $memberId = (int) filter_var($this->token->AccountId, FILTER_SANITIZE_NUMBER_INT);
+        $member = MembersModel::find($memberId);
+        $balance = $member->credit - $this->token->Stake;
+        if ($balance < 0) {
+            return response()->json([ 
+                "Result" => "INSUFFICIENT_BALANCE",
+                "Description" => "Insufficient balance for deduction"
+            ]);
+        }else{
             $member->update([
                 'credit' => $balance,
-                'updated_at' => $tokenRaw->Timestamp,
+                'updated_at' => $this->token->TimeStamp,
             ]);
         }
 
         return response()->json([
-            'Result' => 201,
-            'OrderId' => $refNo ?? 0,
+            'Result' => "SUCCESS",
+            'OrderId' => $memberId,
         ]);
     }
 
