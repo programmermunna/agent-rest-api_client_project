@@ -7,7 +7,6 @@ use App\Models\BetModel;
 use App\Models\MembersModel;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class IONXController extends Controller
 {
