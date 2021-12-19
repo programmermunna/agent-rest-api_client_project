@@ -44,7 +44,7 @@ class IONXController extends Controller
 
         return response()->json([
             'Result' => "SUCCESS",
-            'OrderId' => $memberId,
+            'OrderId' => $this->memberId,
         ]);
     }
 
@@ -91,6 +91,7 @@ class IONXController extends Controller
 
     public function InsertRunningBet()
     {
+        dd($this->memberId);
         $this->checkTokenIsValid();
         $member = MembersModel::find($this->memberId);
         // calculate balance
