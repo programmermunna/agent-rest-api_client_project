@@ -111,7 +111,8 @@ class IONXController extends Controller
                 'created_at' => $this->token->OrderTime,
                 'constant_provider_id' => 8,
                 'type' => 'Bet',
-                'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake
+                'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
+                'created_by' => $this->memberId
             ]);
 
             $member->update([
