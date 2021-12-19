@@ -7,10 +7,12 @@ use App\Models\BetModel;
 use App\Models\MembersModel;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class IONXController extends Controller
 {
     private $token;
+    private $memberId;
     /**
      * @var object
      */
@@ -20,14 +22,16 @@ class IONXController extends Controller
     {
         //some init here
         $this->token = JWT::decode(request()->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
-        //probably some other initializations here.
+
+        // for filter the player id player19 to 19(only take number)
+        $this->memberId = (int) filter_var($this->token->AccountId, FILTER_SANITIZE_NUMBER_INT);
     }
 
     public function deductPlayerBalance()
     {
-        // for filter the player id player19 to 19(only take number)
-        $memberId = (int) filter_var($this->token->AccountId, FILTER_SANITIZE_NUMBER_INT);
-        $member = MembersModel::find($memberId);
+        
+        
+        $member = MembersModel::find($this->memberId);
         $balance = $member->credit - $this->token->Stake;
         if ($balance < 0) {
             return response()->json([ 
@@ -91,22 +95,35 @@ class IONXController extends Controller
     public function InsertRunningBet()
     {
         $this->checkTokenIsValid();
+        $member = MembersModel::find($this->memberId);
+        // calculate balance
+        $balance = $member->credit - $this->token->Stake;
+        if ($balance < 0) {
+            return response()->json([ 
+                "Result" => "GENERAL_ERROR"
+            ]);
+        }else{
+            // Insert/Update Running Bet
+            $bet = BetModel::create([
+                'bet_id' => $this->token->RefNo,
+                'created_by' => $this->token->AccountId,
+                'bet' => $this->token->Stake,
+                'game_id' => $this->token->GameId,
+                'game' => $this->token->ProductType,
+                'round_id' => $this->token->OrderId,
+                'created_at' => $this->token->OrderTime,
+                'constant_provider_id' => 8,
+                'type' => 'Bet',
+                'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake
+            ]);
 
-        foreach ($this->transaction->data->txns as $tokenRaw) {
-            $bet = BetModel::where('game_id', $tokenRaw->GameId)
-                ->where('created_by', $tokenRaw->AccountId)
-                ->where('id', $tokenRaw->OrderId)
-                ->first();
-
-            $bet->update([
-                'bet' => $tokenRaw->Stake,
-                'game_id' => $tokenRaw->GameId,
-                'updated_at' => $tokenRaw->Timestamp
+            $member->update([
+                'credit' => $balance,
+                'last_login_ip' => $this->token->Ip
             ]);
         }
-
-        return response()->json([
-            'Result' => 201
+        return response()->json([ 
+            'Result' => "SUCCESS",
         ]);
     }
 
