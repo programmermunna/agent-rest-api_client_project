@@ -28,7 +28,7 @@ class IONXController extends Controller
         $this->checkTokenIsValid();
         foreach ($this->transaction->data->txns as $tokenRaw) {
             $member = MembersModel::find($tokenRaw->AccountId);
-            $balance = $member->credit - $tokenRaw->stake;
+            $balance = $member->credit - $tokenRaw->Stake;
 
             if ($balance < 0) {
                 return response()->json([ 
