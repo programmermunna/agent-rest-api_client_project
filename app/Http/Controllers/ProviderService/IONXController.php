@@ -91,7 +91,6 @@ class IONXController extends Controller
 
     public function InsertRunningBet()
     {
-        dd($this->memberId);
         $this->checkTokenIsValid();
         $member = MembersModel::find($this->memberId);
         // calculate balance
