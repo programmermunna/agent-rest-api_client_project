@@ -29,15 +29,23 @@ class IONXController extends Controller
         foreach ($this->transaction->data->txns as $tokenRaw) {
             $member = MembersModel::find($tokenRaw->AccountId);
             $balance = $member->credit - $tokenRaw->stake;
-            $refNo = $tokenRaw->RefNo;
-            $member->update([
-                'credit' => $balance,
-                'updated_at' => $tokenRaw->Timestamp,
-            ]);
+
+            if ($balance < 0) {
+                return response()->json([ 
+                    "Result" => "INSUFFICIENT_BALANCE",
+                    "Description" => "Insufficient balance for deduction"
+                ]);
+            }else{
+                $refNo = $tokenRaw->RefNo;
+                $member->update([
+                    'credit' => $balance,
+                    'updated_at' => $tokenRaw->Timestamp,
+                ]);
+            }
         }
 
         return response()->json([
-            'Result' => 201,
+            'Result' => "SUCCESS",
             'OrderId' => $refNo ?? 0,
         ]);
     }
