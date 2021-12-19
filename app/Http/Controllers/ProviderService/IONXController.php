@@ -29,8 +29,6 @@ class IONXController extends Controller
 
     public function deductPlayerBalance()
     {
-        
-        
         $member = MembersModel::find($this->memberId);
         $balance = $member->credit - $this->token->Stake;
         if ($balance < 0) {
