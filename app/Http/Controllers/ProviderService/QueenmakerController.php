@@ -78,7 +78,9 @@ class QueenmakerController extends Controller
         }else{
             foreach ($token->transactions as $tokenRaw) {
                 // transaction on credit
-                $bet = BetModel::create([
+                
+                $bet = BetModel::where('bet_id', '=', $tokenRaw->refptxid)->first();
+                $bet->update([
                     'bet_id' => $tokenRaw->ptxid,
                     'refptxid' => $tokenRaw->refptxid,
                     'win' => $tokenRaw->amt,
@@ -108,7 +110,7 @@ class QueenmakerController extends Controller
                         'ptxid' => $bet->bet_id,
                         'bal' => $member->credit,
                         'cur' => 'IDR',
-                        'dup' => false,
+                        'dup' => true,
                     ])
                 ]
             ]);
