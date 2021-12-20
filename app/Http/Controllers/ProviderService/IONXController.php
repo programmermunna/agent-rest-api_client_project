@@ -36,6 +36,15 @@ class IONXController extends Controller
                 "Description" => "Insufficient balance for deduction"
             ]);
         }else{
+            $bet = BetModel::create([
+                'bet_id' => $this->token->RefNo,
+                'bet' => $this->token->Stake,
+                'seq_no' => $this->token->SeqNo,
+                'guid' => $this->token->Guid,
+                'created_at' => $this->token->OrderTime,
+                'constant_provider_id' => 8,
+                'created_by' => $this->memberId
+            ]);
             $member->update([
                 'credit' => $balance,
                 'updated_at' => $this->token->TimeStamp,
@@ -44,7 +53,7 @@ class IONXController extends Controller
 
         return response()->json([
             'Result' => "SUCCESS",
-            'OrderId' => $this->memberId,
+            'OrderId' => $bet->id,
         ]);
     }
 
