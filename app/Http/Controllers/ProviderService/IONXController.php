@@ -48,7 +48,7 @@ class IONXController extends Controller
             
             $member->update([
                 'credit' => $balance,
-                'updated_at' => $this->token->TimeStamp,
+                'updated_at' => $this->token->Timestamp,
             ]);
         }
 
@@ -117,7 +117,7 @@ class IONXController extends Controller
                     'game_id' => $this->token->GameId,
                     'game' => $this->token->ProductType,
                     'round_id' => $this->token->OrderId,
-                    'created_at' => $this->token->TimeStamp,
+                    'created_at' => $this->token->Timestamp,
                     'constant_provider_id' => 8,
                     'type' => 'Bet',
                     'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
@@ -132,7 +132,11 @@ class IONXController extends Controller
                     'game_id' => $this->token->GameId,
                     'game' => $this->token->ProductType,
                     'round_id' => $this->token->OrderId,
+<<<<<<< HEAD
                     'created_at' => $this->token->TimeStamp,
+=======
+                    'created_at' => $this->token->Timestamp,
+>>>>>>> 47221997e4c3c85d611c01e451e30c4d718884be
                     'constant_provider_id' => 8,
                     'type' => 'Bet',
                     'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
