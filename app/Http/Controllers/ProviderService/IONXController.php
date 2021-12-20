@@ -41,7 +41,7 @@ class IONXController extends Controller
                 'bet' => $this->token->Stake,
                 'seq_no' => $this->token->SeqNo,
                 'guid' => $this->token->Guid,
-                'created_at' => $this->token->OrderTime,
+                'created_at' => $this->token->Timestamp,
                 'constant_provider_id' => 8,
                 'created_by' => $this->memberId
             ]);
@@ -62,41 +62,38 @@ class IONXController extends Controller
     {
         $this->checkTokenIsValid();
 
-        foreach ($this->transaction->data->txns as $tokenRaw) {
-            $member = MembersModel::find($tokenRaw->AccountId);
-            $balance = $member->credit;
-        }
+        $credit = MembersModel::find($this->memberId)->credit;
 
         return response()->json([
-            'AvailableCredit' => $balance,
-            'Result' => 200,
+            'AvailableCredit' => $credit,
+            'Result' => "SUCCESS",
         ]);
     }
 
     public function rollbackPlayerBalance()
     {
         $this->checkTokenIsValid();
+        
+        $bet = BetModel::where('id', '=', $this->token->OrderId)
+                        ->where('ref_no', '=', $this->token->RefNo)
+                        ->first();
+        if ($bet) {
+            //rollback bet
+            $bet->delete();
 
-        foreach ($this->transaction->data->txns as $tokenRaw) {
-            $member = MembersModel::find($tokenRaw->AccountId);
-            $balance = $member->credit + $tokenRaw->Amount;
+            // rollback credit
+            $member = MembersModel::find($this->memberId);
+            $balance = $member->credit + $this->token->Stake;    
 
-            $member->update([
-                'credit' => $balance,
-                'updated_at' => $tokenRaw->Timestamp,
+            return response()->json([
+                'Result' => "SUCCESS",
+                'Amount' => $balance,
             ]);
-
-            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
-                ->where('platform', $tokenRaw->platform)
-                ->update([
-                    'type' => 'Cancel'
-                ]);
+        }else{
+            return response()->json([
+                'Result' => "ORDER_NOT_FOUND",
+            ]);
         }
-
-        return response()->json([
-            'AvailableCredit' => $balance,
-            'Result' => 200,
-        ]);
     }
 
     public function InsertRunningBet()
