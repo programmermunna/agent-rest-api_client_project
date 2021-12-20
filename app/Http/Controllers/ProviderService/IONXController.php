@@ -45,6 +45,7 @@ class IONXController extends Controller
                 'constant_provider_id' => 8,
                 'created_by' => $this->memberId
             ]);
+            
             $member->update([
                 'credit' => $balance,
                 'updated_at' => $this->token->TimeStamp,
