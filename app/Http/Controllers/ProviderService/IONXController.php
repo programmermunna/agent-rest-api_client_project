@@ -74,26 +74,17 @@ class IONXController extends Controller
     {
         $this->checkTokenIsValid();
         
-        $bet = BetModel::where('id', '=', $this->token->OrderId)
-                        ->where('ref_no', '=', $this->token->RefNo)
+        $bets = BetModel::where('id', '=', $this->token->OrderId)
+                        ->where('bet_id', '=', $this->token->RefNo)
+                        ->where('seq_no', '=', $this->token->SeqNo)
                         ->first();
-        if ($bet) {
-            //rollback bet
-            $bet->delete();
+        $member = MembersModel::find($this->memberId);
+        $balance = $member->credit + $bets->bet;    
 
-            // rollback credit
-            $member = MembersModel::find($this->memberId);
-            $balance = $member->credit + $this->token->Stake;    
-
-            return response()->json([
-                'Result' => "SUCCESS",
-                'Amount' => $balance,
-            ]);
-        }else{
-            return response()->json([
-                'Result' => "ORDER_NOT_FOUND",
-            ]);
-        }
+        return response()->json([
+            'Result' => "SUCCESS",
+            'Amount' => $balance,
+        ]);
     }
 
     public function InsertRunningBet()
@@ -132,11 +123,7 @@ class IONXController extends Controller
                     'game_id' => $this->token->GameId,
                     'game' => $this->token->ProductType,
                     'round_id' => $this->token->OrderId,
-<<<<<<< HEAD
-                    'created_at' => $this->token->TimeStamp,
-=======
                     'created_at' => $this->token->Timestamp,
->>>>>>> 47221997e4c3c85d611c01e451e30c4d718884be
                     'constant_provider_id' => 8,
                     'type' => 'Bet',
                     'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
