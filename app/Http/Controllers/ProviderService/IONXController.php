@@ -107,20 +107,42 @@ class IONXController extends Controller
                 "Result" => "GENERAL_ERROR"
             ]);
         }else{
-            // Insert/Update Running Bet
-            $bet = BetModel::create([
-                'bet_id' => $this->token->RefNo,
-                'created_by' => $this->token->AccountId,
-                'bet' => $this->token->Stake,
-                'game_id' => $this->token->GameId,
-                'game' => $this->token->ProductType,
-                'round_id' => $this->token->OrderId,
-                'created_at' => $this->token->OrderTime,
-                'constant_provider_id' => 8,
-                'type' => 'Bet',
-                'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
-                'created_by' => $this->memberId
-            ]);
+            $bet = BetModel::where('id', '=', $this->token->OrderId)
+                    ->first();
+            if ($bet) {
+                $bet->update([
+                    'bet_id' => $this->token->RefNo,
+                    'created_by' => $this->token->AccountId,
+                    'bet' => $this->token->Stake,
+                    'game_id' => $this->token->GameId,
+                    'game' => $this->token->ProductType,
+                    'round_id' => $this->token->OrderId,
+                    'created_at' => $this->token->OrderTime,
+                    'constant_provider_id' => 8,
+                    'type' => 'Bet',
+                    'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
+                    'created_by' => $this->memberId
+                ]);
+            }else{
+                // Insert/Update Running Bet
+                BetModel::create([
+                    'bet_id' => $this->token->RefNo,
+                    'created_by' => $this->token->AccountId,
+                    'bet' => $this->token->Stake,
+                    'game_id' => $this->token->GameId,
+                    'game' => $this->token->ProductType,
+                    'round_id' => $this->token->OrderId,
+                    'created_at' => $this->token->OrderTime,
+                    'constant_provider_id' => 8,
+                    'type' => 'Bet',
+                    'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
+                    'created_by' => $this->memberId
+                ]);
+
+                $member->update([
+                    'credit' => $balance
+                ]);
+            }
         }
         return response()->json([ 
             'Result' => "SUCCESS",
