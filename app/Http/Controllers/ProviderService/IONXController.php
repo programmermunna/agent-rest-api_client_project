@@ -114,11 +114,6 @@ class IONXController extends Controller
                 'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
                 'created_by' => $this->memberId
             ]);
-
-            $member->update([
-                'credit' => $balance,
-                'last_login_ip' => $this->token->Ip
-            ]);
         }
         return response()->json([ 
             'Result' => "SUCCESS",
