@@ -41,7 +41,11 @@ class IONXController extends Controller
                 'bet' => $this->token->Stake,
                 'seq_no' => $this->token->SeqNo,
                 'guid' => $this->token->Guid,
+<<<<<<< HEAD
                 'created_at' => $this->token->Timestamp,
+=======
+                'created_at' => $this->token->OrderTime,
+>>>>>>> fccdcad111527d3ee2fa4960ed8da75e0372c7fa
                 'constant_provider_id' => 8,
                 'created_by' => $this->memberId
             ]);
