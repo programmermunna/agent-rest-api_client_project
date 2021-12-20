@@ -60,7 +60,7 @@ class QueenmakerController extends Controller
                         'ptxid' => $bet->bet_id,
                         'bal' => $member->credit,
                         'cur' => 'IDR',
-                        'dup' => true,
+                        'dup' => false,
                     ])
                 ]
             ]);
@@ -110,7 +110,7 @@ class QueenmakerController extends Controller
                         'ptxid' => $bet->bet_id,
                         'bal' => $member->credit,
                         'cur' => 'IDR',
-                        'dup' => false,
+                        'dup' => true,
                     ])
                 ]
             ]);
