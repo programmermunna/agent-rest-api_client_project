@@ -47,7 +47,7 @@ class QueenmakerController extends Controller
                         'created_by' => $tokenRaw->userid,
                         'constant_provider_id' => 9,
                     ]);
-                    // update credit
+                    // update credit 
                     $member->update([
                         'credit' => $balance
                     ]);
@@ -97,10 +97,6 @@ class QueenmakerController extends Controller
                         'created_by' => $tokenRaw->userid,
                         'constant_provider_id' => 9,
                     ]);
-                    $balance = $member->credit + $tokenRaw->amt;
-                    $member->update([
-                        'credit' => $balance
-                    ]); 
                     return response()->json([ 
                         'transactions' => [
                             ([
