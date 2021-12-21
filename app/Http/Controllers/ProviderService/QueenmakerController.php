@@ -83,7 +83,6 @@ class QueenmakerController extends Controller
                 $member = MembersModel::find($tokenRaw->userid);
 
                 if (!$bet) {
-                    $txId = (string) Str::uuid();
                     $betCreate = BetModel::create([
                         'bet_id' => $tokenRaw->ptxid,
                         'refptxid' => $tokenRaw->refptxid,
@@ -106,7 +105,7 @@ class QueenmakerController extends Controller
                     return response()->json([ 
                         'transactions' => [
                             ([
-                                "txid"  => $txId,
+                                "txid"  => $betCreate->id,
                                 "ptxid" => $tokenRaw->ptxid,
                                 "bal"   => $member->credit,
                                 "cur"   => "IDR",
