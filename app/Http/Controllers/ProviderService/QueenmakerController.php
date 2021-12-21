@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\MembersModel;
 use App\Models\BetModel;
 use Firebase\JWT\JWT;
+use Illuminate\Support\Str;
 
 class QueenmakerController extends Controller
 {
@@ -78,30 +79,62 @@ class QueenmakerController extends Controller
         }else{
             foreach ($token->transactions as $tokenRaw) {
                 // transaction on credit
-                
                 $bet = BetModel::where('bet_id', '=', $tokenRaw->refptxid)->first();
-                $bet->update([
-                    'bet_id' => $tokenRaw->ptxid,
-                    'refptxid' => $tokenRaw->refptxid,
-                    'win' => $tokenRaw->amt,
-                    'platform' => $tokenRaw->gpcode,
-                    'game_id' => $tokenRaw->gamecode,
-                    'game' => $tokenRaw->gamename,
-                    'game_info' => $tokenRaw->gametype == 0 ? 'slot' : 'TableGame',
-                    'type' => $tokenRaw->txtype === 500 ? 'Bet' : ($tokenRaw->txtype === 510  ? 'Win' : ($tokenRaw->txtype === 511  ? 'Jackpot' : ($tokenRaw->txtype === 520 ? 'Lose' : ($tokenRaw->txtype === 530 ? 'Freebet' : ($tokenRaw->txtype === 540 ? 'Tie' : 'End_round'))))),
-                    'round_id' => $tokenRaw->roundid,
-                    'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : 'End_round'))))),
-                    'created_at' => $tokenRaw->timestamp,
-                    'created_by' => $tokenRaw->userid,
-                    'constant_provider_id' => 9,
-                ]);
-                // get credit
                 $member = MembersModel::find($tokenRaw->userid);
-                // calculate balance
-                $balance = $member->credit + $tokenRaw->amt;
-                $member->update([
-                    'credit' => $balance
-                ]);
+
+                if (!$bet) {
+                    $betCreate = BetModel::create([
+                        'bet_id' => $tokenRaw->ptxid,
+                        'refptxid' => $tokenRaw->refptxid,
+                        'win' => $tokenRaw->amt,
+                        'platform' => $tokenRaw->gpcode,
+                        'game_id' => $tokenRaw->gamecode,
+                        'game' => $tokenRaw->gamename,
+                        'game_info' => $tokenRaw->gametype == 0 ? 'slot' : 'TableGame',
+                        'type' => $tokenRaw->txtype === 500 ? 'Bet' : ($tokenRaw->txtype === 510  ? 'Win' : ($tokenRaw->txtype === 511  ? 'Jackpot' : ($tokenRaw->txtype === 520 ? 'Lose' : ($tokenRaw->txtype === 530 ? 'Freebet' : ($tokenRaw->txtype === 540 ? 'Tie' : 'End_round'))))),
+                        'round_id' => $tokenRaw->roundid,
+                        'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : 'End_round'))))),
+                        'created_at' => $tokenRaw->timestamp,
+                        'created_by' => $tokenRaw->userid,
+                        'constant_provider_id' => 9,
+                    ]);
+                    $balance = $member->credit + $tokenRaw->amt;
+                    $member->update([
+                        'credit' => $balance
+                    ]); 
+                    return response()->json([ 
+                        'transactions' => [
+                            ([
+                                "txid"  => $betCreate->id,
+                                "ptxid" => $tokenRaw->ptxid,
+                                "bal"   => $member->credit,
+                                "cur"   => "IDR",
+                                "dup"   => true
+                            ])
+                        ]
+                    ]);
+                }else{
+                    $bet->update([
+                        'bet_id' => $tokenRaw->ptxid,
+                        'refptxid' => $tokenRaw->refptxid,
+                        'win' => $tokenRaw->amt,
+                        'platform' => $tokenRaw->gpcode,
+                        'game_id' => $tokenRaw->gamecode,
+                        'game' => $tokenRaw->gamename,
+                        'game_info' => $tokenRaw->gametype == 0 ? 'slot' : 'TableGame',
+                        'type' => $tokenRaw->txtype === 500 ? 'Bet' : ($tokenRaw->txtype === 510  ? 'Win' : ($tokenRaw->txtype === 511  ? 'Jackpot' : ($tokenRaw->txtype === 520 ? 'Lose' : ($tokenRaw->txtype === 530 ? 'Freebet' : ($tokenRaw->txtype === 540 ? 'Tie' : 'End_round'))))),
+                        'round_id' => $tokenRaw->roundid,
+                        'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : 'End_round'))))),
+                        'created_at' => $tokenRaw->timestamp,
+                        'created_by' => $tokenRaw->userid,
+                        'constant_provider_id' => 9,
+                    ]);
+                    // calculate balance
+                    $balance = $member->credit + $tokenRaw->amt;
+                    $member->update([
+                        'credit' => $balance
+                    ]);    
+                }
             }
             return response()->json([ 
                 'transactions' => [
