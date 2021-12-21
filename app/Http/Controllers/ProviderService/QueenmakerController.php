@@ -18,7 +18,7 @@ class QueenmakerController extends Controller
         if (!$token && is_null($token)) {
             return response()->json([ 
                 "err" => 10,
-                "errdesc" => "Token has expired"
+                "errdesc" => "Invalid or expired token"
             ]);
         }else{
             foreach ($token->transactions as $tokenRaw) {
@@ -27,8 +27,8 @@ class QueenmakerController extends Controller
                 $balance = $member->credit - $tokenRaw->amt;
                 if ($balance < 0) {
                     return response()->json([ 
-                        "err" => 10,
-                        "errdesc" => "balance is not enough"
+                        "err" => 100,
+                        "errdesc" => "Insufficient funds to perform the operation"
                     ]);
                 }else{
                     // create transaction on debit
@@ -47,8 +47,7 @@ class QueenmakerController extends Controller
                         'created_by' => $tokenRaw->userid,
                         'constant_provider_id' => 9,
                     ]);
-                    // get credit
-    
+                    // update credit
                     $member->update([
                         'credit' => $balance
                     ]);
