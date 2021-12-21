@@ -116,7 +116,6 @@ class QueenmakerController extends Controller
                     $member->update([
                         'credit' => $balance
                     ]);    
-
                 }
             }
             return response()->json([ 
