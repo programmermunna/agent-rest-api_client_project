@@ -78,7 +78,7 @@ class QueenmakerController extends Controller
         }else{
             foreach ($token->transactions as $tokenRaw) {
                 // transaction on credit
-                $bet = BetModel::where('refptxid', '=', $tokenRaw->refptxid)->first();
+                $bet = BetModel::where('bet_id', '=', $tokenRaw->refptxid)->first();
                 $member = MembersModel::find($tokenRaw->userid);
 
                 if (!$bet) {
