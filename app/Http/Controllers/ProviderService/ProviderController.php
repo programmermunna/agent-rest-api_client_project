@@ -668,7 +668,8 @@ class ProviderController extends Controller
         $member =  MembersModel::where('id', $user_id)->first();
         $amountbet = $data->amount;
         $creditMember = $member->credit ;
-        $amount = $creditMember - $amountbet;
+        $amountLose = $creditMember - $amountbet;
+        $amountWon = $creditMember + $amountbet;
         // dd($amount);
         $bonus = AppSetting::where('type', 'game')->pluck('value', 'id');
         if($amount < 0 ){
@@ -688,8 +689,8 @@ class ProviderController extends Controller
             }else{
                 if ($data->winAmount == 0) {
                     $member->update([
-                        'credit' => $amount,
-                        'created_at' => Carbon::now(),
+                        'credit' => $amountLose,
+                        'updated_at' => Carbon::now(),
                         'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
                     ]);
                     $bet = [
@@ -724,7 +725,8 @@ class ProviderController extends Controller
                     return Response::json($success);
                 }else{
                     $member->update([
-                        'credit' => $amount
+                        'credit' => $amountWon,
+                        'updated_at' => Carbon::now(),
                     ]);
                     $win = [
                         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
