@@ -80,6 +80,7 @@ class QueenmakerController extends Controller
             foreach ($token->transactions as $tokenRaw) {
                 // transaction on credit
                 $bet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)->first();
+                $member = MembersModel::find($tokenRaw->userid);
                 if ($bet) {
                     return response()->json([ 
                         'transactions' => [
@@ -110,7 +111,6 @@ class QueenmakerController extends Controller
                     ]);
 
                     // update credit 
-                    $member = MembersModel::find($tokenRaw->userid);
                     $balance = $member->credit + $tokenRaw->amt;
                     $member->update([
                         'credit' => $balance
