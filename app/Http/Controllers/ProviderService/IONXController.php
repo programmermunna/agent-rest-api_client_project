@@ -98,7 +98,7 @@ class IONXController extends Controller
                 "Result" => "GENERAL_ERROR"
             ]);
         }else{
-            $bet = BetModel::where('id', '=', $this->token->OrderId)
+            $bet = BetModel::where('bet_id', '=', $this->token->RefNo)
                     ->first();
             if ($bet) {
                 $bet->update([
@@ -134,6 +134,41 @@ class IONXController extends Controller
                     'credit' => $balance
                 ]);
             }
+        }
+        return response()->json([ 
+            'Result' => "SUCCESS",
+        ]);
+    }
+
+    public function SettleBet()
+    {
+        $this->checkTokenIsValid();
+        $member = MembersModel::find($this->memberId);
+        if ($member) {
+            return response()->json([ 
+                "Result" => "MEMBER_NOT_FOUND"
+            ]);
+        }else{
+            $balance = $member->credit + $this->token->PlayerWinloss;
+            BetModel::create([
+                'bet_id' => $this->token->RefNo,
+                'win' => $this->token->PlayerWinloss,
+                'bet' => $this->token->Stake,
+                'player_wl' => $this->token->WinningStake,
+                'bet_option' => $this->token->BetOptions,
+                'group_bet_option' => $this->token->GroupBetOptions,
+                'constant_provider_id' => 8,
+                'type' => $this->token->SettlementStatus === "WON" ? "Win" : ($this->token->SettlementStatus === "LOSE"  ? "Bet" : "Cancel"),
+                'deskripsi' => $this->token->SettlementStatus === "WON" ? "Game Win " . " : " . $this->token->PlayerWinloss : ($this->token->SettlementStatus === "LOSE"  ? "Game Lose " . " : " . $this->token->Stake : "Game Cancel " . ":" . $this->token->PlayerWinloss),
+                'created_at' => $this->token->SettleTime,
+                'created_by' => $this->memberId,
+                'guid' => $this->token->Guid
+            ]);
+
+            $member->update([
+                'credit' => $balance,
+                'updated_at' => $this->token->SettleTime
+            ]);
         }
         return response()->json([ 
             'Result' => "SUCCESS",
