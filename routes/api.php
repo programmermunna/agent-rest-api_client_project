@@ -150,6 +150,10 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result', [ProviderController::class, 'result']);
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
+    
+    // pgsoft transfer in out
+    Route::post('transfer-in-out', [ProviderController::class, 'resultPgSoft']);
+
     # Game Gall
     Route::post("bet_gameHall" , [GameHallController::class , "listenTransaction"]);
     Route::post("result_gameHall" , [GameHallController::class , "resultGameHall"]);

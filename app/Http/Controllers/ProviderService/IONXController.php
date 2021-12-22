@@ -144,22 +144,22 @@ class IONXController extends Controller
     {
         $this->checkTokenIsValid();
         $member = MembersModel::find($this->memberId);
-        if ($member) {
+        if (!$member) {
             return response()->json([ 
                 "Result" => "MEMBER_NOT_FOUND"
             ]);
         }else{
-            $balance = $member->credit + $this->token->PlayerWinloss;
+            $balance = $member->credit + $this->token->PlayerWinLoss;
             BetModel::create([
                 'bet_id' => $this->token->RefNo,
-                'win' => $this->token->PlayerWinloss,
+                'win' => $this->token->PlayerWinLoss,
                 'bet' => $this->token->Stake,
                 'player_wl' => $this->token->WinningStake,
                 'bet_option' => $this->token->BetOptions,
                 'group_bet_option' => $this->token->GroupBetOptions,
                 'constant_provider_id' => 8,
                 'type' => $this->token->SettlementStatus === "WON" ? "Win" : ($this->token->SettlementStatus === "LOSE"  ? "Bet" : "Cancel"),
-                'deskripsi' => $this->token->SettlementStatus === "WON" ? "Game Win " . " : " . $this->token->PlayerWinloss : ($this->token->SettlementStatus === "LOSE"  ? "Game Lose " . " : " . $this->token->Stake : "Game Cancel " . ":" . $this->token->PlayerWinloss),
+                'deskripsi' => $this->token->SettlementStatus === "WON" ? "Game Win " . " : " . $this->token->PlayerWinLoss : ($this->token->SettlementStatus === "LOSE"  ? "Game Lose " . " : " . $this->token->Stake : "Game Cancel " . ":" . $this->token->PlayerWinLoss),
                 'created_at' => $this->token->SettleTime,
                 'created_by' => $this->memberId,
                 'guid' => $this->token->Guid
