@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\ProviderService;
 
+use App\Domains\Announcement\Models\Announcement;
 use App\Http\Controllers\Controller;
 use App\Models\BetModel;
 use App\Models\MembersModel;
+use Carbon\Carbon;
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class IONXController extends Controller
 {
@@ -31,7 +34,7 @@ class IONXController extends Controller
         $member = MembersModel::find($this->memberId);
         $balance = $member->credit - $this->token->Stake;
         if ($balance < 0) {
-            return response()->json([ 
+            return response()->json([
                 "Result" => "INSUFFICIENT_BALANCE",
                 "Description" => "Insufficient balance for deduction"
             ]);
@@ -45,7 +48,7 @@ class IONXController extends Controller
                 'constant_provider_id' => 8,
                 'created_by' => $this->memberId
             ]);
-            
+
             $member->update([
                 'credit' => $balance,
                 'updated_at' => $this->token->Timestamp,
@@ -73,13 +76,13 @@ class IONXController extends Controller
     public function rollbackPlayerBalance()
     {
         $this->checkTokenIsValid();
-        
+
         $bets = BetModel::where('id', '=', $this->token->OrderId)
                         ->where('bet_id', '=', $this->token->RefNo)
                         ->where('seq_no', '=', $this->token->SeqNo)
                         ->first();
         $member = MembersModel::find($this->memberId);
-        $balance = $member->credit + $bets->bet;    
+        $balance = $member->credit + $bets->bet;
 
         return response()->json([
             'Result' => "SUCCESS",
@@ -94,7 +97,7 @@ class IONXController extends Controller
         // calculate balance
         $balance = $member->credit - $this->token->Stake;
         if ($balance < 0) {
-            return response()->json([ 
+            return response()->json([
                 "Result" => "GENERAL_ERROR"
             ]);
         }else{
@@ -135,7 +138,7 @@ class IONXController extends Controller
                 ]);
             }
         }
-        return response()->json([ 
+        return response()->json([
             'Result' => "SUCCESS",
         ]);
     }
@@ -145,7 +148,7 @@ class IONXController extends Controller
         $this->checkTokenIsValid();
         $member = MembersModel::find($this->memberId);
         if (!$member) {
-            return response()->json([ 
+            return response()->json([
                 "Result" => "MEMBER_NOT_FOUND"
             ]);
         }else{
@@ -170,9 +173,41 @@ class IONXController extends Controller
                 'updated_at' => $this->token->SettleTime
             ]);
         }
-        return response()->json([ 
+        return response()->json([
             'Result' => "SUCCESS",
         ]);
+    }
+
+    public function insertGameAnnouncement()
+    {
+        $this->checkTokenIsValid();
+        try {
+            $data = [
+                'area' => 'frontend',
+                'message' => $this->token->Id, //message in indonesian
+                'enabled' => true,
+                'starts_at' => $this->token->PostDate,
+                'ends_at' => $this->token->PostDate,
+                'created_by' => 1,
+                'created_at' => Carbon::now(),
+                'updated_by' => 1,
+                'updated_at' => Carbon::now(),
+            ];
+
+            Announcement::create($data);
+
+            $result = [
+                'Result' => "SUCCESS",
+            ];
+        } catch (\Exception $e) {
+            Log::error($e);
+
+            $result = [
+                'Result' => "GENERAL_ERROR",
+            ];
+        }
+
+        return response()->json($result);
     }
 
     private function checkTokenIsValid()
