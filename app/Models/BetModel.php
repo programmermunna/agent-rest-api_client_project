@@ -26,6 +26,8 @@ class BetModel extends Model
         'bet_option',
         'group_bet_option',
         'guid',
+        'shoe_id',
+        'game_status',
         'round_id',
         'jackpot',
         'platform',
