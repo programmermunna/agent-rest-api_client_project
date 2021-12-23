@@ -175,38 +175,6 @@ class IONXController extends Controller
         ]);
     }
 
-    public function ResultGame()
-    {
-        $this->checkTokenIsValid();
-        $bet = BetModel::where('game_id', '=', $this->token->GameId)
-                ->first();
-        if ($bet) {
-            // If GameId already exists, the existing data will be overwrite
-            $bet->update([
-                'game' => $this->token->ProductType,
-                'shoe_id' => $this->token->ShoeID,
-                'game_status' => $this->token->GameStatus,
-                'constant_provider_id' => 8,
-                'type' => $this->token->Result === "WON" ? "Win" : ($this->token->Result === "LOSE"  ? "Bet" : ($this->token->Result === "VOID" ? "Void" : ($this->token->Result === "DRAW" ? "Tie" : "Cancel"))),
-                'created_at' => $this->token->Timestamp,
-            ]);
-        }else{
-            // Insert game result for statement and bet history
-            BetModel::create([
-                'game_id' => $this->token->GameId,
-                'game' => $this->token->ProductType,
-                'shoe_id' => $this->token->ShoeID,
-                'game_status' => $this->token->GameStatus,
-                'guid' => $this->token->Guid,
-                'constant_provider_id' => 8,
-                'type' => $this->token->Result === "WON" ? "Win" : ($this->token->Result === "LOSE"  ? "Bet" : ($this->token->Result === "VOID" ? "Void" : ($this->token->Result === "DRAW" ? "Tie" : "Cancel"))),
-                'created_at' => $this->token->Timestamp,
-            ]);
-        }
-        return response()->json([ 
-            'Result' => "SUCCESS",
-        ]);
-    }
     private function checkTokenIsValid()
     {
         if (!$this->token && is_null($this->token)) {
