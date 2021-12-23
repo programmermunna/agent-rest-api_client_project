@@ -186,5 +186,4 @@ Route::group(['prefix' => 'ionx'], function (){
     Route::post("rollback-player-balance" , [IONXController::class , "rollbackPlayerBalance"]);
     Route::post("Insert-running-bet" , [IONXController::class , "InsertRunningBet"]);
     Route::post("settle-bet" , [IONXController::class , "SettleBet"]);
-    Route::post("result-game" , [IONXController::class , "ResultGame"]);
 });
