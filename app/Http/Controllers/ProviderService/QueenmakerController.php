@@ -82,16 +82,12 @@ class QueenmakerController extends Controller
                 $bet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)->first();
                 $member = MembersModel::find($tokenRaw->userid);
                 if ($bet) {
-                    return response()->json([ 
-                        'transactions' => [
-                            ([
-                                'txid' => $bet->id,
-                                'ptxid' => $bet->bet_id,
-                                'bal' => $member->credit,
-                                'cur' => 'IDR',
-                                'dup' => true,
-                            ])
-                        ]
+                    array_push($data, [
+                        'txid' => $bet->id,
+                        'ptxid' => $bet->bet_id,
+                        'bal' => $member->credit,
+                        'cur' => 'IDR',
+                        'dup' => true,
                     ]);
                 }else{
                     $betCreate = BetModel::create([
