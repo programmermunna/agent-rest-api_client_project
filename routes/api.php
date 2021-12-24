@@ -150,7 +150,7 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result', [ProviderController::class, 'result']);
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
-    
+
     // pgsoft transfer in out
     Route::post('transfer-in-out', [ProviderController::class, 'resultPgSoft']);
 
@@ -186,4 +186,5 @@ Route::group(['prefix' => 'ionx'], function (){
     Route::post("rollback-player-balance" , [IONXController::class , "rollbackPlayerBalance"]);
     Route::post("Insert-running-bet" , [IONXController::class , "InsertRunningBet"]);
     Route::post("settle-bet" , [IONXController::class , "SettleBet"]);
+    Route::post("insert-game-announcement" , [IONXController::class , "insertGameAnnouncement"]);
 });
