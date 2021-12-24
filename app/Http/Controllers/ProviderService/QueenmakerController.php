@@ -80,7 +80,6 @@ class QueenmakerController extends Controller
             foreach ($token->transactions as $tokenRaw) {
                 // transaction on credit
                 $bet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)
-                                ->where('type', '=', 'Bet')
                                 ->first();
                 $cancelBet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)
                                 ->where('refptxid', '=', $tokenRaw->refptxid)
