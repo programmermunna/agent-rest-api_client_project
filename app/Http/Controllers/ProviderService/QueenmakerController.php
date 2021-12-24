@@ -79,20 +79,18 @@ class QueenmakerController extends Controller
         }else{
             foreach ($token->transactions as $tokenRaw) {
                 // transaction on credit
-                $bet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)->first();
+                $bet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)
+                                ->where('type', '=', 'Bet')
+                                ->first();
                 $cancelBet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)
                                 ->where('refptxid', '=', $tokenRaw->refptxid)
+                                ->where('type', '=', 'Bet')
                                 ->first();
                 $member = MembersModel::find($tokenRaw->userid);
-                if ($bet && $tokenRaw->txtype == 510) {
-                    array_push($data, [
-                        'txid' => $bet->id,
-                        'ptxid' => $bet->bet_id,
-                        'bal' => $member->credit,
-                        'cur' => 'IDR',
-                        'dup' => true,
+                if ($cancelBet) {
+                    $cancelBet->update([
+                        'type' => 'Cancel'
                     ]);
-                }elseif ($cancelBet && $tokenRaw->txtype == 560) {
                     // update credit 
                     $balance = $member->credit + $tokenRaw->amt;
                     $member->update([
@@ -105,7 +103,15 @@ class QueenmakerController extends Controller
                         'cur' => 'IDR',
                         'dup' => false,
                     ]);
-                }elseif (!$cancelBet && $tokenRaw->txtype == 560) {
+                }elseif ($bet) {
+                    array_push($data, [
+                        'txid' => $bet->id,
+                        'ptxid' => $bet->bet_id,
+                        'bal' => $member->credit,
+                        'cur' => 'IDR',
+                        'dup' => true,
+                    ]);
+                }elseif (!$cancelBet) {
                     array_push($data, [
                         "txid"  => $tokenRaw->ptxid,
                         "ptxid" => $tokenRaw->ptxid,
