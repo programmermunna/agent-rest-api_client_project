@@ -80,7 +80,9 @@ class QueenmakerController extends Controller
             foreach ($token->transactions as $tokenRaw) {
                 // transaction on credit
                 $bet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)->first();
-                $cancelBet = BetModel::where('bet_id', '=', $tokenRaw->refptxid)->first();
+                $cancelBet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)
+                                ->where('refptxid', '=', $tokenRaw->refptxid)
+                                ->first();
                 $member = MembersModel::find($tokenRaw->userid);
                 if ($bet && $tokenRaw->txtype == 510) {
                     array_push($data, [
