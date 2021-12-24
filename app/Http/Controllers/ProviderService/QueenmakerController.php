@@ -80,6 +80,9 @@ class QueenmakerController extends Controller
             foreach ($token->transactions as $tokenRaw) {
                 // transaction on credit
                 $bet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)->first();
+                $cancelBet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)
+                                ->where('refptxid', '=', $tokenRaw->refptxid)
+                                ->first();
                 $member = MembersModel::find($tokenRaw->userid);
                 if ($bet && $tokenRaw->txtype == 510) {
                     array_push($data, [
@@ -89,7 +92,7 @@ class QueenmakerController extends Controller
                         'cur' => 'IDR',
                         'dup' => true,
                     ]);
-                }elseif ($bet && $tokenRaw->txtype == 560) {
+                }elseif ($cancelBet && $tokenRaw->txtype == 560) {
                     // update credit 
                     $balance = $member->credit + $tokenRaw->amt;
                     $member->update([
@@ -102,7 +105,7 @@ class QueenmakerController extends Controller
                         'cur' => 'IDR',
                         'dup' => false,
                     ]);
-                }elseif (!$bet && $tokenRaw->txtype == 560) {
+                }elseif (!$cancelBet && $tokenRaw->txtype == 560) {
                     array_push($data, [
                         "txid"  => $tokenRaw->ptxid,
                         "ptxid" => $tokenRaw->ptxid,
