@@ -84,6 +84,7 @@ class OutResult extends ApiController
 				'constant_provider_togel.period as periode',
 				'constant_provider_togel.status as is_active',
 			])
+			->where('status' , true)
 			->with('resultNumber')
 			->get();
 
