@@ -59,14 +59,20 @@ class CmsController extends ApiController
     public function bannerPromoBonus()
     {
         try {
-            $bannerTurnover =  ImageContent::select([
+            $bannerTurnover =  ImageContent::select(
                     'id',
                     'path',
                     'title',
                     'content',
                     'alt',
-                ])
-                ->where('type', 'turnover')->orWhere('type', 'bonus_new_member')->orWhere('type', 'bonus_next_deposit')->orWhere('type', 'cashback')->where('enabled', 1)->get();
+                )
+                ->where('enabled', 1)
+                ->where(function($query){
+                    $query  ->where('type', 'turnover')
+                            ->orWhere('type', 'bonus_new_member')
+                            ->orWhere('type', 'bonus_next_deposit')
+                            ->orWhere('type', 'cashback');
+                })->get();
             if(is_null($bannerTurnover)){
                 return $this->successResponse(null, 'No banner turnover', 200);
             }else{
