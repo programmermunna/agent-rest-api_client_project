@@ -80,7 +80,6 @@ class QueenmakerController extends Controller
             foreach ($token->transactions as $tokenRaw) {
                 // transaction on credit
                 $bet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)
-                                ->where('type', '=', 'Bet')
                                 ->first();
                 $cancelBet = BetModel::where('bet_id', '=', $tokenRaw->ptxid)
                                 ->where('refptxid', '=', $tokenRaw->refptxid)
@@ -111,17 +110,7 @@ class QueenmakerController extends Controller
                         'cur' => 'IDR',
                         'dup' => true,
                     ]);
-                }elseif (!$cancelBet) {
-                    array_push($data, [
-                        "txid"  => $tokenRaw->ptxid,
-                        "ptxid" => $tokenRaw->ptxid,
-                        "bal"   => $member->credit,
-                        "cur"   => "IDR",
-                        "dup"   => false,
-                        "err"   => 600,
-                        "errdesc" => "transaction does not exist"
-                    ]);        
-                }else{
+                }elseif (!$bet) {
                     $betCreate = BetModel::create([
                         'bet_id' => $tokenRaw->ptxid,
                         'refptxid' => $tokenRaw->refptxid,
@@ -151,6 +140,16 @@ class QueenmakerController extends Controller
                         "cur"   => "IDR",
                         "dup"   => false
                     ]);
+                }elseif (!$cancelBet) {
+                    array_push($data, [
+                        "txid"  => $tokenRaw->ptxid,
+                        "ptxid" => $tokenRaw->ptxid,
+                        "bal"   => $member->credit,
+                        "cur"   => "IDR",
+                        "dup"   => false,
+                        "err"   => 600,
+                        "errdesc" => "transaction does not exist"
+                    ]);        
                 }
             }
             return response()->json([
