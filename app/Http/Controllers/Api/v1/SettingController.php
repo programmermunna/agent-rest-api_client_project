@@ -97,6 +97,19 @@ class SettingController extends ApiController
         }
     }
 
+    // get footer tag
+    public function footer_tag(){
+        try {
+            $footer_tag = AppSetting::select('name', 'value')->where('name', 'footer_tag')->first();
+            if ($footer_tag) {
+                return $this->successResponse($footer_tag->toArray());
+            }
+            return $this->successResponse(null, 'No content', 204);
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+
     // get social mendia
     public function social()
     {

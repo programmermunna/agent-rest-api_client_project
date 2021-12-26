@@ -131,6 +131,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/limit', 'SettingController@limit');
             Route::get('/referral_game/{type}', 'SettingController@referral_game');
             Route::get('/web_page', 'SettingController@web_page');
+            Route::get('/footer_tag', 'SettingController@footer_tag');
             Route::get('/social', 'SettingController@social');
             Route::get('/seo', 'SettingController@seo');
 
