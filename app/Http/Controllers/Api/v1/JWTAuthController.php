@@ -56,6 +56,17 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
         }
 
+        $member = MembersModel::where('email', $input['user_account'])
+                                ->orWhere('username', $input['user_account'])
+                                ->select('status')
+                                ->first();
+
+        if ($member->status == 0){
+            return $this->errorResponse('Member has been banned', 401);
+        } elseif ($member->status == 2){
+            return $this->errorResponse('Member has been suspend', 401);
+        }
+
         $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
         \Config::set('auth.defaults.guard', 'api');
 
@@ -73,6 +84,8 @@ class JWTAuthController extends ApiController
             // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
             'last_login_ip' => $request->ip,
         ]);
+
+        auth('api')->user();
 
         $user = auth('api')->user();
         UserLogModel::logMemberActivity(
@@ -94,9 +107,10 @@ class JWTAuthController extends ApiController
     public function getAuthenticatedMember()
     {
         try {
-            if (! $member = auth('api')->user()) {
+            $member = auth('api')->user();
+            if (! $member) {
                 return $this->errorResponse('Member not found', 404);
-            }
+            } 
         } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
         } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
