@@ -58,48 +58,53 @@ class JWTAuthController extends ApiController
 
         $member = MembersModel::where('email', $input['user_account'])
                                 ->orWhere('username', $input['user_account'])
-                                ->select('status')
                                 ->first();
 
-        if ($member->status == 0){
-            return $this->errorResponse('Member has been banned', 401);
-        } elseif ($member->status == 2){
-            return $this->errorResponse('Member has been suspend', 401);
-        }
-
-        $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
-        \Config::set('auth.defaults.guard', 'api');
-
-        try {
-            $token = auth('api')->attempt($credentials);
-            if (! $token) {
-                return $this->errorResponse('Username atau password yang anda masukan salah', 401);
+        if ($member) {
+            if ($member->status == 0){
+                return $this->errorResponse('Member has been banned', 401);
+            } elseif ($member->status == 2){
+                return $this->errorResponse('Member has been suspend', 401);
+            } elseif ($member->status == 1){
+                $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
             }
-        } catch (JWTException $e) {
-            return $this->errorResponse('Could not create token', 500);
-        }
 
-        auth('api')->user()->update([
-            'last_login_at' => now(),
-            // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
-            'last_login_ip' => $request->ip,
-        ]);
+            \Config::set('auth.defaults.guard', 'api');
 
-        auth('api')->user();
+            try {
+                $token = auth('api')->attempt($credentials);
+                if (! $token) {
+                    return $this->errorResponse('Password is wrong', 401);
+                }
+            } catch (JWTException $e) {
+                return $this->errorResponse('Could not create token', 500);
+            }
 
-        $user = auth('api')->user();
-        UserLogModel::logMemberActivity(
-            'Member Login',
-            $user,
-            $user,
-            [
-                'target' => $user->username,
-                'activity' => 'Logged In',
-                // 'ip' => $request->ip ?? request()->getClientIp(),
-                'ip' => $request->ip,
-            ],
-            'Successfully'
-        );
+            auth('api')->user()->update([
+                'last_login_at' => now(),
+                // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
+                'last_login_ip' => $request->ip,
+            ]);
+
+            auth('api')->user();
+
+            $user = auth('api')->user();
+            UserLogModel::logMemberActivity(
+                'Member Login',
+                $user,
+                $user,
+                [
+                    'target' => $user->username,
+                    'activity' => 'Logged In',
+                    // 'ip' => $request->ip ?? request()->getClientIp(),
+                    'ip' => $request->ip,
+                ],
+                'Successfully'
+            );
+
+        } else {
+            return $this->errorResponse('Username not found', 401);
+        }       
 
         return $this->createNewToken($token);
     }
