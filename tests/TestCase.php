@@ -6,23 +6,18 @@ use App\Domains\Auth\Http\Middleware\TwoFactorAuthenticationStatus;
 use App\Domains\Auth\Models\Role;
 use App\Domains\Auth\Models\User;
 use Illuminate\Auth\Middleware\RequirePassword;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Illuminate\Support\Facades\Artisan;
 
 /**
  * Class TestCase.
  */
 abstract class TestCase extends BaseTestCase
 {
-    use CreatesApplication, RefreshDatabase;
+    use CreatesApplication;
 
     public function setUp(): void
     {
         parent::setUp();
-
-        Artisan::call('db:seed');
-
         $this->withoutMiddleware(RequirePassword::class);
         $this->withoutMiddleware(TwoFactorAuthenticationStatus::class);
     }
@@ -46,10 +41,5 @@ abstract class TestCase extends BaseTestCase
         $this->actingAs($admin);
 
         return $admin;
-    }
-
-    protected function logout()
-    {
-        return auth()->logout();
     }
 }

@@ -56,37 +56,55 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
         }
 
-        $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
-        \Config::set('auth.defaults.guard', 'api');
+        $member = MembersModel::where('email', $input['user_account'])
+                                ->orWhere('username', $input['user_account'])
+                                ->first();
 
-        try {
-            $token = auth('api')->attempt($credentials);
-            if (! $token) {
-                return $this->errorResponse('Username atau password yang anda masukan salah', 401);
+        if ($member) {
+            if ($member->status == 0){
+                return $this->errorResponse('Member has been banned', 401);
+            } elseif ($member->status == 2){
+                return $this->errorResponse('Member has been suspend', 401);
+            } elseif ($member->status == 1){
+                $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
             }
-        } catch (JWTException $e) {
-            return $this->errorResponse('Could not create token', 500);
-        }
 
-        auth('api')->user()->update([
-            'last_login_at' => now(),
-            // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
-            'last_login_ip' => $request->ip,
-        ]);
+            \Config::set('auth.defaults.guard', 'api');
 
-        $user = auth('api')->user();
-        UserLogModel::logMemberActivity(
-            'Member Login',
-            $user,
-            $user,
-            [
-                'target' => $user->username,
-                'activity' => 'Logged In',
-                // 'ip' => $request->ip ?? request()->getClientIp(),
-                'ip' => $request->ip,
-            ],
-            'Successfully'
-        );
+            try {
+                $token = auth('api')->attempt($credentials);
+                if (! $token) {
+                    return $this->errorResponse('Password is wrong', 401);
+                }
+            } catch (JWTException $e) {
+                return $this->errorResponse('Could not create token', 500);
+            }
+
+            auth('api')->user()->update([
+                'last_login_at' => now(),
+                // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
+                'last_login_ip' => $request->ip,
+            ]);
+
+            auth('api')->user();
+
+            $user = auth('api')->user();
+            UserLogModel::logMemberActivity(
+                'Member Login',
+                $user,
+                $user,
+                [
+                    'target' => $user->username,
+                    'activity' => 'Logged In',
+                    // 'ip' => $request->ip ?? request()->getClientIp(),
+                    'ip' => $request->ip,
+                ],
+                'Successfully'
+            );
+
+        } else {
+            return $this->errorResponse('Username not found', 401);
+        }       
 
         return $this->createNewToken($token);
     }
@@ -94,9 +112,10 @@ class JWTAuthController extends ApiController
     public function getAuthenticatedMember()
     {
         try {
-            if (! $member = auth('api')->user()) {
+            $member = auth('api')->user();
+            if (! $member) {
                 return $this->errorResponse('Member not found', 404);
-            }
+            } 
         } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
         } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {

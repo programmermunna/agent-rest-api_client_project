@@ -20,7 +20,7 @@ class CreateBonusTable extends Migration
             $table->string('event');
             $table->decimal('amount', 13, 2)->default(0.00);
             $table->boolean('status')->default(1);
-            $table->enum('event_type', ['bonus', 'promo'])->default('bonus')->nullable();
+            $table->enum('event_type', ['bonus', 'promo'])->default('bonus');
             $table->unsignedBigInteger('upload_bonus_id');
             $table->foreign('upload_bonus_id')->references('id')->on('upload_bonus');
             $table->integer('created_by')->nullable();

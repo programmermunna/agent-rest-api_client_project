@@ -15,18 +15,18 @@ class CreateAdminIpsTable extends Migration
     {
         Schema::create('admin_ips', function (Blueprint $table) {
             $table->id();
-            $table->string('ip_address', 20);
-            $table->string('description', 50)->nullable();
+            $table->string('ip_address', 20)->comment('user ip address');
+            $table->string('description')->nullable()->comment('ip address description');
             $table->boolean('whitelisted')->default(true)->comment("1 = ip user can access website");
-            $table->integer('created_by')->nullable();
-            $table->integer('updated_by')->nullable();
-            $table->integer('deleted_by')->nullable();
-            $table->timestamp('created_at')->nullable();
-            $table->timestamp('updated_at')->nullable();
-            $table->timestamp('deleted_at')->nullable();
+            $table->integer('created_by')->nullable()->comment('id of the user who added the row');
+            $table->integer('updated_by')->nullable()->comment('id of the user who updated the row');
+            $table->integer('deleted_by')->nullable()->comment('id of the user who deleted the row');
+            $table->timestamp('created_at')->nullable()->comment('date when row was created');
+            $table->timestamp('updated_at')->nullable()->comment('date when row was updated');
+            $table->timestamp('deleted_at')->nullable()->comment('date when row was deleted');
         });
     }
-
+    
     /**
      * Reverse the migrations.
      *

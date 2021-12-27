@@ -17,7 +17,7 @@ class CreateImageContentsTable extends Migration
         Schema::create('image_contents', function (Blueprint $table) {
             $table->id();
             // constant_promosi_value relation
-            // $table->unsignedBigInteger('constant_promosi_value_id')->nullable();
+            $table->unsignedBigInteger('constant_promosi_value_id')->nullable();
             $table->string('title')->nullable();
             $table->enum('type', ['popup', 'mobile', 'slide', 'promotion', 'turnover','cashback','bonus','bonus_new_member','bonus_next_deposit']);
             $table->string('path');

@@ -15,9 +15,9 @@ class CreateCancelBetTable extends Migration
     {
         Schema::create('cancel_bet', function (Blueprint $table) {
             $table->id();
-            $table->string('bet_id')->nullalbe();
-            $table->string('cancel_id')->nullalbe();
-            $table->integer('created_by')->nullalbe();
+            $table->string('bet_id')->nullable();
+            $table->string('cancel_id')->nullable();
+            $table->integer('created_by')->nullable();
             $table->integer('updated_by')->nullable();
             $table->integer('deleted_by')->nullable();
             $table->timestamps();

@@ -21,7 +21,7 @@ class BetsTogel extends Model
     protected $fillable = [
          'togel_game_id'
         , 'constant_provider_togel_id'
-
+        , 'platform'
         , 'number_1'
         , 'number_2'
         , 'number_3'

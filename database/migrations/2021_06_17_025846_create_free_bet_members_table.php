@@ -15,11 +15,12 @@ class CreateFreeBetMembersTable extends Migration
     {
         Schema::create('free_bet_members', function (Blueprint $table) {
             $table->id();
+            $table->tinyInteger('is_use')->default(0)->comment('');
             $table->unsignedBigInteger('member_id');
             $table->foreign('member_id')->references('id')->on('members');
             $table->unsignedBigInteger('free_bet_id');
             $table->foreign('free_bet_id')->references('id')->on('free_bets');
-            $table->enum('type', ['win', 'lose'])->nullalbe();
+            $table->string('type', 15);
             $table->decimal('amount', 13, 2)->default(0.00);
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();

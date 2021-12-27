@@ -15,9 +15,9 @@ class CreateWithdrawTable extends Migration
     {
         Schema::create('withdraw', function (Blueprint $table) {
             $table->id();
-            $table->integer('members_id');
-            $table->integer('rekening_id')->comment('Rekening bank asal transfer');
-            $table->decimal('jumlah', 13, 2)->nullable();
+            $table->integer('members_id')->nullable()->default(0.00);
+            $table->integer('rekening_id')->nullable()->default(0.00)->comment('Rekening bank asal transfer');
+            $table->decimal('jumlah', 13, 2)->nullable()->default(0.00);
             $table->integer('rek_member_id');
             $table->boolean('approval_status')->default(false);
             $table->boolean('is_sound_notified')->default(false)->comment('jika 1 = sound notif sudah berbunyi');

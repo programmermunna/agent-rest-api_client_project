@@ -15,11 +15,14 @@ class CreateBonusHistoryTable extends Migration
     {
         Schema::create('bonus_history', function (Blueprint $table) {
             $table->id();
-            $table->string('event');
-            $table->string('jumlah')->comment('jumlah = type uang')->nullalbe();
-            $table->string('hadiah')->comment('hadiah = type barang')->nullalbe();
+            $table->boolean('is_delete')->comment('1 = event freebet deleted');
+            $table->boolean('is_use')->comment('1 = get freebet');
+            $table->integer('free_bet_id')->nullable();
+            $table->integer('constant_bonus_id');
+            $table->string('jumlah')->comment('jumlah = type uang');
+            $table->string('hadiah')->comment('hadiah = type barang');
             $table->enum('type', ['uang', 'barang']);
-            $table->integer('created_by')->nullalbe();
+            $table->integer('created_by');
             $table->integer('updated_by')->nullable();
             $table->integer('deleted_by')->nullable();
             $table->timestamps();
