@@ -127,6 +127,14 @@ class GameHallController extends Controller
             } else {
                 // check if bet already exist
                 $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+				// This For Check if the bet Cancel Don't Deduct the balance
+				if($bets->type === 'Cancel'){
+                    return [
+                        "status" => '0000',
+                        "balance" => $creditMember,
+                        "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+                    ];
+				}
                 if ($bets) {
                     return [
                         "status" => '1025',
