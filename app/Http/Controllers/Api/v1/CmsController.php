@@ -27,13 +27,32 @@ class CmsController extends ApiController
     public function imageContent($type)
     {
         try {
-            if ($type == 'all') {
-                $sildeAndPopupImages = ImageContent::where('enabled', 1)->orderBy('type', 'asc')->orderBy('order', 'asc')->get();
-            } else {
-                $sildeAndPopupImages = ImageContent::where('type', $type)->where('enabled', 1)->orderBy('order', 'asc')->get();
-            }
 
-            return $this->successResponse(ImageContentResource::collection($sildeAndPopupImages));
+            if ($type == 'all') {
+                $sildeAndPopupImages = ImageContent::select(
+                                            'type',
+                                            'path',
+                                            'alt',
+                                            'order',
+                                            'content',
+                                        )
+                                        ->where('enabled', 1)->orderBy('type', 'asc')->orderBy('order', 'asc')->get();
+                return $this->successResponse($sildeAndPopupImages, 'Data is exist', 200);
+            } else {
+                $sildeAndPopupImages = ImageContent::select(
+                                            'type',
+                                            'path',
+                                            'alt',
+                                            'order',
+                                            'content',
+                                        )
+                                        ->where('type', $type)->where('enabled', 1)->orderBy('order', 'asc')->get();
+                if ($sildeAndPopupImages->count() <= 0){
+                    return $this->successResponse($sildeAndPopupImages, $type.' turnover', 200);
+                } else {
+                    return $this->successResponse($sildeAndPopupImages, 'No '.$type.' turnover', 200);
+                }
+            }
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
