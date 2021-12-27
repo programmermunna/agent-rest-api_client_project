@@ -467,8 +467,10 @@ class MemberController extends ApiController
                 $bonusArr = $this->paginate($this->bonus, $this->pageAll);
 				$togel = $this->paginate($this->togel , $this->perPage);
                 return [
-                    'deposit' => $depo,
-                    'withdraw' => $wd,
+                    'depositWithdraw' => [
+                        $depo,
+                        $wd,
+                    ],
                     'allProviderBet' => $allProviderBet,
                     'allProviderReferal' => $allProviderReferal,
                     'Bonus/Promo' => $bonusArr,
