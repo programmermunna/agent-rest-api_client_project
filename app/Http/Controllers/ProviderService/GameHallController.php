@@ -589,8 +589,8 @@ class GameHallController extends Controller
 				if($bets->type === 'Cancel'){
                     return [
                         "status" => '0000',
-                        "balance" => $creditMember,
-                        "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+                        "balance" => $creditMember / $this->ratio,
+                        "balanceTs"   => $this->betTime 
                     ];
 				}
                 if ($bets) {
