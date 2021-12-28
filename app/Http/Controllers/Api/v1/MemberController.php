@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
+use App\Models\AppSetting;
 use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\MembersModel;
@@ -14,6 +15,7 @@ use App\Models\TurnoverModel;
 use App\Models\RekeningModel;
 use App\Models\UserLogModel;
 use App\Models\WithdrawModel;
+use App\Models\ConstantProviderTogelModel;
 use App\Models\BonusHistoryModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -1481,7 +1483,19 @@ class MemberController extends ApiController
         }
     }
 
-
+    // Bonus Referal
+    public function bonusReferal()
+    {
+        try {
+            $user = auth('api')->user();
+            $bonus = AppSetting::select('name', 'value')->where('name', 'togel')->where('type', 'game')->get();
+            if($bonus){
+                return $this->successResponse($bonus, 'Bonus Referal', 200);
+            }
+        } catch (\Exception $e) {
+            throw $th;
+        }
+    }
 
     // public function setBonusNextDeposit()
     // {
