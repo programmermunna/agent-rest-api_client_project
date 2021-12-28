@@ -653,7 +653,7 @@ class GameHallController extends Controller
             $winBet = $bet->where('bet_id', '=', $tokenRaw->platformTxId)
                 ->where('platform', $tokenRaw->platform)->first();
 
-            $amountbet = ($tokenRaw->betAmount - $winBet->win ) * $this->ratio;
+            $amountbet = $tokenRaw->betAmount - ($winBet->win / $this->ratio)   * $this->ratio;
             $creditMember = $member->credit;
             $amount = $creditMember - $amountbet;
             $member->update([
