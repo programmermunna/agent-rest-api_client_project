@@ -1489,11 +1489,11 @@ class MemberController extends ApiController
         try {
             $user = auth('api')->user();
             $bonus = AppSetting::select('name', 'value')->where('name', 'togel')->where('type', 'game')->get();
-            if($user){
+            if($bonus){
                 return $this->successResponse($bonus, 'Bonus Referal', 200);
             }
         } catch (\Exception $e) {
-            return $this->errorResponse('Internal Server Error', 500);
+            throw $th;
         }
     }
 
