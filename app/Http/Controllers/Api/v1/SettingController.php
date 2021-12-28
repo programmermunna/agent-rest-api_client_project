@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\AppSetting;
+use App\Models\ConstantProviderTogelModel;
 
 class SettingController extends ApiController
 {
@@ -78,6 +79,21 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'No content', 204);
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+
+    // list togel
+    public function list_togel()
+    {
+        try {
+            $list_togel = ConstantProviderTogelModel::select('id','name', 'name_initial','website_url')->where('status', 1)->get();
+            if ($list_togel) {
+                return $this->successResponse($list_togel->toArray(), 'List Togel Found');
+            }
+
+            return $this->successResponse(null, 'No list Togel', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
