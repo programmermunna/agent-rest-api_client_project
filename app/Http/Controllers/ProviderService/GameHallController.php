@@ -649,7 +649,11 @@ class GameHallController extends Controller
         $token = $this->betInformation();
         foreach ($token->data->txns as $tokenRaw) {
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-            $amountbet = ($tokenRaw->winAmount - $this->betAmount ) * $this->ratio;
+			$bet    = BetModel::query(); 
+            $bet->where('bet_id', '=', $tokenRaw->platformTxId)
+                ->where('platform', $tokenRaw->platform)->first();
+
+            $amountbet = ($bet->win - $this->betAmount ) * $this->ratio;
             $creditMember = $member->credit;
             $amount = $creditMember - $amountbet;
             $member->update([
@@ -657,7 +661,7 @@ class GameHallController extends Controller
                 'created_at' => $tokenRaw->updateTime,
                 'updated_at' => $tokenRaw->updateTime,
             ]);
-            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+            $bet->where('bet_id', '=', $tokenRaw->platformTxId)
                 ->where('platform', $tokenRaw->platform)
                 ->update([
                     'type' => 'Cancel'
