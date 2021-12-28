@@ -655,7 +655,7 @@ class GameHallController extends Controller
 
             $amountbet = $tokenRaw->betAmount - ($winBet->win / $this->ratio); 
             $creditMember = $member->credit;
-            $amount = $creditMember + ($amountbet / $this->ratio );
+            $amount = $creditMember + ($amountbet * $this->ratio );
             $member->update([
 				'credit' => $amount,
                 'created_at' => $tokenRaw->updateTime,
