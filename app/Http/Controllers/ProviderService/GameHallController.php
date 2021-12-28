@@ -650,10 +650,10 @@ class GameHallController extends Controller
         foreach ($token->data->txns as $tokenRaw) {
             $member =  MembersModel::where('id', $tokenRaw->userId)->first();
 			$bet    = BetModel::query(); 
-            $bet->where('bet_id', '=', $tokenRaw->platformTxId)
+            $winBet = $bet->where('bet_id', '=', $tokenRaw->platformTxId)
                 ->where('platform', $tokenRaw->platform)->first();
 
-            $amountbet = ($bet->win - $this->betAmount ) * $this->ratio;
+            $amountbet = ($winBet->win - $this->betAmount ) * $this->ratio;
             $creditMember = $member->credit;
             $amount = $creditMember - $amountbet;
             $member->update([
