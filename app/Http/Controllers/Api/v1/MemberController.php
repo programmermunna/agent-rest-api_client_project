@@ -471,7 +471,7 @@ class MemberController extends ApiController
                     'withdraw' => $wd,
                     'allProviderBet' => $allProviderBet,
                     'allProviderReferal' => $allProviderReferal,
-                    'Bonus/Promo' => $bonusArr,
+                    'BonusPromo' => $bonusArr,
 
 					'togel' => $this->paginate($this->getTogel() , $this->pageAll) 
 

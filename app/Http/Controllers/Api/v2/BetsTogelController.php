@@ -9,6 +9,10 @@ use App\Models\ConstantProviderTogelModel;
 use App\Models\TogelGame;
 use App\Models\TogelResultNumberModel;
 use App\Models\TogelSettingGames;
+use App\Models\MembersModel;
+use App\Models\AppSetting;
+use App\Models\BonusHistoryModel;
+use Carbon\Carbon;
 use Exception as NewException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +73,25 @@ class BetsTogelController extends ApiController
 			$idx = [];
 
 			foreach ($bets as $bet) {
+				// get member bet
+				$member =  MembersModel::where('id', $bet['created_by'])->first();
+				$bonus = AppSetting::where('type', 'game')->where('name', 'togel')->select('value')->first();
+				$member->update([
+					'update_at' => Carbon::now(),
+					'bonus_referal' => $bonus->value * $bet['pay_amount']
+				]);
+				// check if any referrer
+				if ($member->referrer_id) {
+					// create bonus history
+					BonusHistoryModel::create([
+							'constant_bonus_id' => 3,
+							'created_by' => $member->referrer_id,
+							'created_at' => Carbon::now(),
+							'jumlah' => $bonus->value * $bet['pay_amount'],
+					]);
+			}
+
+
 				$idx[] = DB::table('bets_togel')->insertGetId($bet);
 			}
 			/// will be convert to 1,2,3,4,5
