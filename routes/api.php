@@ -36,6 +36,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::post('/logout', 'JWTAuthController@logout');
         Route::get('/bank_account', 'MemberController@bank_account');
         Route::post('/change-password', 'JWTAuthController@changePassword');
+        Route::get('/bonus-referal', 'MemberController@bonusReferal');
 
         // Deposit
         Route::post('/deposit/create', 'DepositController@create');
