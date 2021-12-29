@@ -10,7 +10,6 @@ use App\Models\TogelGame;
 use App\Models\TogelResultNumberModel;
 use App\Models\TogelSettingGames;
 use App\Models\MembersModel;
-use App\Models\AppSetting;
 use App\Models\BonusHistoryModel;
 use Carbon\Carbon;
 use Exception as NewException;
@@ -47,10 +46,14 @@ class BetsTogelController extends ApiController
 
 		$bets = [];
 		$total_bets_after_disc = [];
+		
+		$bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
+		
 		// Loop the validated data and take key data and remapping the key
 		foreach ($this->checkBlokedNumber($request, $provider) as $togel) {
 			array_push($bets, array_merge($togel, [
 				'period'  		=> is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
+				'bonus_daily_referal' => $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] :  ($provider === 10 ? $bonus['SGP45'] * $bet['pay_amount'] : '' ))))))))),
 				"togel_game_id" => $gameType,
 				"constant_provider_togel_id" => $provider,
 				'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
@@ -75,10 +78,9 @@ class BetsTogelController extends ApiController
 			foreach ($bets as $bet) {
 				// get member bet
 				$member =  MembersModel::where('id', $bet['created_by'])->first();
-				$bonus = AppSetting::where('type', 'game')->where('name', 'togel')->select('value')->first();
 				$member->update([
 					'update_at' => Carbon::now(),
-					'bonus_referal' => $bonus->value * $bet['pay_amount']
+					'bonus_referal' => $bet['constant_provider_togel_id'] === 1 ? $member->bonus_referal + ($bonus['HKD'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 2 ? $member->bonus_referal + ($bonus['NZB'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 3 ? $member->bonus_referal + ($bonus['SY'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 4 ? $member->bonus_referal + ($bonus['HAI'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 5 ? $member->bonus_referal + ($bonus['SG'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 6 ? $member->bonus_referal + ($bonus['JINAN'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 7 ? $member->bonus_referal + ($bonus['QTR'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 8 ? $member->bonus_referal + ($bonus['BGP'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 9 ? $member->bonus_referal + ($bonus['HK'] * $bet['pay_amount']) :  ($bet['constant_provider_togel_id'] === 10 ? $member->bonus_referal + ($bonus['SGP45'] * $bet['pay_amount']) : '' ))))))))),
 				]);
 				// check if any referrer
 				if ($member->referrer_id) {
@@ -87,7 +89,7 @@ class BetsTogelController extends ApiController
 							'constant_bonus_id' => 3,
 							'created_by' => $member->referrer_id,
 							'created_at' => Carbon::now(),
-							'jumlah' => $bonus->value * $bet['pay_amount'],
+							'jumlah' => $bet['constant_provider_togel_id'] === 1 ? ($bonus['HKD'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 2 ? ($bonus['NZB'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 3 ? ($bonus['SY'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 4 ? ($bonus['HAI'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 5 ? ($bonus['SG'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 6 ? ($bonus['JINAN'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 7 ? ($bonus['QTR'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 8 ? ($bonus['BGP'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 9 ? ($bonus['HK'] * $bet['pay_amount']) :  ($bet['constant_provider_togel_id'] === 10 ? ($bonus['SGP45'] * $bet['pay_amount']) : '' ))))))))),
 					]);
 			}
 
