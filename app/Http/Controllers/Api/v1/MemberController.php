@@ -52,12 +52,9 @@ class MemberController extends ApiController
     public $jokerBet = [];
     public $playtechBet = [];
     public $pgBet = [];
-    public $pragmaticRef = [];
-    public $habaneroRef = [];
-    public $spadeRef = [];
-    public $jokerRef = [];
-    public $playtechRef = [];
-    public $pgRef = [];
+    public $gameHallBet = [];
+    public $ionxBet = [];
+    public $queenmakerBet = [];
     public $allProviderBet = [];
     public $allProviderReferal = [];
     public $pageAll = 5;
@@ -104,6 +101,7 @@ class MemberController extends ApiController
             //         'memo.content',
             //         'memo.created_at',
             //     ]);
+            
             $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
                 ->where([
                     ['bonus_history.created_by', '=', auth('api')->user()->id],
@@ -270,143 +268,80 @@ class MemberController extends ApiController
                     'status' => 'success',
                     'pgBet' => $pgBet,
                 ];
-            } elseif ($request->type == 'pragmaticRef') {
-                $pragmRef = $query->select(
-                    'members.id',
-                    'bets.game_info',
-                    'bets.bet_id',
-                    'bets.game_id',
-                    'bets.deskripsi',
-                    'bets.created_at',
-                    'members.referrer_id',
-                    'bets.bonus_daily_referal',
-                    'members.username',
-                    'bets.bonus_daily_referal',
-                    'constant_provider.constant_provider_name'
-                )->where('members.referrer_id', auth('api')->user()->id)
-                    ->where('constant_provider.constant_provider_name', 'Pragmatic')->get();
+            } elseif ($request->type == 'gamehallBet') {
+                $gameHall = $query->where('constant_provider.constant_provider_name', 'GameHall')
+                            ->select(
+                                'members.id',
+                                'bets.game_info',
+                                'bets.bet_id',
+                                'bets.game_id',
+                                'bets.deskripsi',
+                                'bets.created_at',
+                                'members.referrer_id',
+                                'bets.bonus_daily_referal',
+                                'members.username',
+                                'bets.bonus_daily_referal',
+                                'constant_provider.constant_provider_name'
+                            )
+                            ->where('members.referrer_id', auth('api')->user()->id)
+                            ->where('bets.constant_provider_id', 7)->get();
 
-                $this->pragmaticRef = $pragmRef->toArray();
-                $pragmaticRef = $this->paginate($this->pragmaticRef, $this->perPage);
+                $this->gameHallBet = $gameHall->toArray();
+                $gameHallBet = $this->paginate($this->gameHallBet, $this->perPage);
 
                 return $data = [
                     'status' => 'success',
-                    'pragmaticRef' => $pragmaticRef,
+                    'gameHallBet' => $gameHallBet,
                 ];
-            } elseif ($request->type == 'habaneroRef') {
-                $habanRef = $query->select(
-                    'members.id',
-                    'bets.game_info',
-                    'bets.bet_id',
-                    'bets.game_id',
-                    'bets.deskripsi',
-                    'bets.created_at',
-                    'members.referrer_id',
-                    'bets.bonus_daily_referal',
-                    'members.username',
-                    'bets.bonus_daily_referal',
-                    'constant_provider.constant_provider_name'
-                )->where('members.referrer_id', auth('api')->user()->id)
-                    ->where('constant_provider.constant_provider_name', 'Habanero')->get();
+            } elseif ($request->type == 'ionxBet') {
+                $iBet = $query->where('constant_provider.constant_provider_name', 'IONX')
+                        ->select(
+                            'members.id',
+                            'bets.game_info',
+                            'bets.bet_id',
+                            'bets.game_id',
+                            'bets.deskripsi',
+                            'bets.created_at',
+                            'members.referrer_id',
+                            'bets.bonus_daily_referal',
+                            'members.username',
+                            'bets.bonus_daily_referal',
+                            'constant_provider.constant_provider_name'
+                        )
+                        ->where('members.referrer_id', auth('api')->user()->id)
+                        ->where('bets.constant_provider_id', 8)->get();
 
-                $this->habaneroRef = $habanRef->toArray();
-                $habaneroRef = $this->paginate($this->habaneroRef, $this->perPage);
+                $this->ionxBet = $iBet->toArray();
+                $ionxBet = $this->paginate($this->ionxBet, $this->perPage);
 
                 return $data = [
                     'status' => 'success',
-                    'habaneroRef' => $habaneroRef,
+                    'ionxBet' => $ionxBet,
                 ];
-            } elseif ($request->type == 'spadeRef') {
-                $spRef = $query->select(
-                    'members.id',
-                    'bets.game_info',
-                    'bets.bet_id',
-                    'bets.game_id',
-                    'bets.deskripsi',
-                    'bets.created_at',
-                    'members.referrer_id',
-                    'bets.bonus_daily_referal',
-                    'members.username',
-                    'bets.bonus_daily_referal',
-                    'constant_provider.constant_provider_name'
-                )->where('members.referrer_id', auth('api')->user()->id)
-                    ->where('constant_provider.constant_provider_name', 'Spade Gaming')->get();
+            } elseif ($request->type == 'queenmakerBet') {
+                $queenBet = $query->where('constant_provider.constant_provider_name', 'QueenMaker')
+                            ->select(
+                                'members.id',
+                                'bets.game_info',
+                                'bets.bet_id',
+                                'bets.game_id',
+                                'bets.deskripsi',
+                                'bets.created_at',
+                                'members.referrer_id',
+                                'bets.bonus_daily_referal',
+                                'members.username',
+                                'bets.bonus_daily_referal',
+                                'constant_provider.constant_provider_name'
+                            )
+                            ->where('members.referrer_id', auth('api')->user()->id)
+                            ->where('bets.constant_provider_id', 9)->get();
 
-                $this->spadeRef = $spRef->toArray();
-                $spadeRef = $this->paginate($this->spadeRef, $this->perPage);
-
-                return $data = [
-                    'status' => 'success',
-                    'spadeRef' => $spadeRef,
-                ];
-            } elseif ($request->type == 'jokerRef') {
-                $jokRef = $query->select(
-                    'members.id',
-                    'bets.game_info',
-                    'bets.bet_id',
-                    'bets.game_id',
-                    'bets.deskripsi',
-                    'bets.created_at',
-                    'members.referrer_id',
-                    'bets.bonus_daily_referal',
-                    'members.username',
-                    'bets.bonus_daily_referal',
-                    'constant_provider.constant_provider_name'
-                )->where('members.referrer_id', auth('api')->user()->id)
-                    ->where('constant_provider.constant_provider_name', 'Joker Gaming')->get();
-
-                $this->jokerRef = $jokRef->toArray();
-                $jokerRef = $this->paginate($this->jokerRef, $this->perPage);
+                $this->queenmakerBet = $queenBet->toArray();
+                $queenmakerBet = $this->paginate($this->queenmakerBet, $this->perPage);
 
                 return $data = [
                     'status' => 'success',
-                    'jokerRef' => $jokerRef,
-                ];
-            } elseif ($request->type == 'playtechRef') {
-                $playRef = $query->select(
-                    'members.id',
-                    'bets.game_info',
-                    'bets.bet_id',
-                    'bets.game_id',
-                    'bets.deskripsi',
-                    'bets.created_at',
-                    'members.referrer_id',
-                    'bets.bonus_daily_referal',
-                    'members.username',
-                    'bets.bonus_daily_referal',
-                    'constant_provider.constant_provider_name'
-                )->where('members.referrer_id', auth('api')->user()->id)
-                    ->where('constant_provider.constant_provider_name', 'Playtech')->get();
-
-                $this->playtechRef = $playRef->toArray();
-                $playtechRef = $this->paginate($this->playtechRef, $this->perPage);
-
-                return $data = [
-                    'status' => 'success',
-                    'playtechRef' => $playtechRef,
-                ];
-            } elseif ($request->type == 'pgRef') {
-                $pRef = $query->select(
-                    'members.id',
-                    'bets.game_info',
-                    'bets.bet_id',
-                    'bets.game_id',
-                    'bets.deskripsi',
-                    'bets.created_at',
-                    'members.referrer_id',
-                    'bets.bonus_daily_referal',
-                    'members.username',
-                    'bets.bonus_daily_referal',
-                    'constant_provider.constant_provider_name'
-                )->where('members.referrer_id', auth('api')->user()->id)
-                    ->where('constant_provider.constant_provider_name', 'Pg Soft')->get();
-
-                $this->pgRef = $pRef->toArray();
-                $pgRef = $this->paginate($this->pgRef, $this->perPage);
-
-                return $data = [
-                    'status' => 'success',
-                    'pgRef' => $pgRef,
+                    'queenmakerBet' => $queenmakerBet,
                 ];
             } elseif ($request->type == 'dll') {
                 $this->bonus = $bonus->get()->toArray();
@@ -1385,6 +1320,7 @@ class MemberController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
+    
     // Cashback slot
     public function cashbackSlot()
     {
