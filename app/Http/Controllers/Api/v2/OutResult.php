@@ -65,7 +65,6 @@ class OutResult extends ApiController
 	  	  ->orderByDesc('id')
 		  ->get()
 	  	  ->toArray();
-		
 		return $this->paginate($results , 20);
 	}
 
