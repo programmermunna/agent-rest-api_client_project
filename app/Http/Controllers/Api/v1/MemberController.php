@@ -1401,13 +1401,12 @@ class MemberController extends ApiController
     public function bonusReferal()
     {
         try {
-            $user = auth('api')->user();
-            $bonus = AppSetting::select('name', 'value')->where('name', 'togel')->where('type', 'game')->get();
+            $bonus = ConstantProviderTogelModel::select('name', 'value')->get();
             if($bonus){
                 return $this->successResponse($bonus, 'Bonus Referal', 200);
             }
-        } catch (\Exception $e) {
-            throw $th;
+        } catch (\Exception $th) {
+            $th->getMessage();
         }
     }
 
