@@ -1688,23 +1688,14 @@ class MemberController extends ApiController
     public function bonusReferal()
     {
         try {
-
-            $bonus = ConstantProviderTogelModel::select('name', 'value')->where('status', 1)->get();
-            if($bonus->count() < 1){
-                return $this->successResponse($bonus, 'Data not exist', 200);
-            } else {
-
-
             $bonus = ConstantProviderTogelModel::select('name', 'value')->where('status', true)->get();
-
-            $bonus = ConstantProviderTogelModel::select('name', 'value')->get();
-
-            if($bonus){
-
-                return $this->successResponse($bonus, 'Bonus Referal', 200);
+            if($bonus->count() < 1){
+                return $this->successResponse(null, 'Data not exist', 200);
+            } else {
+                return $this->successResponse($bonus, 'Bonus referal', 200);
             }
-        } catch (\Exception $th) {
-            $th->getMessage();
+        } catch (\Throwable $th) {
+            return $this->errorResponse($th->getMessage(), 500);
         }
     }
 
