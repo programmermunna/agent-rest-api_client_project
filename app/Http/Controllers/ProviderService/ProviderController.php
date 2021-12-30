@@ -699,7 +699,7 @@ class ProviderController extends Controller
                 $member->update([
                     'credit' => $amountLose,
                     'updated_at' => Carbon::now(),
-                    'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
+                    // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
                 ]);
                 $bet = [
                     'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
@@ -707,7 +707,7 @@ class ProviderController extends Controller
                     'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
                     'round_id' => $data->roundId,
                     'type' => 'Lose',
-                    'bonus_daily_referal' => $data->provider === 'Pragmatic' ? $bonus[7] * $data->amount : ($data->provider === 'Habanero' ? $bonus[9] * $data->amount : ($data->provider === 'Joker Gaming' ? $bonus[11] * $data->amount : ($data->provider === 'Spade Gaming' ? $bonus[10] * $data->amount : ($data->provider === 'Pg Soft' ? $bonus[13] * $data->amount : ($data->provider === 'Playtech' ? $bonus[12] * $data->amount : ''))))),
+                    // 'bonus_daily_referal' => $data->provider === 'Pragmatic' ? $bonus[7] * $data->amount : ($data->provider === 'Habanero' ? $bonus[9] * $data->amount : ($data->provider === 'Joker Gaming' ? $bonus[11] * $data->amount : ($data->provider === 'Spade Gaming' ? $bonus[10] * $data->amount : ($data->provider === 'Pg Soft' ? $bonus[13] * $data->amount : ($data->provider === 'Playtech' ? $bonus[12] * $data->amount : ''))))),
                     'game_id' => $data->gameId,
                     'bet' => $amountbet,
                     'game_info' => $data->type,
