@@ -722,14 +722,15 @@ class ProviderController extends Controller
                     "success" =>  true,
                     "amount" => $member->credit
                 ];
-                if ($member->referrer_id) {
-                    BonusHistoryModel::create([
-                        'constant_bonus_id' => 3,
-                        'created_by' => $member->referrer_id,
-                        'created_at' => Carbon::now(),
-                        'jumlah' => $data->provider === 'Pragmatic' ?  ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ?  ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ?  ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ?  ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ?  ($bonus[13] * $data->amount) : ($data->provider === 'Playtech' ?  ($bonus[12] * $data->amount) : ''))))),
-                    ]);
-                } 
+                // not use for referal provider
+                // if ($member->referrer_id) {
+                //     BonusHistoryModel::create([
+                //         'constant_bonus_id' => 3,
+                //         'created_by' => $member->referrer_id,
+                //         'created_at' => Carbon::now(),
+                //         'jumlah' => $data->provider === 'Pragmatic' ?  ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ?  ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ?  ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ?  ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ?  ($bonus[13] * $data->amount) : ($data->provider === 'Playtech' ?  ($bonus[12] * $data->amount) : ''))))),
+                //     ]);
+                // } 
                 return Response::json($success);
             }else{
                 $member->update([
