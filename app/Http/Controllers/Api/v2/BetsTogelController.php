@@ -82,8 +82,17 @@ class BetsTogelController extends ApiController
 					'update_at' => Carbon::now(),
 					'bonus_referal' => $bet['constant_provider_togel_id'] === 1 ? $member->bonus_referal + ($bonus['HKD'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 2 ? $member->bonus_referal + ($bonus['NZB'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 3 ? $member->bonus_referal + ($bonus['SY'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 4 ? $member->bonus_referal + ($bonus['HAI'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 5 ? $member->bonus_referal + ($bonus['SG'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 6 ? $member->bonus_referal + ($bonus['JINAN'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 7 ? $member->bonus_referal + ($bonus['QTR'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 8 ? $member->bonus_referal + ($bonus['BGP'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 9 ? $member->bonus_referal + ($bonus['HK'] * $bet['pay_amount']) :  ($bet['constant_provider_togel_id'] === 10 ? $member->bonus_referal + ($bonus['SGP45'] * $bet['pay_amount']) : '' ))))))))),
 				]);
+
 				// check if any referrer
 				if ($member->referrer_id) {
+					
+					// calculate bonus have referrer
+					$referal =  MembersModel::where('id', $member->referrer_id)->first();
+					$referal->update([
+						'update_at' => Carbon::now(),
+						'credit' => $bet['constant_provider_togel_id'] === 1 ? $referal->credit + ($bonus['HKD'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 2 ? $referal->credit + ($bonus['NZB'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 3 ? $referal->credit + ($bonus['SY'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 4 ? $referal->credit + ($bonus['HAI'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 5 ? $referal->credit + ($bonus['SG'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 6 ? $referal->credit + ($bonus['JINAN'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 7 ? $referal->credit + ($bonus['QTR'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 8 ? $referal->credit + ($bonus['BGP'] * $bet['pay_amount']) : ($bet['constant_provider_togel_id'] === 9 ? $referal->credit + ($bonus['HK'] * $bet['pay_amount']) :  ($bet['constant_provider_togel_id'] === 10 ? $referal->credit + ($bonus['SGP45'] * $bet['pay_amount']) : '' ))))))))),
+					]);
+
 					// create bonus history
 					BonusHistoryModel::create([
 							'constant_bonus_id' => 3,
