@@ -8,6 +8,19 @@ use App\Models\ConstantProviderTogelModel;
 
 class SettingController extends ApiController
 {
+    public function rollingValue()
+    {
+        try {
+            $rolling = AppSetting::select('name', 'value')->where('type', 'bonus')->get();
+            if ($rolling) {
+                return $this->successResponse($rolling->toArray());
+            }
+
+            return $this->successResponse(null, 'No content', 204);
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
     public function limit()
     {
         try {
