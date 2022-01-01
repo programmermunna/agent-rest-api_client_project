@@ -24,7 +24,7 @@ jobs:
             pwd
             whoami
             ls -la
-            sudo ./rest.sh
+            ./rest.sh
         
   slackNotification:
     needs: deploy
