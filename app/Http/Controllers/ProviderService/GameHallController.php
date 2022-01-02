@@ -655,7 +655,7 @@ class GameHallController extends Controller
 				->where('platform', $tokenRaw->platform)->first();
 
 			// Prevent if bet already deducted 
-			if ($winBet->type === 'Cancel' || empty($winBet) || isNull($winBet)) {
+			if ($winBet->type === 'Cancel' || empty($winBet) || is_null($winBet)) {
 				return [
 					"status" => '0000',
 					"balance" => $member->credit / $this->ratio,
