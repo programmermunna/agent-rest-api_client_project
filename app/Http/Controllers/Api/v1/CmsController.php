@@ -90,6 +90,7 @@ class CmsController extends ApiController
                     $query  ->where('type', 'turnover')
                             ->orWhere('type', 'bonus_new_member')
                             ->orWhere('type', 'bonus_next_deposit')
+                            ->orWhere('type', 'rolling')
                             ->orWhere('type', 'cashback');
                 })->get();
             if(is_null($bannerTurnover)){
