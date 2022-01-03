@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
+use App\Models\BetsTogel;
 use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\MembersModel;
@@ -679,6 +680,43 @@ class MemberController extends ApiController
                     ];
             }
 
+        } catch (\Throwable $th) {
+            return $this->errorResponse($th->getMessage(), 500);
+        }
+    }
+
+    // daily referal
+    public function dailyReferal(Request $request){
+        try {
+            $togel = $request->togel;
+            $from_date = $request->from_date;            
+            $to_date = $request->to_date;
+
+            $bonus = BetsTogel::join('members as a', 'a.id', '=', 'bets_togel.created_by')
+                    ->join('constant_provider_togel as b', 'b.id', '=', 'bets_togel.constant_provider_togel_id')
+                    ->join('togel_game as c', 'c.id', '=', 'bets_togel.togel_game_id')
+                    ->when($togel != '', function($query) use($togel){
+                        $query->where('b.id', $togel);
+                    })
+                    ->whereDate('bets_togel.created_at', '>=', $from_date)
+                    ->whereDate('bets_togel.created_at', '<=', $to_date)
+                    ->select(
+                        'bets_togel.created_at',
+                        'a.username',
+                        'a.referrer_id',
+                        'bets_togel.win_lose_status',
+                        'bets_togel.created_at',
+                        'bets_togel.bonus_daily_referal',
+                        'b.name',
+                        'c.name as togel_game',
+                    );            
+                                
+            if ($bonus->count() < 1){
+                return $this->successResponse($bonus->get(), 'Daily referal not exist', 200);
+            } else {
+                return $this->successResponse($bonus->get(), 'Daily referal exist', 200);
+            }
+            
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }

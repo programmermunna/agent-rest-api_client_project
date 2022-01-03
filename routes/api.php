@@ -85,6 +85,8 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             // cashback
     Route::get('/cashback', 'MemberController@cashbackSlot');
 
+    // daily referal
+    Route::post('/daily-referal', 'MemberController@dailyReferal');
 
     //Get destination banks
     Route::group(['middleware' => ['jwt.verify']], function () {
