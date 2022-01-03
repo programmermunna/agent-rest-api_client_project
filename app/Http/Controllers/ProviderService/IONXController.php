@@ -13,13 +13,16 @@ use Illuminate\Support\Facades\Log;
 
 class IONXController extends Controller
 {
+
 	// Token from cika_slot_api_provider
     private $token;
 	// Member id 
+
     private $memberId;
     /**
      * @var object
      */
+
     public function __construct()
     {
         //some init here
@@ -147,13 +150,16 @@ class IONXController extends Controller
     {
         $this->checkTokenIsValid();
         $member = MembersModel::find($this->memberId);
+
 		$bet = BetModel::query();
 		$settleStatus = $this->token->SettlementStatus ?? "";
+
         if (!$member) {
             return response()->json([
                 "Result" => "MEMBER_NOT_FOUND"
             ]);
         }else{
+
 			// Calculate The Member the Balance
             $balance = $member->credit + $this->token->PlayerWinLoss;
 			// UDAH PATENT BOSS KU JANGAN DI RUBAH
@@ -182,6 +188,7 @@ class IONXController extends Controller
 					'Result' => "SUCCESS",
 				]);
 			}
+
             BetModel::create([
                 'bet_id' => $this->token->RefNo,
                 'win' => $this->token->PlayerWinLoss,
@@ -196,6 +203,7 @@ class IONXController extends Controller
                 'created_by' => $this->memberId,
                 'guid' => $this->token->Guid
             ]);
+
             $member->update([
                 'credit' => $balance,
                 'updated_at' => $this->token->SettleTime

@@ -57,6 +57,7 @@ class BetsTogelController extends ApiController
 			array_push($bets, array_merge($togel, [
 				'period'  		=> is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
 				'bonus_daily_referal' => $calculateReferal,
+
 				"togel_game_id" => $gameType,
 				"constant_provider_togel_id" => $provider,
 				'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 

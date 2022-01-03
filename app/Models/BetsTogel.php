@@ -29,7 +29,6 @@ class BetsTogel extends Model
         , 'number_4'
         , 'number_5'
         , 'number_6'
-
         , 'tebak_as_kop_kepala_ekor'
         , 'tebak_besar_kecil'
         , 'tebak_genap_ganjil'

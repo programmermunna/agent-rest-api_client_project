@@ -700,6 +700,7 @@ class ProviderController extends Controller
                     'credit' => $amountLose,
                     'updated_at' => Carbon::now(),
                     // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
+
                 ]);
                 $bet = [
                     'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
@@ -731,6 +732,7 @@ class ProviderController extends Controller
                 //         'jumlah' => $data->provider === 'Pragmatic' ?  ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ?  ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ?  ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ?  ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ?  ($bonus[13] * $data->amount) : ($data->provider === 'Playtech' ?  ($bonus[12] * $data->amount) : ''))))),
                 //     ]);
                 // } 
+
                 return Response::json($success);
             }else{
                 $member->update([
