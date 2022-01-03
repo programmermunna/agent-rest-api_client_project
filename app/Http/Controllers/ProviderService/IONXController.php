@@ -13,12 +13,15 @@ use Illuminate\Support\Facades\Log;
 
 class IONXController extends Controller
 {
+
+	// Token from cika_slot_api_provider
     private $token;
+	// Member id 
+
     private $memberId;
     /**
      * @var object
      */
-    private $transaction;
 
     public function __construct()
     {
@@ -147,12 +150,45 @@ class IONXController extends Controller
     {
         $this->checkTokenIsValid();
         $member = MembersModel::find($this->memberId);
+
+		$bet = BetModel::query();
+		$settleStatus = $this->token->SettlementStatus ?? "";
+
         if (!$member) {
             return response()->json([
                 "Result" => "MEMBER_NOT_FOUND"
             ]);
         }else{
+
+			// Calculate The Member the Balance
             $balance = $member->credit + $this->token->PlayerWinLoss;
+			// UDAH PATENT BOSS KU JANGAN DI RUBAH
+			if($settleStatus === "VOID"){
+				$refundBet = ($this->token->PlayerWinLoss - $this->token->Stake );
+				$refundBalance = $member->credit - $refundBet;
+				BetModel::create([
+					'bet_id' => $this->token->RefNo,
+					'win' => $this->token->PlayerWinLoss,
+					'bet' => $this->token->Stake,
+					'player_wl' => $this->token->WinningStake,
+					'bet_option' => $this->token->BetOptions,
+					'group_bet_option' => $this->token->GroupBetOptions,
+					'constant_provider_id' => 8,
+					'type' => 'VOID', 
+					'deskripsi' => "Refund Balance " . $refundBet, 
+					'created_at' => $this->token->SettleTime,
+					'created_by' => $this->memberId,
+					'guid' => $this->token->Guid
+				]);
+				$member->update([
+					'credit' => $refundBalance,
+					'updated_at' => $this->token->SettleTime
+				]);
+				return response()->json([
+					'Result' => "SUCCESS",
+				]);
+			}
+
             BetModel::create([
                 'bet_id' => $this->token->RefNo,
                 'win' => $this->token->PlayerWinLoss,

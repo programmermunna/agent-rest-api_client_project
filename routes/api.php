@@ -36,6 +36,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::post('/logout', 'JWTAuthController@logout');
         Route::get('/bank_account', 'MemberController@bank_account');
         Route::post('/change-password', 'JWTAuthController@changePassword');
+        Route::get('/bonus-referal', 'MemberController@bonusReferal');
 
         // Deposit
         Route::post('/deposit/create', 'DepositController@create');
@@ -128,8 +129,10 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         });
 
         Route::group(['prefix' => 'setting'], function () {
+            Route::get('/rolling-value', 'SettingController@rollingValue');
             Route::get('/limit', 'SettingController@limit');
             Route::get('/referral_game/{type}', 'SettingController@referral_game');
+            Route::get('/list_togel', 'SettingController@list_togel');
             Route::get('/web_page', 'SettingController@web_page');
             Route::get('/footer_tag', 'SettingController@footer_tag');
             Route::get('/social', 'SettingController@social');

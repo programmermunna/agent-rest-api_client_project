@@ -21,6 +21,7 @@ class BetsTogel extends Model
     protected $fillable = [
          'togel_game_id'
         , 'constant_provider_togel_id'
+        , 'bonus_daily_referal'
         , 'platform'
         , 'number_1'
         , 'number_2'
@@ -28,7 +29,6 @@ class BetsTogel extends Model
         , 'number_4'
         , 'number_5'
         , 'number_6'
-
         , 'tebak_as_kop_kepala_ekor'
         , 'tebak_besar_kecil'
         , 'tebak_genap_ganjil'

@@ -21,8 +21,8 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd  agent-rest-api 
-            git fetch
-            git pull origin master
+            sudo git fetch
+            sudo git pull origin master
         
   slackNotification:
     needs: deploy
