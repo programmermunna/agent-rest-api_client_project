@@ -675,16 +675,35 @@ class GameHallController extends Controller
 			$amountbet = $tokenRaw->betAmount - ($winBet->win / $this->ratio);
 			$creditMember = $member->credit;
 			$amount = $creditMember + ($amountbet * $this->ratio);
+
 			$member->update([
 				'credit' => $amount,
 				'created_at' => $tokenRaw->updateTime,
 				'updated_at' => $tokenRaw->updateTime,
 			]);
-			$bet->where('bet_id', '=', $tokenRaw->platformTxId)
-				->where('platform', $tokenRaw->platform)
-				->update([
-					'type' => 'Cancel'
-				]);
+
+			BetModel::create([
+				'platform'  => $tokenRaw->platform,
+				'created_by' => $tokenRaw->userId,
+				'updated_by' => $tokenRaw->userId,
+				'bet_id' => $tokenRaw->platformTxId,
+				'game_info' => $tokenRaw->gameType == 'SLOT' ? 'slot' : 'fish',
+				'game_id' => $tokenRaw->gameCode,
+				'round_id' => $tokenRaw->roundId,
+				'type' => 'Cancel',
+				'game' => $tokenRaw->gameName,
+				'bet' => $amountbet,
+				'win' => $tokenRaw->winAmount * 1000,
+				'created_at' => $tokenRaw->betTime,
+				'constant_provider_id' => 7,
+				'deskripsi' => $tokenRaw->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $tokenRaw->winAmount : 'Game Win' . ' : ' . $tokenRaw->winAmount,
+			]);
+
+			//	$bet->where('bet_id', '=', $tokenRaw->platformTxId)
+			//		->where('platform', $tokenRaw->platform)
+			//		->update([
+			//			'type' => 'Cancel'
+			//		]);
 		}
 		return [
 			"status" => '0000',
