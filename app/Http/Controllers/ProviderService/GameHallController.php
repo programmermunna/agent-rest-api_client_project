@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\ProviderService;
-
 use App\Http\Controllers\Controller;
 use Firebase\JWT\JWT;
 use App\Models\MembersModel;
@@ -607,6 +606,7 @@ class GameHallController extends Controller
 						'created_at' => $tokenRaw->betTime,
 						'updated_at' => $tokenRaw->updateTime,
 					]);
+
 					$bets = BetModel::create([
 						'platform'  => $tokenRaw->platform,
 						'created_by' => $tokenRaw->userId,
@@ -659,12 +659,10 @@ class GameHallController extends Controller
 		foreach ($token->data->txns as $tokenRaw) {
 			$member =  MembersModel::where('id', $tokenRaw->userId)->first();
 			$bet    = BetModel::query();
+			$bets   = $bet->where('bet_id', '=', $tokenRaw->platformTxId)
+				          ->where('platform', $tokenRaw->platform)->orderBy('created_at' , 'desc')->first();
 
-			$winBet = $bet->where('bet_id', '=', $tokenRaw->platformTxId)
-				->where('platform', $tokenRaw->platform)->first();
-
-			// Prevent if bet already deducted 
-			if (is_null($winBet) || $winBet->type === 'Cancel') {
+			if (is_null($bets)) {
 				return [
 					"status" => '0000',
 					"balance" => $member->credit / $this->ratio,
@@ -672,15 +670,14 @@ class GameHallController extends Controller
 				];
 			}
 
-			$amountbet = $tokenRaw->betAmount - ($winBet->win / $this->ratio);
-			$creditMember = $member->credit;
-			$amount = $creditMember + ($amountbet * $this->ratio);
-
-			$member->update([
-				'credit' => $amount,
-				'created_at' => $tokenRaw->updateTime,
-				'updated_at' => $tokenRaw->updateTime,
-			]);
+			// Prevent if bet already deducted 
+			if ($bets->type === 'Cancel') {
+				return [
+					"status" => '0000',
+					"balance" => $member->credit / $this->ratio,
+					"balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+				];
+			}
 
 			BetModel::create([
 				'platform'  => $tokenRaw->platform,
@@ -692,18 +689,21 @@ class GameHallController extends Controller
 				'round_id' => $tokenRaw->roundId,
 				'type' => 'Cancel',
 				'game' => $tokenRaw->gameName,
-				'bet' => $amountbet,
+				'bet' => $tokenRaw->betAmount,
 				'win' => $tokenRaw->winAmount * 1000,
-				'created_at' => $tokenRaw->betTime,
+				'created_at' => now(), 
 				'constant_provider_id' => 7,
-				'deskripsi' => $tokenRaw->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $tokenRaw->winAmount : 'Game Win' . ' : ' . $tokenRaw->winAmount,
 			]);
 
-			//	$bet->where('bet_id', '=', $tokenRaw->platformTxId)
-			//		->where('platform', $tokenRaw->platform)
-			//		->update([
-			//			'type' => 'Cancel'
-			//		]);
+			$amountbet = $tokenRaw->betAmount - ($bets->win / $this->ratio);
+			$creditMember = $member->credit;
+			$amount = $creditMember + ($amountbet * $this->ratio);
+
+			$member->update([
+				'credit' => $amount,
+				'created_at' => $tokenRaw->updateTime,
+				'updated_at' => $tokenRaw->updateTime,
+			]);
 		}
 		return [
 			"status" => '0000',
