@@ -153,4 +153,22 @@ class SettingController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
+
+    // get whatsapp url
+    public function whatsappUrl()
+    {
+        try {
+            $whatsappUrl = AppSetting::select('name', 'value')->where([
+                ['name', 'whats_app_url'],
+                ['type', 'web_page']
+                ])->get();
+            if ($whatsappUrl) {
+                return $this->successResponse($whatsappUrl->toArray(), 'Whatsapp URL is exist', 200);
+            }
+
+            return $this->successResponse(null, 'No content', 204);
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
 }
