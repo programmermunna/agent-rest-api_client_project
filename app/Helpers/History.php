@@ -329,7 +329,7 @@ trait History
                 ) as 'Nomor'
                 , bets_togel.bet_amount as 'Bet'
                 , bets_togel.pay_amount as 'Bayar'
-                , concat(floor(bets_togel.tax_amount), '%') as 'disc/kei'
+                , concat(floor(bets_togel.tax_amount), '%') as 'discKey'
                 
                 , if (
                     bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
