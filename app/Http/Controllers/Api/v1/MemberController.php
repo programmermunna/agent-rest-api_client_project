@@ -90,17 +90,9 @@ class MemberController extends ApiController
 
             $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
                     ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id');
-
-            // $memo = MemoModel::join('members', 'members.id', '=', 'memo.member_id')
-            //     ->where('memo.member_id', auth('api')->user()->id)->where('is_bonus', 1)
-            //     ->select([
-            //         'members.username',
-            //         'memo.is_bonus',
-            //         'memo.subject',
-            //         'memo.content',
-            //         'memo.created_at',
-            //     ]);
             
+            // all bonus here
+            #history turnover,cashback,freebet, rollingan,referal
             $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
                 ->where([
                     ['bonus_history.created_by', '=', auth('api')->user()->id],
@@ -108,303 +100,287 @@ class MemberController extends ApiController
                 ])
                 ->select([
                     'bonus_history.id',
-                    'bonus_history.created_by',
+                    'constant_bonus.nama_bonus',
                     'bonus_history.type',
-                    'bonus_history.created_at',
                     'bonus_history.jumlah',
                     'bonus_history.hadiah',
-                    'constant_bonus.nama_bonus',
+                    'bonus_history.created_at',
+                    'bonus_history.created_by',
                 ]);
 
+            if ($request->type == 'deposit') {
+                $this->deposit = $deposit->get()->toArray();
+                $depo = $this->paginate($this->deposit, $this->perPageDepo);
 
-            $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
-                    ->where([
-                        ['bonus_history.created_by', '=', auth('api')->user()->id],
-                        ['bonus_history.jumlah', '>', 0]
-                    ])
-                    ->select([
-                        'bonus_history.id',
-                        'bonus_history.created_by',
-                        'bonus_history.type',
-                        'bonus_history.created_at',
-                        'bonus_history.jumlah',
-                        'bonus_history.hadiah',
-                        'constant_bonus.nama_bonus',
-                    ]);
+                $this->withdraw = $withdraw->get()->toArray();
+                $wd = $this->paginate($this->withdraw, $this->perPageWd);
 
-
-                    if ($request->type == 'deposit') {
-                        $this->deposit = $deposit->get()->toArray();
-                        $depo = $this->paginate($this->deposit, $this->perPageDepo);
-        
-                        $this->withdraw = $withdraw->get()->toArray();
-                        $wd = $this->paginate($this->withdraw, $this->perPageWd);
-        
-                        return  $data = [
-                            'status' => 'success',
-                            'deposit' => $depo,
-                            'withdraw' => $wd,
-                        ];
-                    } elseif ($request->type == 'pragmaticBet') {
-                        $pragmBet = $query->select(
-                                        'bets.bet',
-                                        'bets.game_info',
-                                        'bets.bet_id',
-                                        'bets.game_id',
-                                        'bets.deskripsi',
-                                        'bets.credit',
-                                        'bets.win',
-                                        'bets.type',
-                                        'bets.created_at',
-                                        'constant_provider.constant_provider_name'
-                                    )
-                                    ->where('bets.created_by', auth('api')->user()->id)
-                                    ->where('bets.constant_provider_id', 1)->get();
-        
-                        $this->pragmaticBet = $pragmBet->toArray();
-                        $pragmaticBet = $this->paginate($this->pragmaticBet, $this->perPage);
-        
-                        return $data = [
-                            'status' => 'success',
-                            'pragmaticBet' => $pragmaticBet,
-                         ];
-                    } elseif ($request->type == 'habaneroBet') {
-                        $habaneBet = $query->select(
-                                        'bets.bet',
-                                        'bets.game_info',
-                                        'bets.bet_id',
-                                        'bets.game_id',
-                                        'bets.deskripsi',
-                                        'bets.credit',
-                                        'bets.win',
-                                        'bets.type',
-                                        'bets.created_at',
-                                        'constant_provider.constant_provider_name'
-                                    )
-                                    ->where('bets.created_by', auth('api')->user()->id)
-                                    ->where('bets.constant_provider_id', 2)->get();
-        
-                        $this->habaneroBet = $habaneBet->toArray();
-                        $habaneroBet = $this->paginate($this->habaneroBet, $this->perPage);
-        
-                        return $data = [
-                            'status' => 'success',
-                            'habaneroBet' => $habaneroBet,
-                         ];
-                    }elseif ($request->type == 'spadeBet') {
-                        $spBet = $query->select(
-                                    'bets.bet',
-                                    'bets.game_info',
-                                    'bets.bet_id',
-                                    'bets.game_id',
-                                    'bets.deskripsi',
-                                    'bets.credit',
-                                    'bets.win',
-                                    'bets.type',
-                                    'bets.created_at',
-                                    'constant_provider.constant_provider_name'
-                                )
-                                ->where('bets.created_by', auth('api')->user()->id)
-                                ->where('bets.constant_provider_id', 4)->get();
-        
-                        $this->spadeBet = $spBet->toArray();
-                        $spadeBet = $this->paginate($this->spadeBet, $this->perPage);
-        
-                        return $data = [
-                            'status' => 'success',
-                            'spadeBet' => $spadeBet,
-                        ];
-                    } elseif ($request->type == 'jokerBet') {
-                        $jokBet = $query->select(
-                                    'bets.bet',
-                                    'bets.game_info',
-                                    'bets.bet_id',
-                                    'bets.game_id',
-                                    'bets.deskripsi',
-                                    'bets.credit',
-                                    'bets.win',
-                                    'bets.type',
-                                    'bets.created_at',
-                                    'constant_provider.constant_provider_name'
-                                )
-                                ->where('bets.created_by', auth('api')->user()->id)
-                                ->where('bets.constant_provider_id', 3)->get();
-        
-                        $this->jokerBet = $jokBet->toArray();
-                        $jokerBet = $this->paginate($this->jokerBet, $this->perPage);
-        
-                        return $data = [
-                            'status' => 'success',
-                            'jokerBet' => $jokerBet,
-                        ];
-                    } elseif ($request->type == 'playtechBet') {
-                        $playBet = $query->select(
-                                        'bets.bet',
-                                        'bets.game_info',
-                                        'bets.bet_id',
-                                        'bets.game_id',
-                                        'bets.deskripsi',
-                                        'bets.credit',
-                                        'bets.win',
-                                        'bets.type',
-                                        'bets.created_at',
-                                        'constant_provider.constant_provider_name'
-                                    )
-                                    ->where('bets.created_by', auth('api')->user()->id)
-                                    ->where('bets.constant_provider_id', 6)->get();
-        
-                        $this->playtechBet = $playBet->toArray();
-                        $playtechBet = $this->paginate($this->playtechBet, $this->perPage);
-        
-                        return $data = [
-                            'status' => 'success',
-                            'playtechBet' => $playtechBet,
-                        ];
-                    } elseif ($request->type == 'pgBet') {
-                        $pBet = $query->select(
-                                    'bets.bet',
-                                    'bets.game_info',
-                                    'bets.bet_id',
-                                    'bets.game_id',
-                                    'bets.deskripsi',
-                                    'bets.credit',
-                                    'bets.type',
-                                    'bets.win',
-                                    'bets.created_at',
-                                    'constant_provider.constant_provider_name'
-                                )
-                                ->where('bets.created_by', auth('api')->user()->id)
-                                ->where('bets.constant_provider_id', 5)->get();
-        
-                        $this->pgBet = $pBet->toArray();
-                        $pgBet = $this->paginate($this->pgBet, $this->perPage);
-        
-                        return $data = [
-                            'status' => 'success',
-                            'pgBet' => $pgBet,
-                        ];
-                    } elseif ($request->type == 'gamehallBet') {
-                        $ghBet = $query->select(
-                            'bets.bet',
-                            'bets.game_info',
-                            'bets.bet_id',
-                            'bets.game_id',
-                            'bets.deskripsi',
-                            'bets.credit',
-                            'bets.type',
-                            'bets.win',
-                            'bets.created_at',
-                            'constant_provider.constant_provider_name'
-                        )
-                        ->where('bets.created_by', auth('api')->user()->id)
-                        ->where('bets.constant_provider_id', 7)->get();
-    
-                        $this->gamehallBet = $ghBet->toArray();
-                        $gamehallBet = $this->paginate($this->gamehallBet, $this->perPage);
-    
-                        return $data = [
-                            'status' => 'success',
-                            'gamehallBet' => $gamehallBet,
-                        ];
-                    } elseif ($request->type == 'ionxBet') {
-                        $iBet = $query->select(
-                            'bets.bet',
-                            'bets.game_info',
-                            'bets.bet_id',
-                            'bets.game_id',
-                            'bets.deskripsi',
-                            'bets.credit',
-                            'bets.type',
-                            'bets.win',
-                            'bets.created_at',
-                            'constant_provider.constant_provider_name'
-                        )
-                        ->where('bets.created_by', auth('api')->user()->id)
-                        ->where('bets.constant_provider_id', 8)->get();
-    
-                        $this->ionxBet = $iBet->toArray();
-                        $ionxBet = $this->paginate($this->ionxBet, $this->perPage);
-    
-                        return $data = [
-                            'status' => 'success',
-                            'ionxBet' => $ionxBet,
-                        ];
-                    } elseif ($request->type == 'queenmakerBet') {
-                        $qmBet = $query->select(
-                            'bets.bet',
-                            'bets.game_info',
-                            'bets.bet_id',
-                            'bets.game_id',
-                            'bets.deskripsi',
-                            'bets.credit',
-                            'bets.type',
-                            'bets.win',
-                            'bets.created_at',
-                            'constant_provider.constant_provider_name'
-                        )
-                        ->where('bets.created_by', auth('api')->user()->id)
-                        ->where('bets.constant_provider_id', 9)->get();
-    
-                        $this->queenmakerBet = $qmBet->toArray();
-                        $queenmakerBet = $this->paginate($this->queenmakerBet, $this->perPage);
-        
-                        return $data = [
-                            'status' => 'success',
-                            'queenmakerBet' => $queenmakerBet,
-                        ];
-                    } elseif ($request->type == 'dll') {
-                        $this->bonus = $bonus->get()->toArray();
-                        $bonusArr = $this->paginate($this->bonus, $this->perPage);
-        
-                        return $data = [
-                            'status' => 'success',
-                            'dll' => $bonusArr,
-                        ];
-                    } elseif ($request->type == 'togel') {
-        
-                        $togel = $this->paginate($this->getTogel(), $this->pageAll);
-        
-                        return [
-                            'status' => 'success',
-                            'togel' => $togel,
-                        ];
-                    } else {
-                        $this->deposit = $deposit->get()->toArray();
-                        $depo = $this->paginate($this->deposit, $this->pageAll);
-        
-                        $this->withdraw = $withdraw->get()->toArray();
-                        $wd = $this->paginate($this->withdraw, $this->pageAll);
-        
-                        //all provider bet
-                        $allProBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-                            ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-                            ->select(
+                return  $data = [
+                    'status' => 'success',
+                    'deposit' => $depo,
+                    'withdraw' => $wd,
+                ];
+            } elseif ($request->type == 'pragmaticBet') {
+                $pragmBet = $query->select(
                                 'bets.bet',
-                                'bets.win',
                                 'bets.game_info',
                                 'bets.bet_id',
                                 'bets.game_id',
                                 'bets.deskripsi',
                                 'bets.credit',
+                                'bets.win',
+                                'bets.type',
+                                'bets.created_at',
                                 'constant_provider.constant_provider_name'
-                            )->where('bets.created_by', auth('api')->user()->id)->get();
-        
-                        $this->allProviderBet = $allProBet->toArray();
-                        $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
-        
-                        $this->bonus = $bonus->get()->toArray();
-                        $bonusArr = $this->paginate($this->bonus, $this->pageAll);
-                        $togel = $this->paginate($this->togel , $this->perPage);
-                        return [
-                            'deposit' => $depo,
-                            'withdraw' => $wd,
-                            'allProviderBet' => $allProviderBet,
-                            'BonusPromo' => $bonusArr,
-        
-                            'togel' => $this->paginate($this->getTogel() , $this->pageAll) 
-        
-                        ];
-                    }
+                            )
+                            ->where('bets.created_by', auth('api')->user()->id)
+                            ->where('bets.constant_provider_id', 1)->get();
+
+                $this->pragmaticBet = $pragmBet->toArray();
+                $pragmaticBet = $this->paginate($this->pragmaticBet, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'pragmaticBet' => $pragmaticBet,
+                    ];
+            } elseif ($request->type == 'habaneroBet') {
+                $habaneBet = $query->select(
+                                'bets.bet',
+                                'bets.game_info',
+                                'bets.bet_id',
+                                'bets.game_id',
+                                'bets.deskripsi',
+                                'bets.credit',
+                                'bets.win',
+                                'bets.type',
+                                'bets.created_at',
+                                'constant_provider.constant_provider_name'
+                            )
+                            ->where('bets.created_by', auth('api')->user()->id)
+                            ->where('bets.constant_provider_id', 2)->get();
+
+                $this->habaneroBet = $habaneBet->toArray();
+                $habaneroBet = $this->paginate($this->habaneroBet, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'habaneroBet' => $habaneroBet,
+                    ];
+            }elseif ($request->type == 'spadeBet') {
+                $spBet = $query->select(
+                            'bets.bet',
+                            'bets.game_info',
+                            'bets.bet_id',
+                            'bets.game_id',
+                            'bets.deskripsi',
+                            'bets.credit',
+                            'bets.win',
+                            'bets.type',
+                            'bets.created_at',
+                            'constant_provider.constant_provider_name'
+                        )
+                        ->where('bets.created_by', auth('api')->user()->id)
+                        ->where('bets.constant_provider_id', 4)->get();
+
+                $this->spadeBet = $spBet->toArray();
+                $spadeBet = $this->paginate($this->spadeBet, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'spadeBet' => $spadeBet,
+                ];
+            } elseif ($request->type == 'jokerBet') {
+                $jokBet = $query->select(
+                            'bets.bet',
+                            'bets.game_info',
+                            'bets.bet_id',
+                            'bets.game_id',
+                            'bets.deskripsi',
+                            'bets.credit',
+                            'bets.win',
+                            'bets.type',
+                            'bets.created_at',
+                            'constant_provider.constant_provider_name'
+                        )
+                        ->where('bets.created_by', auth('api')->user()->id)
+                        ->where('bets.constant_provider_id', 3)->get();
+
+                $this->jokerBet = $jokBet->toArray();
+                $jokerBet = $this->paginate($this->jokerBet, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'jokerBet' => $jokerBet,
+                ];
+            } elseif ($request->type == 'playtechBet') {
+                $playBet = $query->select(
+                                'bets.bet',
+                                'bets.game_info',
+                                'bets.bet_id',
+                                'bets.game_id',
+                                'bets.deskripsi',
+                                'bets.credit',
+                                'bets.win',
+                                'bets.type',
+                                'bets.created_at',
+                                'constant_provider.constant_provider_name'
+                            )
+                            ->where('bets.created_by', auth('api')->user()->id)
+                            ->where('bets.constant_provider_id', 6)->get();
+
+                $this->playtechBet = $playBet->toArray();
+                $playtechBet = $this->paginate($this->playtechBet, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'playtechBet' => $playtechBet,
+                ];
+            } elseif ($request->type == 'pgBet') {
+                $pBet = $query->select(
+                            'bets.bet',
+                            'bets.game_info',
+                            'bets.bet_id',
+                            'bets.game_id',
+                            'bets.deskripsi',
+                            'bets.credit',
+                            'bets.type',
+                            'bets.win',
+                            'bets.created_at',
+                            'constant_provider.constant_provider_name'
+                        )
+                        ->where('bets.created_by', auth('api')->user()->id)
+                        ->where('bets.constant_provider_id', 5)->get();
+
+                $this->pgBet = $pBet->toArray();
+                $pgBet = $this->paginate($this->pgBet, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'pgBet' => $pgBet,
+                ];
+            } elseif ($request->type == 'gamehallBet') {
+                $ghBet = $query->select(
+                    'bets.bet',
+                    'bets.game_info',
+                    'bets.bet_id',
+                    'bets.game_id',
+                    'bets.deskripsi',
+                    'bets.credit',
+                    'bets.type',
+                    'bets.win',
+                    'bets.created_at',
+                    'constant_provider.constant_provider_name'
+                )
+                ->where('bets.created_by', auth('api')->user()->id)
+                ->where('bets.constant_provider_id', 7)->get();
+
+                $this->gamehallBet = $ghBet->toArray();
+                $gamehallBet = $this->paginate($this->gamehallBet, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'gamehallBet' => $gamehallBet,
+                ];
+            } elseif ($request->type == 'ionxBet') {
+                $iBet = $query->select(
+                    'bets.bet',
+                    'bets.game_info',
+                    'bets.bet_id',
+                    'bets.game_id',
+                    'bets.deskripsi',
+                    'bets.credit',
+                    'bets.type',
+                    'bets.win',
+                    'bets.created_at',
+                    'constant_provider.constant_provider_name'
+                )
+                ->where('bets.created_by', auth('api')->user()->id)
+                ->where('bets.constant_provider_id', 8)->get();
+
+                $this->ionxBet = $iBet->toArray();
+                $ionxBet = $this->paginate($this->ionxBet, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'ionxBet' => $ionxBet,
+                ];
+            } elseif ($request->type == 'queenmakerBet') {
+                $qmBet = $query->select(
+                    'bets.bet',
+                    'bets.game_info',
+                    'bets.bet_id',
+                    'bets.game_id',
+                    'bets.deskripsi',
+                    'bets.credit',
+                    'bets.type',
+                    'bets.win',
+                    'bets.created_at',
+                    'constant_provider.constant_provider_name'
+                )
+                ->where('bets.created_by', auth('api')->user()->id)
+                ->where('bets.constant_provider_id', 9)->get();
+
+                $this->queenmakerBet = $qmBet->toArray();
+                $queenmakerBet = $this->paginate($this->queenmakerBet, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'queenmakerBet' => $queenmakerBet,
+                ];
+            } elseif ($request->type == 'dll') {
+                $this->bonus = $bonus->get()->toArray();
+                $bonusArr = $this->paginate($this->bonus, $this->perPage);
+
+                return $data = [
+                    'status' => 'success',
+                    'dll' => $bonusArr,
+                ];
+            } elseif ($request->type == 'togel') {
+
+                $togel = $this->paginate($this->getTogel(), $this->pageAll);
+
+                return [
+                    'status' => 'success',
+                    'togel' => $togel,
+                ];
+            } else {
+                $this->deposit = $deposit->get()->toArray();
+                $depo = $this->paginate($this->deposit, $this->pageAll);
+
+                $this->withdraw = $withdraw->get()->toArray();
+                $wd = $this->paginate($this->withdraw, $this->pageAll);
+
+                //all provider bet
+                $allProBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+                    ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+                    ->select(
+                        'bets.bet',
+                        'bets.win',
+                        'bets.game_info',
+                        'bets.bet_id',
+                        'bets.game_id',
+                        'bets.deskripsi',
+                        'bets.credit',
+                        'constant_provider.constant_provider_name'
+                    )->where('bets.created_by', auth('api')->user()->id)->get();
+
+                $this->allProviderBet = $allProBet->toArray();
+                $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
+
+                $this->bonus = $bonus->get()->toArray();
+                // all bonus here
+                $bonusArr = $this->paginate($this->bonus, $this->pageAll);
+                $togel = $this->paginate($this->togel , $this->perPage);
+                return [
+                    'deposit' => $depo,
+                    'withdraw' => $wd,
+                    'allProviderBet' => $allProviderBet,
+                    'BonusPromo' => $bonusArr,
+
+                    'togel' => $this->paginate($this->getTogel() , $this->pageAll) 
+
+                ];
+            }
 
 
             if ($request->type == 'deposit') {
