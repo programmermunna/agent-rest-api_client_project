@@ -162,8 +162,21 @@ class SettingController extends ApiController
                 ['name', 'whats_app_url'],
                 ['type', 'web_page']
                 ])->get();
-            if ($whatsappUrl) {
-                return $this->successResponse($whatsappUrl->toArray(), 'Whatsapp URL is exist', 200);
+            $whatsappNumber = AppSetting::select('name', 'value')->where([
+                ['name', 'whatsapp'],
+                ['type', 'social_media']
+                ])->get();
+            if ($whatsappUrl && $whatsappNumber) {
+                // return $this->successResponse($whatsappUrl->toArray(), 'Whatsapp URL is exist', 200);
+                return response()->json([
+                    'status' => 'success',
+                    'code'  => 200,
+                    'message' => 'Number & text url is exist',
+                    'data'  => [
+                        'text' => $whatsappUrl->toArray(),
+                        'number' => $whatsappNumber->toArray()
+                    ]
+                ]);
             }
 
             return $this->successResponse(null, 'No content', 204);
