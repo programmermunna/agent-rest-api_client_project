@@ -101,7 +101,7 @@ class SettingController extends ApiController
     public function list_togel()
     {
         try {
-            $list_togel = ConstantProviderTogelModel::select('id','name', 'name_initial','website_url')->where('status', 1)->get();
+            $list_togel = ConstantProviderTogelModel::select('id','name', 'name_initial','website_url')->where('status', 1)->orWhere('auto_online', 1)->get();
             if ($list_togel) {
                 return $this->successResponse($list_togel->toArray(), 'List Togel Found');
             }
@@ -162,8 +162,21 @@ class SettingController extends ApiController
                 ['name', 'whats_app_url'],
                 ['type', 'web_page']
                 ])->get();
-            if ($whatsappUrl) {
-                return $this->successResponse($whatsappUrl->toArray(), 'Whatsapp URL is exist', 200);
+            $whatsappNumber = AppSetting::select('name', 'value')->where([
+                ['name', 'whatsapp'],
+                ['type', 'social_media']
+                ])->get();
+            if ($whatsappUrl && $whatsappNumber) {
+                // return $this->successResponse($whatsappUrl->toArray(), 'Whatsapp URL is exist', 200);
+                return response()->json([
+                    'status' => 'success',
+                    'code'  => 200,
+                    'message' => 'Number & text url is exist',
+                    'data'  => [
+                        'text' => $whatsappUrl->toArray(),
+                        'number' => $whatsappNumber->toArray()
+                    ]
+                ]);
             }
 
             return $this->successResponse(null, 'No content', 204);
