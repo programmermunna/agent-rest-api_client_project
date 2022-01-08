@@ -101,7 +101,7 @@ class SettingController extends ApiController
     public function list_togel()
     {
         try {
-            $list_togel = ConstantProviderTogelModel::select('id','name', 'name_initial','website_url')->where('status', 1)->orWhere('auto_online', 1)->get();
+            $list_togel = ConstantProviderTogelModel::select('id','name', 'name_initial','website_url')->where('status', 1)->get();
             if ($list_togel) {
                 return $this->successResponse($list_togel->toArray(), 'List Togel Found');
             }

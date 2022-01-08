@@ -84,6 +84,7 @@ class OutResult extends ApiController
 				'constant_provider_togel.status as is_active',
 			])
 			->where('status' , true)
+			->orWhere('auto_online', 1)
 			->with('resultNumber')
 			->get();
 
