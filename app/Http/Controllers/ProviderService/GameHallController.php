@@ -662,7 +662,7 @@ class GameHallController extends Controller
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $bet    = BetModel::query();
       $bets   = $bet->where('bet_id', '=', $tokenRaw->platformTxId)
-        ->where('platform', $tokenRaw->platform)->orderBy('created_at', 'desc')->first();
+                    ->where('platform', $tokenRaw->platform)->orderBy('created_at', 'desc')->first();
 
       if (is_null($bets)) {
         return [
@@ -691,15 +691,21 @@ class GameHallController extends Controller
         'round_id' => $tokenRaw->roundId,
         'type' => 'Cancel',
         'game' => $tokenRaw->gameName,
-        'bet' => $tokenRaw->betAmount,
+        'bet' => $tokenRaw->betAmount * $this->ratio,
         'created_at' => now(),
         'updated_at' => $tokenRaw->updateTime,
         'constant_provider_id' => 7,
       ]);
 
-      $amountbet = $tokenRaw->betAmount - ($bets->win / $this->ratio);
-      $creditMember = $member->credit;
-      $amount = $creditMember + ($amountbet * $this->ratio);
+      if($bets->win == 0){
+        $amountbet = $tokenRaw->betAmount;
+        $creditMember = $member->credit;
+        $amount = $creditMember + ($amountbet * $this->ratio);
+      }else { 
+        $amountbet = $tokenRaw->betAmount - ($bets->win / $this->ratio);
+        $creditMember = $member->credit;
+        $amount = $creditMember + ($amountbet * $this->ratio);
+      }
 
       $member->update([
         'credit' => $amount,
