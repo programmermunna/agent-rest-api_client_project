@@ -577,11 +577,12 @@ class GameHallController extends Controller
       $win = $tokenRaw->winAmount * 1000;
       $amount = $creditMember - $amountbet + $win;
       $this->betTime = $tokenRaw->betTime;
+
       if ($amount < 0) {
+
         return response()->json([
-          "status" => '0000',
-          "balance" => $creditMember / $this->ratio,
-          "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+          "status" => '1018',
+          "desc" => "Not Enough Balance"
         ]);
       } else {
         // check if bet already exist
@@ -662,7 +663,7 @@ class GameHallController extends Controller
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $bet    = BetModel::query();
       $bets   = $bet->where('bet_id', '=', $tokenRaw->platformTxId)
-                    ->where('platform', $tokenRaw->platform)->orderBy('created_at', 'desc')->first();
+        ->where('platform', $tokenRaw->platform)->orderBy('created_at', 'desc')->first();
 
       if (is_null($bets)) {
         return [
@@ -697,11 +698,11 @@ class GameHallController extends Controller
         'constant_provider_id' => 7,
       ]);
 
-      if($bets->win == 0){
+      if ($bets->win == 0) {
         $amountbet = $tokenRaw->betAmount;
         $creditMember = $member->credit;
         $amount = $creditMember + ($amountbet * $this->ratio);
-      }else { 
+      } else {
         $amountbet = $tokenRaw->betAmount - ($bets->win / $this->ratio);
         $creditMember = $member->credit;
         $amount = $creditMember + ($amountbet * $this->ratio);
