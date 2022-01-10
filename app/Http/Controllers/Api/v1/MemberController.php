@@ -1280,6 +1280,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('is_default', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo7)->first();
             $axiataAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1288,6 +1289,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('is_default', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo8)->first();
             $ovoAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1296,6 +1298,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('is_default', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo9)->first();
             $gopayAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1304,6 +1307,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('is_default', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo10)->first();
             $danaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1312,6 +1316,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('is_default', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo11)->first();
             $linkAjaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1320,6 +1325,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('is_default', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo12)->first();
             $bankName = ['bca', 'mandiri', 'bni', 'bri', 'cimb', 'danamond', 'telkomsel', 'axiata', 'ovo', 'gopay', 'dana', 'linkAja'];
             $listRek = [];
