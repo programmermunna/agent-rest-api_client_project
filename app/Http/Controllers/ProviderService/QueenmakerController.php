@@ -185,7 +185,6 @@ class QueenmakerController extends Controller
 			'created_by' => $tokenRaw->userid,
 			'constant_provider_id' => 9,
 		]);
-
 		array_push($this->data, [
 			'txid' => $betCreate->id,
 			'ptxid' => $tokenRaw->ptxid,

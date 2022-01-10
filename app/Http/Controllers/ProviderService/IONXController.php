@@ -174,7 +174,7 @@ class IONXController extends Controller
 					'win' => $this->token->PlayerWinLoss,
 					// 'bet' => $this->token->Stake,
 					'player_wl' => $this->token->WinningStake,
-                    'game_info' => 'live_casino',
+          'game_info' => 'live_casino',
 					'bet_option' => $this->token->BetOptions,
 					'group_bet_option' => $this->token->GroupBetOptions,
 					'constant_provider_id' => 8,

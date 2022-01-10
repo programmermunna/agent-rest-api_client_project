@@ -90,9 +90,7 @@ class MemberController extends ApiController
 
             $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
                     ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id');
-            
-            // all bonus here
-            #history turnover,cashback,freebet, rollingan,referal
+
             $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
                 ->where([
                     ['bonus_history.created_by', '=', auth('api')->user()->id],
@@ -108,18 +106,25 @@ class MemberController extends ApiController
                     'bonus_history.created_by',
                 ]);
 
+
             if ($request->type == 'deposit') {
                 $this->deposit = $deposit->get()->toArray();
                 $depo = $this->paginate($this->deposit, $this->perPageDepo);
 
-                $this->withdraw = $withdraw->get()->toArray();
-                $wd = $this->paginate($this->withdraw, $this->perPageWd);
 
-                return  $data = [
-                    'status' => 'success',
-                    'deposit' => $depo,
-                    'withdraw' => $wd,
-                ];
+
+            if ($request->type == 'deposit') {
+                    $this->deposit = $deposit->get()->toArray();
+                    $depo = $this->paginate($this->deposit, $this->perPageDepo);
+    
+                    $this->withdraw = $withdraw->get()->toArray();
+                    $wd = $this->paginate($this->withdraw, $this->perPageWd);
+    
+                    return  $data = [
+                        'status' => 'success',
+                        'deposit' => $depo,
+                        'withdraw' => $wd,
+                    ];
             } elseif ($request->type == 'pragmaticBet') {
                 $pragmBet = $query->select(
                                 'bets.bet',
@@ -145,6 +150,7 @@ class MemberController extends ApiController
                     ];
             } elseif ($request->type == 'habaneroBet') {
                 $habaneBet = $query->select(
+
                                 'bets.bet',
                                 'bets.game_info',
                                 'bets.bet_id',
@@ -182,8 +188,8 @@ class MemberController extends ApiController
                         ->where('bets.created_by', auth('api')->user()->id)
                         ->where('bets.constant_provider_id', 4)->get();
 
-                $this->spadeBet = $spBet->toArray();
-                $spadeBet = $this->paginate($this->spadeBet, $this->perPage);
+                    $this->gamehallBet = $ghBet->toArray();
+                    $gamehallBet = $this->paginate($this->gamehallBet, $this->perPage);
 
                 return $data = [
                     'status' => 'success',
@@ -228,8 +234,8 @@ class MemberController extends ApiController
                             ->where('bets.created_by', auth('api')->user()->id)
                             ->where('bets.constant_provider_id', 6)->get();
 
-                $this->playtechBet = $playBet->toArray();
-                $playtechBet = $this->paginate($this->playtechBet, $this->perPage);
+                    $this->ionxBet = $iBet->toArray();
+                    $ionxBet = $this->paginate($this->ionxBet, $this->perPage);
 
                 return $data = [
                     'status' => 'success',
@@ -693,6 +699,7 @@ class MemberController extends ApiController
                 return $this->successResponse($bonus->get(), 'Daily referal exist', 200);
             }
             
+
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
