@@ -343,7 +343,7 @@ class MemberController extends ApiController
                 ];
             } elseif ($request->type == 'togel') {
 
-                $togel = $this->paginate($this->getTogel(), $this->pageAll);
+                $togel = $this->paginate($this->getTogel(), $this->perPage);
 
                 return [
                     'status' => 'success',
