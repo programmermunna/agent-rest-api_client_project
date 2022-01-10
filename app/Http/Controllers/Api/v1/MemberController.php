@@ -108,12 +108,6 @@ class MemberController extends ApiController
 
 
             if ($request->type == 'deposit') {
-                $this->deposit = $deposit->get()->toArray();
-                $depo = $this->paginate($this->deposit, $this->perPageDepo);
-
-
-
-            if ($request->type == 'deposit') {
                     $this->deposit = $deposit->get()->toArray();
                     $depo = $this->paginate($this->deposit, $this->perPageDepo);
     
