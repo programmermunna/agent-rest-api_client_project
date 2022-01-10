@@ -101,7 +101,8 @@ class SettingController extends ApiController
     public function list_togel()
     {
         try {
-            $list_togel = ConstantProviderTogelModel::select('id','name', 'name_initial','website_url')->where('status', 1)->get();
+            $list_togel = ConstantProviderTogelModel::select('id','name', 'name_initial','website_url')->where('status', 1)->orWhere('auto_online', 1)->get();
+
             if ($list_togel) {
                 return $this->successResponse($list_togel->toArray(), 'List Togel Found');
             }
@@ -146,6 +147,37 @@ class SettingController extends ApiController
             $social = AppSetting::select('name', 'value')->where('type', 'social_media')->get();
             if ($social) {
                 return $this->successResponse($social->toArray());
+            }
+
+            return $this->successResponse(null, 'No content', 204);
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+
+    // get whatsapp url
+    public function whatsappUrl()
+    {
+        try {
+            $whatsappUrl = AppSetting::select('name', 'value')->where([
+                ['name', 'whats_app_url'],
+                ['type', 'web_page']
+                ])->get();
+            $whatsappNumber = AppSetting::select('name', 'value')->where([
+                ['name', 'whatsapp'],
+                ['type', 'social_media']
+                ])->get();
+            if ($whatsappUrl && $whatsappNumber) {
+                // return $this->successResponse($whatsappUrl->toArray(), 'Whatsapp URL is exist', 200);
+                return response()->json([
+                    'status' => 'success',
+                    'code'  => 200,
+                    'message' => 'Number & text url is exist',
+                    'data'  => [
+                        'text' => $whatsappUrl->toArray(),
+                        'number' => $whatsappNumber->toArray()
+                    ]
+                ]);
             }
 
             return $this->successResponse(null, 'No content', 204);

@@ -85,6 +85,8 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             // cashback
     Route::get('/cashback', 'MemberController@cashbackSlot');
 
+    // daily referal
+    Route::post('/daily-referal', 'MemberController@dailyReferal');
 
     //Get destination banks
     Route::group(['middleware' => ['jwt.verify']], function () {
@@ -134,7 +136,8 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/referral_game/{type}', 'SettingController@referral_game');
             Route::get('/list_togel', 'SettingController@list_togel');
             Route::get('/web_page', 'SettingController@web_page');
-            Route::get('/footer_tag', 'SettingController@footer_tag');
+            Route::get('/footer_tag', 'SettingController@footer_tag');            
+            Route::get('/whatsapp_url', 'SettingController@whatsappUrl');
             Route::get('/social', 'SettingController@social');
             Route::get('/seo', 'SettingController@seo');
 
