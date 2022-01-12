@@ -421,7 +421,7 @@ class GameHallController extends Controller
           ]);
 
           $member->update([
-            'credit' => $member->credit - $tokenRaw->winLose
+            'credit' => $member->credit - $tokenRaw->winLoss
           ]);
 
           return [
@@ -437,7 +437,7 @@ class GameHallController extends Controller
         ]);
 
         $member->update([
-          'credit' => $member->credit - $tokenRaw->winLose
+          'credit' => $member->credit - $tokenRaw->winLoss
         ]);
 
         return [
