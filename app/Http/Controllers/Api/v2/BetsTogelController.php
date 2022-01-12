@@ -50,7 +50,7 @@ class BetsTogelController extends ApiController
     $bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
 
     // Loop the validated data and take key data and remapping the key
-    foreach ($this->checkBlokedrumber($request, $provider) as $togel) {
+    foreach ($this->checkBlokednumber($request, $provider) as $togel) {
       // definition of bonus referal
       $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
 
@@ -109,11 +109,11 @@ class BetsTogelController extends ApiController
       }
       // TODO need chunks the array of $idx and inserting to DB
       $this->inserBetTogelToHistory($idx);
-      $response = $this->CheckIsBuangan($idx);
+      $response = array_chunk($this->CheckIsBuangan($idx), 50);
 
       // Cek This is Bet Buangan 
-      if ($response[0]->results != null) {
-        foreach (json_decode($response[0]->results) as $bet) {
+      if ($response[0][0]->results != null) {
+        foreach (json_decode($response[0][0]->results) as $bet) {
           BetsTogel::query()
             ->where('id', $bet->bet_id)
             ->where('constant_provider_togel_id', $bet->constant_provider_togel_id)
