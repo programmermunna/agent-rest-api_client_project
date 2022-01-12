@@ -398,29 +398,53 @@ class GameHallController extends Controller
   {
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
+
       $amountbet = $tokenRaw->betAmount;
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-      $member->update([
-        'credit' => $member->credit + $tokenRaw->betAmount
-      ]);
+
       $bets = BetModel::query()
         ->where('platform', $tokenRaw->platform)
         ->where('bet_id', $tokenRaw->platformTxId)->first();
+
       if ($bets == null) {
         return [
           "status" => '1025',
         ];
       } else {
+        if ($tokenRaw->status === 'LOSE') {
+
+          $bets->update([
+            'type' => 'Bet',
+            'bet' => $amountbet * $tokenRaw->gameInfo->odds,
+            'updated_at' => $tokenRaw->updateTime,
+            'credit' => $member->credit,
+          ]);
+
+          $member->update([
+            'credit' => $member->credit - $tokenRaw->winLose
+          ]);
+
+          return [
+            "status" => '0000',
+          ];
+        }
+
         $bets->update([
           'type' => 'Bet',
           'bet' => $amountbet * $tokenRaw->gameInfo->odds,
           'updated_at' => $tokenRaw->updateTime,
+          'credit' => $member->credit,
         ]);
+
+        $member->update([
+          'credit' => $member->credit - $tokenRaw->winLose
+        ]);
+
+        return [
+          "status" => '0000',
+        ];
       }
     }
-    return [
-      "status" => '0000',
-    ];
   }
 
   public function VoidSettle()
@@ -431,6 +455,7 @@ class GameHallController extends Controller
       $amountbet = $tokenRaw->betAmount;
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
+        ->where('status', 'Settle')
         ->first();
       if ($bets == null) {
         return [
