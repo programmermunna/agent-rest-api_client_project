@@ -39,7 +39,15 @@ class WithdrawModel extends Model
      * @var string
      */
     protected $table = 'withdraw';
+  
+    protected $appends = ['type'];
+
     public $timestamps = true;
+
+    protected function getTypeAttribute()
+    {
+      return "withdraw";
+    }
 
     /**
      * The attributes that are not mass assignable.
