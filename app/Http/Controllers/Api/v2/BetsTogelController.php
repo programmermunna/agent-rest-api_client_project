@@ -50,14 +50,13 @@ class BetsTogelController extends ApiController
     $bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
 
     // Loop the validated data and take key data and remapping the key
-    foreach ($this->checkBlokedNumber($request, $provider) as $togel) {
+    foreach ($this->checkBlokedrumber($request, $provider) as $togel) {
       // definition of bonus referal
       $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
 
       array_push($bets, array_merge($togel, [
         'period'      => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
         'bonus_daily_referal' => $calculateReferal,
-
         "togel_game_id" => $gameType,
         "constant_provider_togel_id" => $provider,
         'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
@@ -108,12 +107,10 @@ class BetsTogelController extends ApiController
       foreach ($bets as $bet) {
         $idx[] = DB::table('bets_togel')->insertGetId($bet);
       }
+      // TODO need chunks the array of $idx and inserting to DB
+      $this->inserBetTogelToHistory($idx);
+      $response = $this->CheckIsBuangan($idx);
 
-      /// will be convert to 1,2,3,4,5
-      $bets_id  = implode(",", $idx);
-      DB::select("CALL TriggerInsertAfterBetsTogel('" . $bets_id . "')"); // will be return empty
-      DB::select("SET @bet_ids=' a.id in (" . $bets_id . ")';");
-      $response = DB::select("CALL is_buangan_before_terpasang(@bet_ids)"); // will be return empty
       // Cek This is Bet Buangan 
       if ($response[0]->results != null) {
         foreach (json_decode($response[0]->results) as $bet) {
@@ -128,10 +125,13 @@ class BetsTogelController extends ApiController
       }
 
       $this->updateCredit($total_bets_after_disc);
+
       ConstantProviderTogelModel::query()
         ->where('id', '=', $provider)
         ->update(['period' => is_null($togel_result_number) ? 1 : $togel_result_number->period]);
+
       DB::commit();
+
       return response()->json(['message' => 'success', 'code' => 200], 200);
     } catch (Throwable $error) {
       DB::rollBack();
@@ -220,5 +220,24 @@ class BetsTogelController extends ApiController
     auth('api')->user()->update([
       'credit' => $credit
     ]);
+  }
+  /**
+   * @param array $betsId array of bets id  
+   */
+  protected function inserBetTogelToHistory(array $betsId)
+  {
+    /// will be convert to 1,2,3,4,5
+    $bets_id  = implode(",", $betsId);
+    DB::select("CALL TriggerInsertAfterBetsTogel('" . $bets_id . "')"); // will be return empty
+  }
+
+  /**
+   * @param array $betsId array of bets id  
+   */
+  protected function CheckIsBuangan(array $betsId)
+  {
+    $bets_id  = implode(",", $betsId);
+    DB::select("SET @bet_ids=' a.id in (" . $bets_id . ")';");
+    return DB::select("CALL is_buangan_before_terpasang(@bet_ids)"); // will be return empty
   }
 }
