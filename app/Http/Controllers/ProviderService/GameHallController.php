@@ -411,7 +411,7 @@ class GameHallController extends Controller
           "status" => '1025',
         ];
       } else {
-        if ($tokenRaw->status === 'LOSE') {
+        if ($tokenRaw->gameInfo->status === 'LOSE') {
 
           $bets->update([
             'type' => 'Bet',
