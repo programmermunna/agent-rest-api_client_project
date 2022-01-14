@@ -140,10 +140,11 @@ class LanlanController extends ApiController
 
     public function maintenanceWebsite()
     {
-        // try {
+        try {
             $maintenance = AppSetting::where('name', 'status')->where('type', 'maintenance')->first();
-            //if value on database 503 == maintenance, 
-            if (request()->value == 200) {
+
+            //if value 200 ? no maintenance : maintenance
+            if ($maintenance->value == 503) {
                 $response['code'] = 503;
 
                 $response['message'] = AppSetting::where('name', 'main_maintenance')->where('type', 'maintenance')->value('value');
@@ -157,9 +158,8 @@ class LanlanController extends ApiController
                         'updated_at' => Carbon::now(),
                     ]
                 );
-                //if value on database 200 == website is no maintenance
-                return $this->errorResponse('Maintenance Mode', 200, $response);
-            }elseif(request()->value == 503){
+                return $this->errorResponse('Maintenance Mode', 503, $response);
+            } elseif ($maintenance->value == 200) {
                 $maintenance->update(
                     [
                         'value' => 200,
@@ -170,8 +170,8 @@ class LanlanController extends ApiController
                 );
                 return $this->successResponse('No Maintenance', 200);
             }
-        // } catch (\Throwable $th) {
-        //     return $this->errorResponse('Internal Server Error', 500);
-        // }
+        } catch (\Throwable $th) {
+            return $this->errorResponse($th->getMessage(), 500);
+        }
     }
 }
