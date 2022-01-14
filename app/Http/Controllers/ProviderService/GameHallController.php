@@ -411,33 +411,16 @@ class GameHallController extends Controller
           "status" => '1025',
         ];
       } else {
-        if ($tokenRaw->gameInfo->status === 'LOSE') {
 
-          $bets->update([
-            'type' => 'Bet',
-            'bet' => $amountbet * $tokenRaw->gameInfo->odds,
-            'updated_at' => $tokenRaw->updateTime,
-            'credit' => $member->credit,
-          ]);
-
-          $member->update([
-            'credit' => $member->credit - $tokenRaw->gameInfo->winLoss
-          ]);
-
-          return [
-            "status" => '0000',
-          ];
-        }
+        $member->update([
+          'credit' => $member->credit - $bets->win
+        ]);
 
         $bets->update([
           'type' => 'Bet',
           'bet' => $amountbet * $tokenRaw->gameInfo->odds,
           'updated_at' => $tokenRaw->updateTime,
           'credit' => $member->credit,
-        ]);
-
-        $member->update([
-          'credit' => $member->credit - $tokenRaw->gameInfo->winLoss
         ]);
 
         return [
