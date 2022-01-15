@@ -339,45 +339,97 @@ class MemberController extends ApiController
           'togel' => $togel,
         ];
       } else {
-        $this->deposit = $deposit->get()->toArray();
-        $depo = $this->paginate($this->deposit, $this->pageAll);
+        // $this->deposit = $deposit->get()->toArray();
+        // $depo = $this->paginate($this->deposit, $this->pageAll);
 
-        $this->withdraw = $withdraw->get()->toArray();
-        $wd = $this->paginate($this->withdraw, $this->pageAll);
+        // $this->withdraw = $withdraw->get()->toArray();
+        // $wd = $this->paginate($this->withdraw, $this->pageAll);
 
         //all provider bet
-        $allProBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-          ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-          ->select(
-            'bets.bet',
-            'bets.win',
-            'bets.game_info',
-            'bets.bet_id',
-            'bets.game_id',
-            'bets.deskripsi',
-            'bets.credit',
-            'bets.created_at',
-            'constant_provider.constant_provider_name'
-          )->where('bets.created_by', auth('api')->user()->id)->get();
+        // $allProBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+        //   ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+        //   ->select(
+        //     'bets.bet',
+        //     'bets.win',
+        //     'bets.game_info',
+        //     'bets.bet_id',
+        //     'bets.game_id',
+        //     'bets.deskripsi',
+        //     'bets.credit',
+        //     'bets.created_at',
+        //     'constant_provider.constant_provider_name'
+        //   )->where('bets.created_by', auth('api')->user()->id)->get();
 
-        $this->allProviderBet = $allProBet->toArray();
+        // $this->allProviderBet = $allProBet->toArray();
 
-        $this->bonus = $bonus->get()->toArray();
-        // all bonus here
-        $bonusArr = $this->paginate($this->bonus, $this->pageAll);
+        // $this->bonus = $bonus->get()->toArray();
+        // // all bonus here
+        // $bonusArr = $this->paginate($this->bonus, $this->pageAll);
 
-        $togel = $this->paginate($this->togel, $this->perPage);
+        // $togel = $this->paginate($this->togel, $this->perPage);
 
-        $margeResult = array_merge([$this->deposit, $this->withdraw, $allProBet->toArray(), $this->bonus, $this->getTogel()]);
+        // $margeResult = array_merge([$this->deposit, $this->withdraw, $allProBet->toArray(), $this->bonus, $this->getTogel()]);
 
-        $result = collect();
+        // $result = collect();
 
-        foreach ($margeResult as  $row) {
-          foreach ($row as  $value) {
-            $result->push($value);
-          }
-        }
-        return $this->paginate($result, $this->pageAll);
+        // foreach ($margeResult as  $row) {
+        //   foreach ($row as  $value) {
+        //     $result->push($value);
+        //   }
+        // }
+        // return $this->paginate($result, $this->pageAll);
+        return MembersModel::join('bets as a', 'a.created_by', '=', 'members.id')
+                          ->join('constant_provider as b', 'b.id', '=', 'a.constant_provider_id')
+                          ->join('deposit as c', 'c.created_by', '=', 'a.created_by')
+                          ->join('withdraw as d', 'd.created_by', '=', 'a.created_by')
+                          ->join('bonus_history as e', 'e.created_by', '=', 'members.id')
+                          ->join('constant_bonus as f', 'f.id', '=', 'e.constant_bonus_id')
+                          ->join('bets_togel_history_transaksi as g', 'g.created_by', '=', 'members.id')
+                          ->select(
+                              // bets
+                              'a.bet as betsBet',
+                              'a.win as betsWin',
+                              'a.game_info as betsGameInfo',
+                              'a.bet_id as betsBetId',
+                              'a.game_id as betsGameId',
+                              'a.deskripsi as betsDeskripsi',
+                              'a.credit as betsCredit',
+                              'a.created_at as betsCreatedAt',
+                              'b.constant_provider_name as betsProviderName',
+                              // deposit
+                              'members.credit as depositCredit',
+                              'c.jumlah as depositJumlah',
+                              'c.approval_status as depositStatus',
+                              'c.created_at as depositCreatedAt',
+                              // withdraw
+                              'members.credit as withdrawCredit',
+                              'd.jumlah as withdrawJumlah',
+                              'd.approval_status as withdrawStatus',
+                              'd.created_at as withdrawCreatedAt',
+                              // bonus history
+                              'e.id as bonusHistoryId',
+                              'f.nama_bonus as bonusHistoryNamaBonus',
+                              'e.type as bonusHistoryType',
+                              'e.jumlah as bonusHistoryJumlah',
+                              'e.hadiah as bonusHistoryHadiah',
+                              'e.created_at as bonusHistoryCreatedAt',
+                              'e.created_by as bonusHistoryCreatedBy',
+                              // bets togel
+                              'g.bets_togel_id as betsTogelHistoryId',
+                              'g.pasaran as betsTogelHistoryPasaran',
+                              'g.description as betsTogelHistorDeskripsi',
+                              'g.debit as betsTogelHistoryDebit',
+                              'g.kredit as betsTogelHistoryKredit',
+                              'g.balance as betsTogelHistoryBalance',
+                              'g.created_by as betsTogelHistoryCreatedBy',
+                          )
+                          ->where([
+                              ['c.approval_status', 1],
+                              ['d.approval_status', 1],
+                              ['e.jumlah', '>', 0],
+                              ['members.id', auth('api')->user()->id],
+                          ])
+                          ->paginate($this->pageAll);
       }
     } catch (\Throwable $th) {
       return $this->errorResponse($th->getMessage(), 500);
