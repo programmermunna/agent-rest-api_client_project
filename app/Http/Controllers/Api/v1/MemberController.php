@@ -378,13 +378,13 @@ class MemberController extends ApiController
         //   }
         // }
         // return $this->paginate($result, $this->pageAll);
-        return MembersModel::join('bets as a', 'a.created_by', '=', 'members.id')
-                          ->join('constant_provider as b', 'b.id', '=', 'a.constant_provider_id')
-                          ->join('deposit as c', 'c.created_by', '=', 'a.created_by')
-                          ->join('withdraw as d', 'd.created_by', '=', 'a.created_by')
-                          ->join('bonus_history as e', 'e.created_by', '=', 'members.id')
-                          ->join('constant_bonus as f', 'f.id', '=', 'e.constant_bonus_id')
-                          ->join('bets_togel_history_transaksi as g', 'g.created_by', '=', 'members.id')
+        return MembersModel::leftJoin('bets as a', 'a.created_by', '=', 'members.id')
+                          ->leftJoin('constant_provider as b', 'b.id', '=', 'a.constant_provider_id')
+                          ->leftJoin('deposit as c', 'c.created_by', '=', 'a.created_by')
+                          ->leftJoin('withdraw as d', 'd.created_by', '=', 'a.created_by')
+                          ->leftJoin('bonus_history as e', 'e.created_by', '=', 'members.id')
+                          ->leftJoin('constant_bonus as f', 'f.id', '=', 'e.constant_bonus_id')
+                          ->leftJoin('bets_togel_history_transaksi as g', 'g.created_by', '=', 'members.id')
                           ->select(
                               // bets
                               'a.bet as betsBet',
@@ -422,14 +422,12 @@ class MemberController extends ApiController
                               'g.kredit as betsTogelHistoryKredit',
                               'g.balance as betsTogelHistoryBalance',
                               'g.created_by as betsTogelHistoryCreatedBy',
-                          )
-                          ->where([
-                              ['c.approval_status', 1],
-                              ['d.approval_status', 1],
-                              ['e.jumlah', '>', 0],
-                              ['members.id', auth('api')->user()->id],
-                          ])
+                          )->where('members.id', '=', auth('api')->user()->id)
+                          ->where('c.approval_status', '=', 1)
+                          ->orWhere('d.approval_status', '=', 1)
+                          ->orWhere('e.jumlah', '>', 0)
                           ->paginate($this->pageAll);
+                          
       }
     } catch (\Throwable $th) {
       return $this->errorResponse($th->getMessage(), 500);
