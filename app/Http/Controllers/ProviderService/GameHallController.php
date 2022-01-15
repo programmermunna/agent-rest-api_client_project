@@ -229,7 +229,7 @@ class GameHallController extends Controller
       } else {
         $bets->update([
           'type' => 'Void',
-          'bet' => $amountbet * $tokenRaw->gameInfo->odds,
+          'bet' => $amountbet, 
           'updated_at' => $tokenRaw->updateTime,
         ]);
       }
@@ -258,7 +258,7 @@ class GameHallController extends Controller
         ];
       } else {
         $bets->update([
-          'bet' => $amountbet * $tokenRaw->gameInfo->odds,
+          'bet' => $amountbet,
           'updated_at' => $tokenRaw->updateTime,
         ]);
       }
