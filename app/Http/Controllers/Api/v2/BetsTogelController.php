@@ -97,9 +97,9 @@ class BetsTogelController extends ApiController
     }
     if (empty($bets)) {
       return response()->json([
-        'code' => 422,
+        'code' => 200,
         'messages' => 'Data is empty Or number bloked first please add more number'
-      ], 422);
+      ], 200);
     }
 
     try {
