@@ -28,6 +28,7 @@ use Livewire\WithPagination; # pagination pake ini
 
 class MemberController extends ApiController
 {
+
   use WithPagination;
   protected $member;
   public $perPage = 20;
@@ -101,6 +102,7 @@ class MemberController extends ApiController
           'bonus_history.created_at',
           'bonus_history.created_by',
         ]);
+
 
 
       if ($request->type == 'deposit') {

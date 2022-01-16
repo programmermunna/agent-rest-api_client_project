@@ -51,7 +51,9 @@ class BetsTogelController extends ApiController
     $bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
 
     // Loop the validated data and take key data and remapping the key
+
     foreach ($this->checkBlokednumber($request, $provider) as $togel) {
+
       // definition of bonus referal
       $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
 
@@ -114,7 +116,6 @@ class BetsTogelController extends ApiController
         $this->inserBetTogelToHistory($id);
         $response = $this->CheckIsBuangan($id);        
       }
-      
       // Cek This is Bet Buangan 
       if ($response[0]->results != null) {
         foreach (json_decode($response[0]->results) as $bet) {
@@ -135,6 +136,7 @@ class BetsTogelController extends ApiController
         ->update(['period' => is_null($togel_result_number) ? 1 : $togel_result_number->period]);
 
       DB::commit();
+
 
       return response()->json(['message' => 'success', 'code' => 200], 200);
     } catch (Throwable $error) {
@@ -199,10 +201,8 @@ class BetsTogelController extends ApiController
           array_push($blokedsNumber, $request->validationData()['data'][$key]);
         }
       }
-
       return $blokedsNumber;
     }
-
     return $request->validationData()['data'];
   }
 
@@ -244,4 +244,5 @@ class BetsTogelController extends ApiController
     DB::select("SET @bet_ids=' a.id in (" . $bets_id . ")';");
     return DB::select("CALL is_buangan_before_terpasang(@bet_ids)"); // will be return empty
   }
+
 }
