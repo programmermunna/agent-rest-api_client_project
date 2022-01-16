@@ -219,6 +219,8 @@ class GameHallController extends Controller
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
       $amountbet = $tokenRaw->betAmount;
+      $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+      $creditMember = $member->credit + $amountbet;
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
         ->first();
@@ -229,8 +231,11 @@ class GameHallController extends Controller
       } else {
         $bets->update([
           'type' => 'Void',
-          'bet' => $amountbet, 
+          'bet' => $amountbet,
           'updated_at' => $tokenRaw->updateTime,
+        ]);
+        $member->update([
+          'credit' => $creditMember
         ]);
       }
     }
@@ -274,6 +279,9 @@ class GameHallController extends Controller
   {
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
+      $amountbet = $tokenRaw->betAmount;
+      $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+      $creditMember = $member->credit - $amountbet;
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
         ->first();
@@ -285,6 +293,9 @@ class GameHallController extends Controller
         $bets->update([
           'type' => 'Bet',
           'updated_at' => $tokenRaw->updateTime,
+        ]);
+        $member->update([
+          'credit' => $creditMember
         ]);
       }
     }
@@ -436,6 +447,8 @@ class GameHallController extends Controller
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
       $amountbet = $tokenRaw->betAmount;
+      $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+      $memeberCredit = $member->credit;
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
         ->where('status', 'Settle')
@@ -447,8 +460,12 @@ class GameHallController extends Controller
       } else {
         $bets->update([
           'type' => 'Void',
-          'bet' => $amountbet * $tokenRaw->gameInfo->odds,
+          'bet' => $amountbet,
           'updated_at' => $tokenRaw->updateTime,
+        ]);
+        $creditAfterVoid = $memeberCredit - $bets->win + $amountbet;
+        $member->update([
+          'credit' => $creditAfterVoid
         ]);
       }
     }
@@ -462,6 +479,9 @@ class GameHallController extends Controller
     // call betInformation
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
+      $amountbet = $tokenRaw->betAmount;
+      $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+      $memeberCredit = $member->credit;
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
         ->first();
@@ -471,8 +491,13 @@ class GameHallController extends Controller
         ];
       } else {
         $bets->update([
-          'type' => 'Bet',
+          'type' => 'Settle',
           'updated_at' => $tokenRaw->updateTime,
+        ]);
+        $creditAfterVoid = $memeberCredit + $bets->win - $amountbet;
+
+        $member->update([
+          'credit' => $creditAfterVoid
         ]);
       }
     }
