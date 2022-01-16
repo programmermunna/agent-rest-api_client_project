@@ -185,6 +185,7 @@ class BetsTogelController extends ApiController
     $stackNumber = ['number_3', 'number_4', 'number_5', 'number_6'];
 
     if (!in_array($request->validationData()['data'], $stackNumber)) {
+
       foreach ($request->validationData()['data'] as $key => $data) {
         $number_3 = $data['number_3'] != null ? "number_3 = {$data['number_3']} and " : null;
         $number_4 = $data['number_4'] != null ? "number_4 = {$data['number_4']} and " : null;
