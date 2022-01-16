@@ -8,6 +8,7 @@ use App\Models\BetsTogel;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\TogelGame;
 use App\Models\TogelResultNumberModel;
+use App\Models\TogelBlokAngka;
 use App\Models\TogelSettingGames;
 use App\Models\MembersModel;
 use App\Models\BonusHistoryModel;
@@ -181,7 +182,7 @@ class BetsTogelController extends ApiController
 
     $stackNumber = ['number_1', 'number_2', 'number_3', 'number_4', 'number_5', 'number_6'];
 
-    if (in_array($stackNumber, $request->validationData()['data'])) {
+    if ($request->validationData()['data'] != null) {
       foreach ($request->validationData()['data'] as $key => $data) {
         $number_1 = $data['number_1'] != null ? "number_1 = {$data['number_1']} and " : null;
         $number_2 = $data['number_2'] != null ? "number_2 = {$data['number_2']} and " : null;
