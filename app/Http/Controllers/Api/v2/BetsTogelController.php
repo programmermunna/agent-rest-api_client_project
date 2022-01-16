@@ -97,9 +97,9 @@ class BetsTogelController extends ApiController
     }
     if (empty($bets)) {
       return response()->json([
-        'code' => 422,
+        'code' => 200,
         'messages' => 'Data is empty Or number bloked first please add more number'
-      ], 422);
+      ], 200);
     }
 
     try {
@@ -114,7 +114,7 @@ class BetsTogelController extends ApiController
       $chunkIdx = array_chunk($idx, 50);
       foreach ($chunkIdx as $id) {
         $this->inserBetTogelToHistory($id);
-        $response = $this->CheckIsBuangan($id);        
+        $response = $this->CheckIsBuangan($id);
       }
       // Cek This is Bet Buangan 
       if ($response[0]->results != null) {
@@ -182,20 +182,18 @@ class BetsTogelController extends ApiController
   {
     $blokedsNumber = [];
 
-    $stackNumber = ['number_1', 'number_2', 'number_3', 'number_4', 'number_5', 'number_6'];
+    $stackNumber = ['number_3', 'number_4', 'number_5', 'number_6'];
 
-    if ($request->validationData()['data'] != null) {
+    if (!in_array($request->validationData()['data'], $stackNumber)) {
+
       foreach ($request->validationData()['data'] as $key => $data) {
-        $number_1 = $data['number_1'] != null ? "number_1 = {$data['number_1']} and " : null;
-        $number_2 = $data['number_2'] != null ? "number_2 = {$data['number_2']} and " : null;
         $number_3 = $data['number_3'] != null ? "number_3 = {$data['number_3']} and " : null;
         $number_4 = $data['number_4'] != null ? "number_4 = {$data['number_4']} and " : null;
         $number_5 = $data['number_5'] != null ? "number_5 = {$data['number_5']} and " : null;
         $number_6 = $data['number_6'] != null ? "number_6 = {$data['number_6']} and " : null;
 
-        $query = $number_1 . $number_2 . $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
+        $query = $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
         $result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
-
         // Cek if result from bloked number is null is approved number
         if ($result[0]->nomor == null) {
           array_push($blokedsNumber, $request->validationData()['data'][$key]);
@@ -244,5 +242,4 @@ class BetsTogelController extends ApiController
     DB::select("SET @bet_ids=' a.id in (" . $bets_id . ")';");
     return DB::select("CALL is_buangan_before_terpasang(@bet_ids)"); // will be return empty
   }
-
 }
