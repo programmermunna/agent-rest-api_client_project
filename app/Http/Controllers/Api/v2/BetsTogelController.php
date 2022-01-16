@@ -95,12 +95,6 @@ class BetsTogelController extends ApiController
       // Sum pay_amount
       array_push($total_bets_after_disc, floatval($togel['pay_amount']));
     }
-    if (empty($bets)) {
-      return response()->json([
-        'code' => 200,
-        'messages' => 'Data is empty Or number bloked first please add more number'
-      ], 200);
-    }
 
     try {
       DB::beginTransaction();
