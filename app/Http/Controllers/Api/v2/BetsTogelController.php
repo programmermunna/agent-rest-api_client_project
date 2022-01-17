@@ -51,7 +51,6 @@ class BetsTogelController extends ApiController
     $bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
 
     // Loop the validated data and take key data and remapping the key
-
     foreach ($this->checkBlokednumber($request, $provider) as $togel) {
 
       // definition of bonus referal
@@ -97,6 +96,9 @@ class BetsTogelController extends ApiController
     }
 
     try {
+      if (empty($bets)) {
+        return response()->json(['message' => 'success', 'code' => 200], 200);
+      }
       DB::beginTransaction();
 
       $idx = [];
@@ -178,16 +180,19 @@ class BetsTogelController extends ApiController
 
     $stackNumber = ['number_3', 'number_4', 'number_5', 'number_6'];
 
-    if (!in_array(null, $request->validationData()['data'])) {
-      return $request->validationData()['data'];
-    }
 
     if (!in_array($request->validationData()['data'], $stackNumber)) {
       foreach ($request->validationData()['data'] as $key => $data) {
-        $number_3 = $data['number_3'] != null ? "number_3 = {$data['number_3']} and " : null;
-        $number_4 = $data['number_4'] != null ? "number_4 = {$data['number_4']} and " : null;
-        $number_5 = $data['number_5'] != null ? "number_5 = {$data['number_5']} and " : null;
-        $number_6 = $data['number_6'] != null ? "number_6 = {$data['number_6']} and " : null;
+
+        $c_number_5 = $data['number_5'] ?? 'null';
+        $c_number_3 = $data['number_3'] ?? 'null';
+        $c_number_4 = $data['number_4'] ?? 'null';
+        $c_number_6 = $data['number_6'] ?? 'null';
+
+        $number_3 = "number_3 = {$c_number_3} and ";
+        $number_4 = "number_4 = {$c_number_4} and ";
+        $number_5 = "number_5 = {$c_number_5} and ";
+        $number_6 = "number_6 = {$c_number_6} and ";
 
         $query = $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
         $result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
