@@ -182,17 +182,18 @@ class BetsTogelController extends ApiController
 
 
     if (!in_array($request->validationData()['data'], $stackNumber)) {
+      // this iterator will be filtere the bloked number from request and running the triger 
+      //  which number will bloked 
       foreach ($request->validationData()['data'] as $key => $data) {
+        $c_number_5 = $data['number_5'] ?? 'is null';
+        $c_number_3 = $data['number_3'] ?? 'is null';
+        $c_number_4 = $data['number_4'] ?? 'is null';
+        $c_number_6 = $data['number_6'] ?? 'is null';
 
-        $c_number_5 = $data['number_5'] ?? 'null';
-        $c_number_3 = $data['number_3'] ?? 'null';
-        $c_number_4 = $data['number_4'] ?? 'null';
-        $c_number_6 = $data['number_6'] ?? 'null';
-
-        $number_3 = "number_3 = {$c_number_3} and ";
-        $number_4 = "number_4 = {$c_number_4} and ";
-        $number_5 = "number_5 = {$c_number_5} and ";
-        $number_6 = "number_6 = {$c_number_6} and ";
+        $number_3 =  $c_number_3 == "is null" ? 'number_3 is null and ' : "number_3={$c_number_3} and ";
+        $number_4 =  $c_number_4 == "is null" ? 'number_4 is null and ' : "number_4={$c_number_4} and ";
+        $number_5 =  $c_number_5 == "is null" ? 'number_5 is null and ' : "number_5={$c_number_5} and ";
+        $number_6 =  $c_number_6 == "is null" ? 'number_6 is null and ' : "number_6={$c_number_6} and ";
 
         $query = $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
         $result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
@@ -201,6 +202,7 @@ class BetsTogelController extends ApiController
           array_push($blokedsNumber, $request->validationData()['data'][$key]);
         }
       }
+      dd($blokedsNumber);
       return $blokedsNumber;
     }
     return $request->validationData()['data'];
