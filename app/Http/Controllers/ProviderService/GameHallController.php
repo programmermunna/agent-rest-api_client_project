@@ -179,7 +179,7 @@ class GameHallController extends Controller
     }
     return [
       "status" => '0000',
-      "balance" => $amount,
+      "balance" => (int)$amount,
       "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
     ];
   }
