@@ -120,7 +120,7 @@ class GameHallController extends Controller
       if ($creditMember < $amountbet) {
         return response()->json([
           "status" => '1018',
-          "balance" => $creditMember,
+          "balance" => intval($creditMember),
           "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
 
         ]);
@@ -130,7 +130,7 @@ class GameHallController extends Controller
         if ($bets) {
           return [
             "status" => '1025',
-            "balance" => $creditMember,
+            "balance" => intval($creditMember),
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
           ];
         } else {
@@ -179,7 +179,7 @@ class GameHallController extends Controller
     }
     return [
       "status" => '0000',
-      "balance" => (int)$amount,
+      "balance" => intval($amount),
       "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
     ];
   }
