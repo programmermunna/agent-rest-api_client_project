@@ -202,7 +202,6 @@ class BetsTogelController extends ApiController
           array_push($blokedsNumber, $request->validationData()['data'][$key]);
         }
       }
-      dd($blokedsNumber);
       return $blokedsNumber;
     }
     return $request->validationData()['data'];
