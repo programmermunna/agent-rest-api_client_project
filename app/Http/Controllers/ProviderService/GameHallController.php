@@ -226,6 +226,13 @@ class GameHallController extends Controller
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
         ->first();
+
+      if($bets->type === 'Void'){
+        return [
+          "status" => '0000',
+        ];
+      }
+
       if ($bets == null) {
         return [
           "status" => '0000',
@@ -239,7 +246,6 @@ class GameHallController extends Controller
         $member->update([
           'credit' => $creditMember
         ]);
-
       }
     }
     return [
