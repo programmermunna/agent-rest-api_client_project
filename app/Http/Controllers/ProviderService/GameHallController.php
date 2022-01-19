@@ -461,14 +461,16 @@ class GameHallController extends Controller
     // call betInformation
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
+
       $amountbet = $tokenRaw->betAmount;
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $memeberCredit = $member->credit;
+
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
-        ->where('status', 'Settle')
-
+        ->where('type', 'Settle')
         ->first();
+
       if ($bets == null) {
         return [
           "status" => '0000',
