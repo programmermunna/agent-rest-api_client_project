@@ -789,7 +789,7 @@ class GameHallController extends Controller
         $member =  MembersModel::where('id', $tokenRaw->userId)->first();
         $creditMember = $member->credit;
         $freeSpin = $tokenRaw->winAmount * 1000;
-        $amount = $creditMember + $freeSpinwin;
+        $amount = $creditMember;
 
         // update credit to table member
         $member->update([
