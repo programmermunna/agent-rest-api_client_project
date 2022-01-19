@@ -428,7 +428,7 @@ class MemberController extends ApiController
                   a.created_at as created_at,
                   NULL as betsProviderName,                  
                   a.bets_togel_id as betsTogelHistoryId,
-                  a.pasaran as betsTogelHistoryPasaran,
+                  CONCAT(c.name_initial, '-', b.period) as betsTogelHistoryPasaran,
                   a.description as betsTogelHistorDeskripsi,
                   a.debit as betsTogelHistoryDebit,
                   a.kredit as betsTogelHistoryKredit,
@@ -445,7 +445,9 @@ class MemberController extends ApiController
                   NULL as bonusHistoryJumlah,
                   NULL as bonusHistoryHadiah,
                   NULL as bonusHistoryCreatedBy
-              FROM bets_togel_history_transaksi as a              
+              FROM bets_togel_history_transaksi as a
+              LEFT JOIN bets_togel as b ON a.bets_togel_id = b.id
+              LEFT JOIN constant_provider_togel as c ON b.constant_provider_togel_id = c.id
               WHERE a.created_by = $id
               UNION ALL
               SELECT
@@ -608,7 +610,19 @@ class MemberController extends ApiController
   public function getTogel()
   {
 
-    $result = DB::table('bets_togel_history_transaksi')->where('created_by', '=', auth('api')->user()->id)->get()->toArray();
+    $result = DB::table('bets_togel_history_transaksi as a')
+              ->leftJoin('bets_togel as b', 'a.bets_togel_id', '=', 'b.id')
+              ->leftJoin('constant_provider_togel as c', 'b.constant_provider_togel_id', '=', 'c.id')
+              ->selectRaw("
+                  a.bets_togel_id,
+                  CONCAT(c.name_initial, '-', b.period) as pasaran,
+                  a.description,
+                  a.debit,
+                  a.kredit,
+                  a.balance,
+                  a.bet_id
+              ")
+              ->where('a.created_by', '=', auth('api')->user()->id)->orderBy('a.created_at', 'DESC')->get()->toArray();
     return $this->togel = collect($result)->map(function ($value) {
       return [
         'bets_togel_id' => $value->bets_togel_id,
