@@ -771,6 +771,7 @@ class ProviderController extends Controller
     $user_id = $data->userId;
     $member =  MembersModel::where('id', $user_id)->first();
     $bets = BetModel::where('bet_id', $data->code)->first();
+    $creditMember = $member->credit + $data->amount;
     if ($bets) {
       return response()
         ->json([
@@ -780,7 +781,7 @@ class ProviderController extends Controller
         ], 200);
     }
     // Check member balance 
-    if ($member->credit === 0 && $member->credit < $data->betAmount ) {
+    if ($creditMember < 0) {
       return response()->json([
         "success" => false,
         "amount"  => $member->credit
@@ -793,7 +794,6 @@ class ProviderController extends Controller
      *   the transafer_amount -1000 
      *   so the logic must like curentBalance + -1000 = 2000 ;
      */
-    $creditMember = $member->credit + $data->amount;
     $member->update([
       'credit' => $creditMember,
       'updated_at' => Carbon::now(),
