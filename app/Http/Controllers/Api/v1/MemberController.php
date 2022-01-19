@@ -380,55 +380,189 @@ class MemberController extends ApiController
         //   }
         // }
         // return $this->paginate($result, $this->pageAll);
-        return MembersModel::leftJoin('bets as a', 'a.created_by', '=', 'members.id')
-                          ->leftJoin('constant_provider as b', 'b.id', '=', 'a.constant_provider_id')
-                          ->leftJoin('deposit as c', 'c.created_by', '=', 'a.created_by')
-                          ->leftJoin('withdraw as d', 'd.created_by', '=', 'a.created_by')
-                          ->leftJoin('bonus_history as e', 'e.created_by', '=', 'members.id')
-                          ->leftJoin('constant_bonus as f', 'f.id', '=', 'e.constant_bonus_id')
-                          ->leftJoin('bets_togel_history_transaksi as g', 'g.created_by', '=', 'members.id')
-                          ->select(
-                              // bets
-                              'a.bet as betsBet',
-                              'a.win as betsWin',
-                              'a.game_info as betsGameInfo',
-                              'a.bet_id as betsBetId',
-                              'a.game_id as betsGameId',
-                              'a.deskripsi as betsDeskripsi',
-                              'a.credit as betsCredit',
-                              'a.created_at as betsCreatedAt',
-                              'b.constant_provider_name as betsProviderName',
-                              // deposit
-                              'members.credit as depositCredit',
-                              'c.jumlah as depositJumlah',
-                              'c.approval_status as depositStatus',
-                              'c.created_at as depositCreatedAt',
-                              // withdraw
-                              'members.credit as withdrawCredit',
-                              'd.jumlah as withdrawJumlah',
-                              'd.approval_status as withdrawStatus',
-                              'd.created_at as withdrawCreatedAt',
-                              // bonus history
-                              'e.id as bonusHistoryId',
-                              'f.nama_bonus as bonusHistoryNamaBonus',
-                              'e.type as bonusHistoryType',
-                              'e.jumlah as bonusHistoryJumlah',
-                              'e.hadiah as bonusHistoryHadiah',
-                              'e.created_at as bonusHistoryCreatedAt',
-                              'e.created_by as bonusHistoryCreatedBy',
-                              // bets togel
-                              'g.bets_togel_id as betsTogelHistoryId',
-                              'g.pasaran as betsTogelHistoryPasaran',
-                              'g.description as betsTogelHistorDeskripsi',
-                              'g.debit as betsTogelHistoryDebit',
-                              'g.kredit as betsTogelHistoryKredit',
-                              'g.balance as betsTogelHistoryBalance',
-                              'g.created_by as betsTogelHistoryCreatedBy',
-                          )->where('members.id', '=', auth('api')->user()->id)
-                          ->where('c.approval_status', '=', 1)
-                          ->orWhere('d.approval_status', '=', 1)
-                          ->orWhere('e.jumlah', '>', 0)
-                          ->paginate($this->pageAll);
+        $id = auth('api')->user()->id;      
+
+        $allProBet = DB::select("SELECT 
+                  'Bets' AS Tables,
+                  a.bet as betsBet,
+                  a.win as betsWin,
+                  a.game_info as betsGameInfo,
+                  a.bet_id as betsBetId,
+                  a.game_id as betsGameId,
+                  a.deskripsi as betsDeskripsi,
+                  a.credit as betsCredit,
+                  a.created_at as created_at,
+                  c.constant_provider_name as betsProviderName,
+                  NULL as betsTogelHistoryId,
+                  NULL as betsTogelHistoryPasaran,
+                  NULL as betsTogelHistorDeskripsi,
+                  NULL as betsTogelHistoryDebit,
+                  NULL as betsTogelHistoryKredit,
+                  NULL as betsTogelHistoryBalance,
+                  NULL as betsTogelHistoryCreatedBy,
+                  NULL as depositCredit,
+                  NULL as depositJumlah,
+                  NULL as depositStatus,
+                  NULL as withdrawCredit,
+                  NULL as withdrawJumlah,
+                  NULL as withdrawStatus,
+                  NULL as bonusHistoryNamaBonus,
+                  NULL as bonusHistoryType,
+                  NULL as bonusHistoryJumlah,
+                  NULL as bonusHistoryHadiah,
+                  NULL as bonusHistoryCreatedBy 
+              FROM bets as a
+              LEFT JOIN members as b ON a.created_by = b.id
+              LEFT JOIN constant_provider as c ON a.constant_provider_id = c.id              
+              WHERE a.created_by = $id
+              UNION ALL
+              SELECT
+                  'Bets Togel History' as Tables,
+                  NULL as betsBet,
+                  NULL as betsWin,
+                  NULL as betsGameInfo,
+                  NULL as betsBetId,
+                  NULL as betsGameId,
+                  NULL as betsDeskripsi,
+                  NULL as betsCredit,
+                  a.created_at as created_at,
+                  NULL as betsProviderName,                  
+                  a.bets_togel_id as betsTogelHistoryId,
+                  CONCAT(c.name_initial, '-', b.period) as betsTogelHistoryPasaran,
+                  a.description as betsTogelHistorDeskripsi,
+                  a.debit as betsTogelHistoryDebit,
+                  a.kredit as betsTogelHistoryKredit,
+                  a.balance as betsTogelHistoryBalance,
+                  a.created_by as betsTogelHistoryCreatedBy,
+                  NULL as depositCredit,
+                  NULL as depositJumlah,
+                  NULL as depositStatus,
+                  NULL as withdrawCredit,
+                  NULL as withdrawJumlah,
+                  NULL as withdrawStatus,
+                  NULL as bonusHistoryNamaBonus,
+                  NULL as bonusHistoryType,
+                  NULL as bonusHistoryJumlah,
+                  NULL as bonusHistoryHadiah,
+                  NULL as bonusHistoryCreatedBy
+              FROM bets_togel_history_transaksi as a
+              LEFT JOIN bets_togel as b ON a.bets_togel_id = b.id
+              LEFT JOIN constant_provider_togel as c ON b.constant_provider_togel_id = c.id
+              WHERE a.created_by = $id
+              UNION ALL
+              SELECT
+                  'Deposit' as Tables,
+                  NULL as betsBet,
+                  NULL as betsWin,
+                  NULL as betsGameInfo,
+                  NULL as betsBetId,
+                  NULL as betsGameId,
+                  NULL as betsDeskripsi,
+                  NULL as betsCredit,
+                  a.created_at as created_at,
+                  NULL as betsProviderName,
+                  NULL as betsTogelHistoryId,
+                  NULL as betsTogelHistoryPasaran,
+                  NULL as betsTogelHistorDeskripsi,
+                  NULL as betsTogelHistoryDebit,
+                  NULL as betsTogelHistoryKredit,
+                  NULL as betsTogelHistoryBalance,
+                  NULL as betsTogelHistoryCreatedBy,
+                  b.credit as depositCredit,
+                  a.jumlah as depositJumlah,
+                  a.approval_status as depositStatus,
+                  NULL as withdrawCredit,
+                  NULL as withdrawJumlah,
+                  NULL as withdrawStatus,
+                  NULL as bonusHistoryNamaBonus,
+                  NULL as bonusHistoryType,
+                  NULL as bonusHistoryJumlah,
+                  NULL as bonusHistoryHadiah,
+                  NULL as bonusHistoryCreatedBy
+              FROM
+                  deposit as a
+              INNER JOIN members as b ON b.id = a.created_by
+              
+              WHERE
+                  a.created_by = $id AND a.approval_status = 1 AND a.deleted_at IS NULL
+              UNION ALL
+              SELECT
+                  'Withdraw' as Tables,
+                  NULL as betsBet,
+                  NULL as betsWin,
+                  NULL as betsGameInfo,
+                  NULL as betsBetId,
+                  NULL as betsGameId,
+                  NULL as betsDeskripsi,
+                  NULL as betsCredit,
+                  a.created_at as created_at,
+                  NULL as betsProviderName,
+                  NULL as betsTogelHistoryId,
+                  NULL as betsTogelHistoryPasaran,
+                  NULL as betsTogelHistorDeskripsi,
+                  NULL as betsTogelHistoryDebit,
+                  NULL as betsTogelHistoryKredit,
+                  NULL as betsTogelHistoryBalance,
+                  NULL as betsTogelHistoryCreatedBy,
+                  NULL as depositCredit,
+                  NULL as depositJumlah,
+                  NULL as depositStatus,
+                  b.credit as withdrawCredit,
+                  a.jumlah as withdrawJumlah,
+                  a.approval_status as withdrawStatus,
+                  NULL as bonusHistoryNamaBonus,
+                  NULL as bonusHistoryType,
+                  NULL as bonusHistoryJumlah,
+                  NULL as bonusHistoryHadiah,
+                  NULL as bonusHistoryCreatedBy
+              FROM
+                  withdraw as a
+              INNER JOIN members as b ON b.id = a.created_by              
+              WHERE
+                  a.created_by = $id AND a.approval_status = 1 AND a.deleted_at IS NULL
+              UNION ALL
+              SELECT
+                  'Bonus History' as Tables,
+                  NULL as betsBet,
+                  NULL as betsWin,
+                  NULL as betsGameInfo,
+                  NULL as betsBetId,
+                  NULL as betsGameId,
+                  NULL as betsDeskripsi,
+                  NULL as betsCredit,
+                  a.created_at as created_at,
+                  NULL as betsProviderName,
+                  NULL as betsTogelHistoryId,
+                  NULL as betsTogelHistoryPasaran,
+                  NULL as betsTogelHistorDeskripsi,
+                  NULL as betsTogelHistoryDebit,
+                  NULL as betsTogelHistoryKredit,
+                  NULL as betsTogelHistoryBalance,
+                  NULL as betsTogelHistoryCreatedBy,
+                  NULL as depositCredit,
+                  NULL as depositJumlah,
+                  NULL as depositStatus,
+                  NULL as withdrawCredit,
+                  NULL as withdrawJumlah,
+                  NULL as withdrawStatus,
+                  b.nama_bonus as bonusHistoryNamaBonus,
+                  a.type as bonusHistoryType,
+                  a.jumlah as bonusHistoryJumlah,
+                  a.hadiah as bonusHistoryHadiah,
+                  a.created_by as bonusHistoryCreatedBy
+              FROM
+                  bonus_history as a
+              INNER JOIN constant_bonus as b ON b.id = a.constant_bonus_id              
+              WHERE a.created_by = $id AND a.jumlah > 0 AND a.deleted_at IS NULL
+              ORDER BY created_at DESC");
+
+        $this->allProviderBet = $allProBet;
+
+        $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
+        return  [
+          'status' => 'success',
+          'allProviderBet' => $allProviderBet,
+        ];
                           
       }
     } catch (\Throwable $th) {
@@ -476,7 +610,19 @@ class MemberController extends ApiController
   public function getTogel()
   {
 
-    $result = DB::table('bets_togel_history_transaksi')->where('created_by', '=', auth('api')->user()->id)->get()->toArray();
+    $result = DB::table('bets_togel_history_transaksi as a')
+              ->leftJoin('bets_togel as b', 'a.bets_togel_id', '=', 'b.id')
+              ->leftJoin('constant_provider_togel as c', 'b.constant_provider_togel_id', '=', 'c.id')
+              ->selectRaw("
+                  a.bets_togel_id,
+                  CONCAT(c.name_initial, '-', b.period) as pasaran,
+                  a.description,
+                  a.debit,
+                  a.kredit,
+                  a.balance,
+                  a.bet_id
+              ")
+              ->where('a.created_by', '=', auth('api')->user()->id)->orderBy('a.created_at', 'DESC')->get()->toArray();
     return $this->togel = collect($result)->map(function ($value) {
       return [
         'bets_togel_id' => $value->bets_togel_id,

@@ -158,9 +158,11 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
 
-    // pgsoft transfer in out
-    Route::post('transfer-in-out', [ProviderController::class, 'resultPgSoft']);
-
+    /**
+     * @deprecated
+     */ 
+    /* Route::post('transfer-in-out', [ProviderController::class, 'resultPgSoft']); */
+    Route::post('transfer-in-out', [ProviderController::class, 'PgSoftTransaction']);
     # Game Gall
     Route::post("bet_gameHall" , [GameHallController::class , "listenTransaction"]);
     Route::post("result_gameHall" , [GameHallController::class , "resultGameHall"]);
@@ -171,7 +173,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 
 
 	# Togel
-    Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
+  Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
 	Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
 	Route::get('provider', [OutResult::class, 'getResultByProvider']);
 	Route::get('shio' , [OutResult::class , 'getShioTables']);

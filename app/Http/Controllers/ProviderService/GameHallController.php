@@ -120,7 +120,7 @@ class GameHallController extends Controller
       if ($creditMember < $amountbet) {
         return response()->json([
           "status" => '1018',
-          "balance" => $creditMember,
+          "balance" => intval($creditMember),
           "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
 
         ]);
@@ -130,7 +130,7 @@ class GameHallController extends Controller
         if ($bets) {
           return [
             "status" => '1025',
-            "balance" => $creditMember,
+            "balance" => intval($creditMember),
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
           ];
         } else {
@@ -179,7 +179,7 @@ class GameHallController extends Controller
     }
     return [
       "status" => '0000',
-      "balance" => $amount,
+      "balance" => intval($amount),
       "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
     ];
   }
@@ -226,6 +226,13 @@ class GameHallController extends Controller
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
         ->first();
+
+      if($bets->type === 'Void'){
+        return [
+          "status" => '0000',
+        ];
+      }
+
       if ($bets == null) {
         return [
           "status" => '0000',
@@ -239,7 +246,6 @@ class GameHallController extends Controller
         $member->update([
           'credit' => $creditMember
         ]);
-
       }
     }
     return [
@@ -455,14 +461,16 @@ class GameHallController extends Controller
     // call betInformation
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
+
       $amountbet = $tokenRaw->betAmount;
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $memeberCredit = $member->credit;
+
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
-        ->where('status', 'Settle')
-
+        ->where('type', 'Settle')
         ->first();
+
       if ($bets == null) {
         return [
           "status" => '0000',
@@ -781,7 +789,7 @@ class GameHallController extends Controller
         $member =  MembersModel::where('id', $tokenRaw->userId)->first();
         $creditMember = $member->credit;
         $freeSpin = $tokenRaw->winAmount * 1000;
-        $amount = $creditMember + $freeSpinwin;
+        $amount = $creditMember;
 
         // update credit to table member
         $member->update([
