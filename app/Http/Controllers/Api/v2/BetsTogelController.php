@@ -94,7 +94,6 @@ class BetsTogelController extends ApiController
       // Sum pay_amount
       array_push($total_bets_after_disc, floatval($togel['pay_amount']));
     }
-
     try {
       if (empty($bets)) {
         return response()->json(['message' => 'success', 'code' => 200], 200);
@@ -179,8 +178,6 @@ class BetsTogelController extends ApiController
     $blokedsNumber = [];
 
     $stackNumber = ['number_3', 'number_4', 'number_5', 'number_6'];
-
-
     if (!in_array($request->validationData()['data'], $stackNumber)) {
       // this iterator will be filtere the bloked number from request and running the triger 
       //  which number will bloked 
@@ -194,6 +191,7 @@ class BetsTogelController extends ApiController
         $number_4 =  $c_number_4 == "is null" ? 'number_4 is null and ' : "number_4={$c_number_4} and ";
         $number_5 =  $c_number_5 == "is null" ? 'number_5 is null and ' : "number_5={$c_number_5} and ";
         $number_6 =  $c_number_6 == "is null" ? 'number_6 is null and ' : "number_6={$c_number_6} and ";
+
 
         $query = $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
         $result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
