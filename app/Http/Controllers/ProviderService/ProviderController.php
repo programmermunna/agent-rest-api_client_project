@@ -780,7 +780,7 @@ class ProviderController extends Controller
         ], 200);
     }
     // Check member balance 
-    if ($member->credit < $data->amount) {
+    if ($member->credit === 0 || $member->credit < $data->betAmount ) {
       return response()->json([
         "success" => false,
         "amount"  => $member->credit
