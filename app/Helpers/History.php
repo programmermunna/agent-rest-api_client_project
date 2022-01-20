@@ -36,7 +36,19 @@ trait History
                                 , if (
                                     bets_togel.number_6 is null and bets_togel.number_5 is null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
                                     , '2D Depan'
-                                    , togel_game.name
+                                    , if (
+                                        bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 3
+                                        , '4D'
+                                        , if (
+                                            bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 3 
+                                            , '3D'
+                                            , if (
+                                                bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
+                                                , '2D'
+                                                , togel_game.name
+                                            )
+                                        )
+                                    )
                                 )
                             )
                         )
