@@ -193,7 +193,7 @@ class BetsTogelController extends ApiController
         $number_6 =  $c_number_6 == "is null" ? 'number_6 is null and ' : "number_6={$c_number_6} and ";
 
 
-        $query = $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
+        $query = $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider . " and deleted_at is null";
         $result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
         // Cek if result from bloked number is null is approved number
         if ($result[0]->nomor == null) {
