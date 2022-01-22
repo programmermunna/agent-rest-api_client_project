@@ -770,18 +770,14 @@ class ProviderController extends Controller
     $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
     $user_id = $data->userId;
     $member =  MembersModel::where('id', $user_id)->first();
-    $bets = BetModel::query()
-              ->where('round_id', $data->parentId)
-              ->where("bet_id" , $data->roundId)
-              ->first();
-
+    $bets = BetModel::where('round_id', $data->roundId)->first();
     $creditMember = $member->credit + $data->amount;
 
     if($bets) {
       return response()
-       ->json([
-          "success" =>  false,
+        ->json([
           "code"   => 3202,
+          "success" =>  false,
           "message" => "Duplicate Transactions",
           "amount" => $member->credit
         ], 200);
@@ -807,9 +803,9 @@ class ProviderController extends Controller
 
     $bet = [
       'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
-      'bet_id'     => $data->roundId,
+      'bet_id'     => $data->code,
       'deskripsi'  => 'Game Bet/Lose' . ' : ' . $creditMember,
-      'round_id'   => $data->parentId,
+      'round_id'   => $data->roundId,
       'type'       => $data->winAmount == 0 ? 'Lose' : "Win",
       'game_id'    => $data->gameId,
       'bet'        => $data->betAmount ?? 0,
