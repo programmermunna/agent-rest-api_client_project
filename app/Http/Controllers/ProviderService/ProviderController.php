@@ -770,7 +770,7 @@ class ProviderController extends Controller
     $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
     $user_id = $data->userId;
     $member =  MembersModel::where('id', $user_id)->first();
-    $bets = BetModel::where('bet_id', $data->code)->first();
+    $bets = BetModel::where('round_id', $data->parentId)->first();
     $creditMember = $member->credit + $data->amount;
 
     if ($bets) {
