@@ -770,10 +770,10 @@ class ProviderController extends Controller
     $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
     $user_id = $data->userId;
     $member =  MembersModel::where('id', $user_id)->first();
-    $bets = BetModel::where('round_id', $data->roundId)->first();
+    $bets = BetModel::where('round_id', $data->parentId)->first();
     $creditMember = $member->credit + $data->amount;
 
-    if($bets) {
+    if ($bets) {
       return response()
         ->json([
           "code"   => 3202,
@@ -786,6 +786,8 @@ class ProviderController extends Controller
     if ($creditMember < 0) {
       return response()->json([
         "success" => false,
+        "code"   => 3202,
+        "message" => "Infflucient balance",
         "amount"  => $member->credit
       ], 200);
     }
