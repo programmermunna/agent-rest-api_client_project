@@ -770,12 +770,12 @@ class ProviderController extends Controller
     $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
     $user_id = $data->userId;
     $member =  MembersModel::where('id', $user_id)->first();
-    $bets = BetModel::where('bet_id', $data->code)->first();
+    /* $bets = BetModel::where('round_id', $data->roundId)->first(); */
     $creditMember = $member->credit + $data->amount;
-    if ($bets) {
+
+    if ($data->roundId === $data->parentId) {
       return response()
         ->json([
-          "id"    => $bets->id,
           "success" =>  false,
           "code"   => 3202,
           "message" => "Duplicate Transactions",
