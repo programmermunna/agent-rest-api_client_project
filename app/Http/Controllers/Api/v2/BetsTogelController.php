@@ -128,7 +128,7 @@ class BetsTogelController extends ApiController
 
       ConstantProviderTogelModel::query()
         ->where('id', '=', $provider)
-        ->update(['period' => is_null($togel_result_number) ? 1 : $togel_result_number->period]);
+        ->update(['period' => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1]);
 
       DB::commit();
 
