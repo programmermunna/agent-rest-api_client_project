@@ -776,7 +776,9 @@ class ProviderController extends Controller
       return response()
         ->json([
           "id"    => $bets->id,
-          "success" =>  true,
+          "success" =>  false,
+          "code"   => 3202,
+          "message" => "Duplicate Transactions",
           "amount" => $member->credit
         ], 200);
     }
