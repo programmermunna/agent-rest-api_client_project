@@ -128,7 +128,7 @@ class BetsTogelController extends ApiController
 
       ConstantProviderTogelModel::query()
         ->where('id', '=', $provider)
-        ->update(['period' => is_null($togel_result_number) ? 1 : $togel_result_number->period]);
+        ->update(['period' => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1]);
 
       DB::commit();
 
@@ -182,18 +182,17 @@ class BetsTogelController extends ApiController
       // this iterator will be filtere the bloked number from request and running the triger 
       //  which number will bloked 
       foreach ($request->validationData()['data'] as $key => $data) {
-        $c_number_5 = $data['number_5'] ?? 'is null';
         $c_number_3 = $data['number_3'] ?? 'is null';
         $c_number_4 = $data['number_4'] ?? 'is null';
+        $c_number_5 = $data['number_5'] ?? 'is null';
         $c_number_6 = $data['number_6'] ?? 'is null';
 
-        $number_3 =  $c_number_3 == "is null" ? 'number_3 is null and ' : "number_3={$c_number_3} and ";
-        $number_4 =  $c_number_4 == "is null" ? 'number_4 is null and ' : "number_4={$c_number_4} and ";
-        $number_5 =  $c_number_5 == "is null" ? 'number_5 is null and ' : "number_5={$c_number_5} and ";
-        $number_6 =  $c_number_6 == "is null" ? 'number_6 is null and ' : "number_6={$c_number_6} and ";
+        $number_3 =  $c_number_3 == "is null" ? '' : "number_3={$c_number_3} and ";
+        $number_4 =  $c_number_4 == "is null" ? '' : "number_4={$c_number_4} and ";
+        $number_5 =  $c_number_5 == "is null" ? '' : "number_5={$c_number_5} and ";
+        $number_6 =  $c_number_6 == "is null" ? '' : "number_6={$c_number_6} and ";
 
-
-        $query = $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider;
+        $query = $number_3 . $number_4 . $number_5 . $number_6 . "constant_provider_togel_id = " . $provider . " and deleted_at is null";
         $result = DB::select("CALL trigger_togeL_blok_angka_after_bets_togel('" . $query . "')");
         // Cek if result from bloked number is null is approved number
         if ($result[0]->nomor == null) {
