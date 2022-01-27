@@ -772,18 +772,22 @@ class ProviderController extends Controller
     $member =  MembersModel::where('id', $user_id)->first();
     $bets = BetModel::where('bet_id', $data->code)->first();
     $creditMember = $member->credit + $data->amount;
+
     if ($bets) {
       return response()
         ->json([
-          "id"    => $bets->id,
-          "success" =>  true,
+          "code" => 3202,
+          "success" => true,
           "amount" => $member->credit
         ], 200);
     }
     // Check member balance 
-    if ($creditMember < 0) {
+    else if ($creditMember < 0) {
       return response()->json([
         "success" => false,
+        "code"   => 3202,
+        "success" =>  false,
+        "message" => "Infflucient balance",
         "amount"  => $member->credit
       ], 200);
     }
