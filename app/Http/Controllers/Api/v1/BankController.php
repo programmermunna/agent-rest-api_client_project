@@ -64,4 +64,25 @@ class BankController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
+
+    public function bankWithdraw()
+    {
+        try {
+            $banks = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')            
+                    ->where('rekening.is_bank', '=', 1)
+                    ->where('rekening.is_wd', '=', 1)
+                    ->select(
+                        'rekening.id',
+                        'constant_rekening.name',
+                    )->get();
+
+            $bank_status = [
+                'bank' => $banks->toArray(),
+            ];
+
+            return $this->successResponse($bank_status);
+        } catch (\Throwable $th) {
+            return $this->errorResponse($th->getMessage(), 500);
+        }
+    }
 }
