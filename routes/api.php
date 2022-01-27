@@ -106,6 +106,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
 
         Route::group(['prefix' => 'bank'], function () {
             Route::get('/', 'BankController@bank');
+            Route::get('/bank_wd', 'BankController@bankWithdraw');
             Route::get('/availability', 'BankController@availability');
         });
 
