@@ -449,7 +449,7 @@ class JWTAuthController extends ApiController
                     // 'referrer_id' => $referrer ? $referrer->id : '',
                     // 'referrer_id' => $request->referral,
                     'bonus_referal' => 0,
-                    'rekening_tujuan_depo_id' => $dataRekening->id,
+                    // 'rekening_tujuan_depo_id' => $dataRekening->id,
                 ]);
                 // $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
                 // $updateRek->update([
@@ -559,7 +559,7 @@ class JWTAuthController extends ApiController
 
             return $this->successResponse(null, 'Member successfully registered.', 201);
         } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse($th->getMessage(), 500);
         }
     }
 
