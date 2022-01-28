@@ -1259,18 +1259,32 @@ class MemberController extends ApiController
             // for ($i=0; $i < count($bankName); $i++) { 
             //     array_push($listRek, ${$bankName[$i]."Agent"});
             // }
-            $bankAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-                ->select([
-                    'rekening.id',
-                    'rekening.nama_rekening',
-                    'rekening.nomor_rekening',
-                    'constant_rekening.name',
-                ])
-                ->where('rekening.is_depo', '=', 1)
-                ->orWhere('rekening.is_default', '=', 1)->get()->toArray();
-            return $this->successResponse($bankAgent, 'List Rekening Agent', 200);
+            $bankAgent = RekMemberModel::leftJoin('constant_rekening', 'constant_rekening.id', '=', 'rek_member.constant_rekening_id')
+                        ->join('rekening', 'rekening.constant_rekening_id', 'constant_rekening.id')
+                        ->select([
+                            'rekening.id',
+                            'rekening.nama_rekening',
+                            'rekening.nomor_rekening',
+                            'constant_rekening.name',
+                        ])
+                        ->where('rek_member.created_by', auth('api')->user()->id)
+                        ->get()->toArray();
+
+            $nonBankAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                            ->select([
+                                'rekening.id',
+                                'rekening.nama_rekening',
+                                'rekening.nomor_rekening',
+                                'constant_rekening.name',
+                            ])
+                            ->where('is_default', 1)
+                            ->get()->toArray();
+
+            $listRek = array_merge($bankAgent, $nonBankAgent);
+            
+            return $this->successResponse($listRek, 'List Rekening Agent', 200);
         } catch (\Exception $e) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse($e->getMessage(), 500);
         }
     }
   // rek member wd
