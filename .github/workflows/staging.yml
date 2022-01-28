@@ -1,10 +1,8 @@
 name: Deploy Agent Rest API Staging 
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - staging
+  push:
+    branches: [staging]
 
 jobs:
   deploy:
@@ -28,17 +26,18 @@ jobs:
         
   slackNotification:
     needs: deploy
-    name: Slack Notification
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Slack Notification
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_FOOTER: "Efforts don't betray the results"
-        SLACK_USERNAME: "CikaTech"
-        SLACK_ICON_EMOJI: ':cuddle:'
-        SLACK_LINK_NAMES: true
-        SLACK_MESSAGE: ':gas: Agent Rest API Staging deployed successfully @backdev-team'
-        SLACK_TITLE:   ${{ github.event.head_commit.message }}
-        SLACK_WEBHOOK: ${{ secrets.SLACK}}
+      - uses: actions/checkout@v2
+        with:
+          ref: staging
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_FOOTER: "Efforts don't betray the results"
+          SLACK_USERNAME: "CikaTech"
+          SLACK_ICON_EMOJI: ':cuddle:'
+          SLACK_LINK_NAMES: true
+          SLACK_MESSAGE: ':gas: Agent Rest API Staging deployed successfully @backdev-team'
+          SLACK_TITLE:   ${{ github.event.head_commit.message }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK}}
