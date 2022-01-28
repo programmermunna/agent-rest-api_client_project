@@ -1152,6 +1152,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('rekening.is_depo', '=', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo1)->first();
             $mandiriAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1160,6 +1161,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('rekening.is_depo', '=', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo2)->first();
             $bniAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1168,6 +1170,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('rekening.is_depo', '=', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo3)->first();
             $briAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1176,6 +1179,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('rekening.is_depo', '=', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo4)->first();
             $cimbAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1184,6 +1188,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('rekening.is_depo', '=', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo5)->first();
             $danamondAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
@@ -1192,6 +1197,7 @@ class MemberController extends ApiController
                     'rekening.nomor_rekening',
                     'constant_rekening.name',
                 ])
+                ->where('rekening.is_depo', '=', 1)
                 ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo6)->first();
             $telkomselAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
                 ->select([
