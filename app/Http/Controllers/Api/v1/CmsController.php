@@ -92,9 +92,11 @@ class CmsController extends ApiController
                             ->orWhere('type', 'bonus_new_member')
                             ->orWhere('type', 'bonus_next_deposit')
                             ->orWhere('type', 'cashback')
-                            ->orWhere('type', 'rolling');
+                            ->orWhere('type', 'rolling')
+                            ->orWhere('type', 'bonus')
+                            ->orWhere('type', 'referral');
                 })
-                ->orderByRaw('FIELD(type, "turnover", "bonus_new_member", "bonus_next_deposit", "cashback", "rolling")')
+                ->orderByRaw('FIELD(type, "turnover", "bonus_new_member", "bonus_next_deposit", "cashback", "rolling", "referral", "bonus")')
                 ->get();
             if(is_null($bannerTurnover)){
                 return $this->successResponse(null, 'No banner turnover', 200);
