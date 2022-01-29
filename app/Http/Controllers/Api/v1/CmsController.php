@@ -7,6 +7,7 @@ use App\Http\Resources\Api\v1\ImageContentResource;
 use App\Http\Resources\Api\v1\WebsiteContentResource;
 use App\Models\ImageContent;
 use App\Models\WebSiteContent;
+use Illuminate\Support\Facades\DB;
 
 class CmsController extends ApiController
 {
@@ -90,16 +91,18 @@ class CmsController extends ApiController
                     $query  ->where('type', 'turnover')
                             ->orWhere('type', 'bonus_new_member')
                             ->orWhere('type', 'bonus_next_deposit')
-                            ->orWhere('type', 'rolling')
-                            ->orWhere('type', 'cashback');
-                })->get();
+                            ->orWhere('type', 'cashback')
+                            ->orWhere('type', 'rolling');
+                })
+                ->orderByRaw('FIELD(type, "turnover", "bonus_new_member", "bonus_next_deposit", "cashback", "rolling")')
+                ->get();
             if(is_null($bannerTurnover)){
                 return $this->successResponse(null, 'No banner turnover', 200);
             }else{
                 return $this->successResponse($bannerTurnover, 'Banner turnover', 200);
             }
         } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse($th->getMessage(), 500);
         }
     }
 
