@@ -1267,6 +1267,8 @@ class MemberController extends ApiController
                             'rekening.nomor_rekening',
                             'constant_rekening.name',
                         ])
+                        ->whereNull('rekening.deleted_by')
+                        ->whereNull('rekening.deleted_at')
                         ->where('rek_member.created_by', auth('api')->user()->id)
                         ->get()->toArray();
 
