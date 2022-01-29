@@ -72,7 +72,7 @@ class BankController extends ApiController
                     ->where('rekening.is_bank', '=', 1)
                     ->where('rekening.is_wd', '=', 1)
                     ->select(
-                        'rekening.id',
+                        'constant_rekening.id',
                         'constant_rekening.name',
                     )->get();
 
