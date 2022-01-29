@@ -1044,8 +1044,10 @@ class MemberController extends ApiController
         return $this->errorResponse('Rekening bank sudah dipakai', 400);
       } else {
         // MemoModel::insert($create);
+        $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->constant_rekening_id)->where('is_depo', '=', 1)->first();
         $createRekMember = RekMemberModel::create([
           'username_member' => auth('api')->user()->username,
+          'rekening_id' => $rekeningDepoMember->id,
           'created_by' => auth('api')->user()->id,
           'constant_rekening_id' => $request->constant_rekening_id,
           'nomor_rekening' => $request->nomor_rekening,
@@ -1260,13 +1262,15 @@ class MemberController extends ApiController
             //     array_push($listRek, ${$bankName[$i]."Agent"});
             // }
             $bankAgent = RekMemberModel::leftJoin('constant_rekening', 'constant_rekening.id', '=', 'rek_member.constant_rekening_id')
-                        ->join('rekening', 'rekening.constant_rekening_id', 'constant_rekening.id')
+                        ->join('rekening', 'rekening.id', 'rek_member.rekening_id')
                         ->select([
                             'rekening.id',
                             'rekening.nama_rekening',
                             'rekening.nomor_rekening',
                             'constant_rekening.name',
                         ])
+                        ->whereNull('rekening.deleted_by')
+                        ->whereNull('rekening.deleted_at')
                         ->where('rek_member.created_by', auth('api')->user()->id)
                         ->get()->toArray();
 
