@@ -1022,7 +1022,7 @@ class MemberController extends ApiController
     ]);
 
     if ($validator->fails()) {
-      return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+      return $this->errorResponse($validator->errors()->first(), 422);
     }
 
     try {
@@ -1046,7 +1046,7 @@ class MemberController extends ApiController
       $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
       $noRekArrays = array_merge($noRekArray, $noMemberArray);
       // dd($rekMemberDupBank);
-      
+
       if ($rekMemberDupBank != null) {
         return $this->errorResponse('Melebihi Max per Bank, Hubungi customer service untuk penambahan', 400);
       } elseif ($request->constant_rekening_id && in_array($request->nomor_rekening, $noRekArrays)) {
@@ -1126,7 +1126,7 @@ class MemberController extends ApiController
 
       return $this->successResponse(null, 'Successful update Rekening withdraw', 200);
     } catch (\Exception $e) {
-      return $this->errorResponse('Internal Server Error', 500);
+      return $this->errorResponse('Hubungi CS kami untuk mengubah Rekening Withdraw', 500);
     }
   }
   
