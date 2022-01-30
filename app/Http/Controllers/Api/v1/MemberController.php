@@ -1046,7 +1046,7 @@ class MemberController extends ApiController
       $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
       $noRekArrays = array_merge($noRekArray, $noMemberArray);
       // dd($rekMemberDupBank);
-      
+
       if ($rekMemberDupBank != null) {
         return $this->errorResponse('Melebihi Max per Bank, Hubungi customer service untuk penambahan', 400);
       } elseif ($request->constant_rekening_id && in_array($request->nomor_rekening, $noRekArrays)) {
