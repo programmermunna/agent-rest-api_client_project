@@ -1022,7 +1022,7 @@ class MemberController extends ApiController
     ]);
 
     if ($validator->fails()) {
-      return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+      return $this->errorResponse($validator->errors()->first(), 422);
     }
 
     try {
@@ -1126,7 +1126,7 @@ class MemberController extends ApiController
 
       return $this->successResponse(null, 'Successful update Rekening withdraw', 200);
     } catch (\Exception $e) {
-      return $this->errorResponse('Internal Server Error', 500);
+      return $this->errorResponse('Hubungi CS kami untuk mengubah Rekening Withdraw', 500);
     }
   }
   
