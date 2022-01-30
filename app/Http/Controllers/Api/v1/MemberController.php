@@ -1014,20 +1014,21 @@ class MemberController extends ApiController
   }
   public function createRekeningMember(Request $request)
   {
-    // dd(auth('api')->user()->id);
+    // validasi
     $validator = Validator::make($request->all(), [
       'constant_rekening_id' => 'required',
-      'nomor_rekening' => 'required|unique:rek_member|unique:rekening|numeric|min:8',
+      'nomor_rekening' => 'required|numeric|min:8',
       'account_name' => 'required',
     ]);
-    // dd($validator);
 
     if ($validator->fails()) {
-      return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+      return $this->errorResponse($validator->errors()->first(), 422);
     }
 
     try {
-      $rekMember = RekMemberModel::join('constant_rekening', 'constant_rekening.id', 'rek_member.constant_rekening_id')
+      // check account bank
+      $rekMemberDupBank = RekMemberModel::leftJoin('constant_rekening', 'constant_rekening.id', 'rek_member.constant_rekening_id')
+        ->leftJoin('rekening', 'rekening.id', 'rek_member.rekening_id')
         ->select([
           'rek_member.id',
           'rek_member.nama_rekening',
@@ -1038,13 +1039,22 @@ class MemberController extends ApiController
           'constant_rekening.name',
         ])
         ->where('rek_member.created_by', auth('api')->user()->id)
-        ->where('rek_member.constant_rekening_id', $request->constant_rekening_id);
-      $this->rekMemberList = $rekMember->get()->toArray();
-      if ($this->rekMemberList) {
-        return $this->errorResponse('Rekening bank sudah dipakai', 400);
+        ->where('rek_member.constant_rekening_id', $request->constant_rekening_id)->first();
+      
+      // check no rekening
+      $noRekArray = RekeningModel::pluck('nomor_rekening')->toArray();
+      $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
+      $noRekArrays = array_merge($noRekArray, $noMemberArray);
+      // dd($rekMemberDupBank);
+
+      if ($rekMemberDupBank != null) {
+        return $this->errorResponse('Melebihi Max per Bank, Hubungi customer service untuk penambahan', 400);
+      } elseif ($request->constant_rekening_id && in_array($request->nomor_rekening, $noRekArrays)) {
+        return $this->errorResponse('Nomor rekening yang anda masukkan telah digunakan', 400);
       } else {
         // MemoModel::insert($create);
-        $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->constant_rekening_id)->where('is_depo', '=', 1)->first();
+        $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->constant_rekening_id)->where('is_wd', '=', 1)->first();
+        // dd($rekeningDepoMember);
         $createRekMember = RekMemberModel::create([
           'username_member' => auth('api')->user()->username,
           'rekening_id' => $rekeningDepoMember->id,
@@ -1072,7 +1082,7 @@ class MemberController extends ApiController
         return $this->successResponse(null, 'Successful create New Rekening ', 200);
       }
     } catch (\Exception $e) {
-      return $this->errorResponse('Internal Server Error', 500);
+      return $this->errorResponse($e->getMessage(), 500);
     }
   }
   public function updateRekeningMemberWd(Request $request)
@@ -1116,7 +1126,7 @@ class MemberController extends ApiController
 
       return $this->successResponse(null, 'Successful update Rekening withdraw', 200);
     } catch (\Exception $e) {
-      return $this->errorResponse('Internal Server Error', 500);
+      return $this->errorResponse('Hubungi CS kami untuk mengubah Rekening Withdraw', 500);
     }
   }
   
