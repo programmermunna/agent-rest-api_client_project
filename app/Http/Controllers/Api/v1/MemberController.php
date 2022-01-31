@@ -1017,7 +1017,7 @@ class MemberController extends ApiController
     // validasi
     $validator = Validator::make($request->all(), [
       'constant_rekening_id' => 'required',
-      'nomor_rekening' => 'required|numeric|min:8',
+      'nomor_rekening' => 'required|numeric|digits_between:8, 20',
       'account_name' => 'required',
     ]);
 
