@@ -37,9 +37,12 @@ class BetsTogelController extends ApiController
     $gameType = $togelGames[$request->type];
     $provider = $providerGame[$request->provider];
 
-    $togel_result_number = TogelResultNumberModel::query()
-      ->where('constant_provider_togel_id', $provider)
-      ->latest('result_date')
+    // $togel_result_number = TogelResultNumberModel::query()
+    //   ->where('constant_provider_togel_id', $provider)
+    //   ->latest('result_date')
+    //   ->first();
+    $periodProvider = ConstantProviderTogelModel::query()
+      ->where('id', $provider)
       ->first();
 
     // get setting games 
@@ -57,7 +60,8 @@ class BetsTogelController extends ApiController
       $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
 
       array_push($bets, array_merge($togel, [
-        'period'      => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
+        // 'period'      => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
+        'period'      => $periodProvider->period,
         'bonus_daily_referal' => $calculateReferal,
         "togel_game_id" => $gameType,
         "constant_provider_togel_id" => $provider,
@@ -126,9 +130,9 @@ class BetsTogelController extends ApiController
 
       $this->updateCredit($total_bets_after_disc);
 
-      ConstantProviderTogelModel::query()
-        ->where('id', '=', $provider)
-        ->update(['period' => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1]);
+      // ConstantProviderTogelModel::query()
+      //   ->where('id', '=', $provider)
+      //   ->update(['period' => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1]);
 
       DB::commit();
 
