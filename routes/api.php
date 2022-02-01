@@ -176,6 +176,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 	# Togel
   Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
 	Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
+	Route::get("sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
 	Route::get('provider', [OutResult::class, 'getResultByProvider']);
 	Route::get('shio' , [OutResult::class , 'getShioTables']);
 	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
