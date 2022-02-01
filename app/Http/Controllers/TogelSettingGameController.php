@@ -481,7 +481,7 @@ class TogelSettingGameController extends ApiController
                 'game'  => '2D Set',
                 'total-limit' => $settingGames->limit_total_2d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota2D' => $sisaQuota2D,
+                'sisaQuota' => $sisaQuota2D,
               ]            
             ];
           } 
@@ -499,7 +499,7 @@ class TogelSettingGameController extends ApiController
                 'game'  => '4D Bolak Balik',
                 'total-limit' => $settingGames->limit_total_4d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota4D' => $sisaQuota4D,
+                'sisaQuota' => $sisaQuota4D,
               ]            
             ];
           } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
@@ -724,7 +724,7 @@ class TogelSettingGameController extends ApiController
                 'game'  => '2D Set',
                 'total-limit' => $settingGames->limit_total_2d,
                 'limit-terpakai' => 0,
-                'sisaQuota2D' => $settingGames->limit_total_2d,
+                'sisaQuota' => $settingGames->limit_total_2d,
               ]            
             ];
           } 
@@ -741,7 +741,7 @@ class TogelSettingGameController extends ApiController
                 'game'  => '4D Bolak Balik',
                 'total-limit' => $settingGames->limit_total_4d,
                 'limit-terpakai' => 0,
-                'sisaQuota4D' => $settingGames->limit_total_4d,
+                'sisaQuota' => $settingGames->limit_total_4d,
               ]            
             ];
           } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
