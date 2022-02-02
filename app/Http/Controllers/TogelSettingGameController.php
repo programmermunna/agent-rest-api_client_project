@@ -35,7 +35,9 @@ class TogelSettingGameController extends ApiController
 
   public function sisaQuota(Request $request){
     try {
-      $lastPeriod = BetsTogel::select('period')->latest()->first();
+      $pasaran = ConstantProviderTogelModel::select(['id','name'])->where('name', $request->pasaran)->firstOrFail();
+      $game    = TogelGame::select(['id','name'])->where('name', $request->game)->firstOrFail();
+      $lastPeriod = BetsTogel::select('period')->where('constant_provider_togel_id', $pasaran->id)->latest()->first();
       $checkBetTogel = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
             ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
             ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
@@ -332,8 +334,8 @@ class TogelSettingGameController extends ApiController
             ")
             ->where('bets_togel.updated_at', null)
             ->where('bets_togel.period', $lastPeriod->period)
-            ->where('constant_provider_togel.id', $request->id_pasaran)
-            ->where('bets_togel.togel_game_id', $request->id_game)
+            ->where('constant_provider_togel.id', $pasaran->id)
+            ->where('bets_togel.togel_game_id', $game->id)
             ->where('bets_togel.number_1', $request->number_1)
             ->where('bets_togel.number_2', $request->number_2)
             ->where('bets_togel.number_3', $request->number_3)
@@ -353,13 +355,13 @@ class TogelSettingGameController extends ApiController
       // dd($checkBetTogel);
 
       if ($checkBetTogel == true) {
-        if ($request->id_game == 1){
+        if ($game->id == 1){
           if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_4d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -375,8 +377,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_3d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -392,8 +394,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -409,8 +411,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d_depan'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota2DD = $settingGames->limit_total_2d_depan - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -426,8 +428,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d_tengah'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota2DT = $settingGames->limit_total_2d_tengah - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -440,13 +442,13 @@ class TogelSettingGameController extends ApiController
               ]            
             ];
           }
-        } elseif ($request->id_game == 2){
+        } elseif ($game->id == 2){
           if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_4d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -462,8 +464,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_3d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -479,8 +481,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -493,13 +495,13 @@ class TogelSettingGameController extends ApiController
               ]            
             ];
           } 
-        } elseif ($request->id_game == 3){
+        } elseif ($game->id == 3){
           if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_4d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -515,8 +517,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_3d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -532,8 +534,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -546,13 +548,13 @@ class TogelSettingGameController extends ApiController
               ]            
             ];
           } 
-        } elseif ($request->id_game == 4){
-          if ($request->number_6 != null && $request->number_5 != null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
+        } elseif ($game->id == 4){          
+          if ($request->number_6 !== null && $request->number_5 !== null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -564,12 +566,12 @@ class TogelSettingGameController extends ApiController
                 'sisaQuota' => $sisaQuota2D,
               ]            
             ];
-          } elseif ($request->number_6 == null && $request->number_5 == null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
+          } elseif ($request->number_6 == null && $request->number_5 == null && $request->number_4 !== null && $request->number_3 !== null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d_depan'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota2DD = $settingGames->limit_total_2d_depan - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -581,12 +583,12 @@ class TogelSettingGameController extends ApiController
                 'sisaQuota' => $sisaQuota2DD,
               ]            
             ];
-          } elseif ($request->number_6 == null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
+          } elseif ($request->number_6 == null && $request->number_5 !== null && $request->number_4 !== null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d_tengah'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             $sisaQuota2DT = $settingGames->limit_total_2d_tengah - $checkBetTogel->totalBet;
             return  [
               'status' => 'success',
@@ -603,9 +605,9 @@ class TogelSettingGameController extends ApiController
           $settingGames = TogelSettingGames::select(
                     'limit_total'
                   )
-                  ->where('constant_provider_togel_id', $request->id_pasaran)
-                  ->where('togel_game_id', $request->id_game)->first();
-          $game =TogelGame::select('name')->where('id', $request->id_game)->first();
+                  ->where('constant_provider_togel_id', $pasaran->id)
+                  ->where('togel_game_id', $game->id)->first();
+          $game =TogelGame::select('name')->where('id', $game->id)->first();
           $sisaQuota = $settingGames->limit_total - $checkBetTogel->totalBet;
           return  [
             'status' => 'success',
@@ -619,13 +621,13 @@ class TogelSettingGameController extends ApiController
           ];
         } 
       } else {
-        if ($request->id_game == 1){
+        if ($game->id == 1){
           if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_4d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -640,8 +642,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_3d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -656,8 +658,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -672,8 +674,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d_depan'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -688,8 +690,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d_tengah'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -701,13 +703,13 @@ class TogelSettingGameController extends ApiController
               ]            
             ];
           }
-        } elseif ($request->id_game == 2){
+        } elseif ($game->id == 2){
           if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_4d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -722,8 +724,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_3d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -738,8 +740,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -751,13 +753,13 @@ class TogelSettingGameController extends ApiController
               ]            
             ];
           } 
-        } elseif ($request->id_game == 3){
+        } elseif ($game->id == 3){
           if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_4d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -772,8 +774,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_3d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -788,8 +790,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -801,13 +803,13 @@ class TogelSettingGameController extends ApiController
               ]            
             ];
           } 
-        } elseif ($request->id_game == 4){
+        } elseif ($game->id == 4){
           if ($request->number_6 != null && $request->number_5 != null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -822,8 +824,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d_depan'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -838,8 +840,8 @@ class TogelSettingGameController extends ApiController
             $settingGames = TogelSettingGames::select(
                             'limit_total_2d_tengah'
                           )
-                          ->where('constant_provider_togel_id', $request->id_pasaran)
-                          ->where('togel_game_id', $request->id_game)->first();
+                          ->where('constant_provider_togel_id', $pasaran->id)
+                          ->where('togel_game_id', $game->id)->first();
             return  [
               'status' => 'success',
               'data'   =>[
@@ -855,9 +857,9 @@ class TogelSettingGameController extends ApiController
           $settingGames = TogelSettingGames::select(
                     'limit_total'
                   )
-                  ->where('constant_provider_togel_id', $request->id_pasaran)
-                  ->where('togel_game_id', $request->id_game)->first();
-          $game =TogelGame::select('name')->where('id', $request->id_game)->first();
+                  ->where('constant_provider_togel_id', $pasaran->id)
+                  ->where('togel_game_id', $game->id)->first();
+          $game =TogelGame::select('name')->where('id', $game->id)->first();
           return  [
             'status' => 'success',
             'data'   =>[
