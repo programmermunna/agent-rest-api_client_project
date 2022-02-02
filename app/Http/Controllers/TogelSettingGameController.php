@@ -73,10 +73,10 @@ class TogelSettingGameController extends ApiController
                                                   ,bets_togel.number_3
                                                   , if (
                                                       togel_game.id = 6
-                                                      , concat(bets_togel.number_1, bets_togel.number_2)
+                                                      , concat(bets_togel.number_5, bets_togel.number_6)
                                                       , if (
                                                           togel_game.id = 7
-                                                          , concat(bets_togel.number_1, bets_togel.number_2, bets_togel.number_3)
+                                                          , concat(bets_togel.number_4, bets_togel.number_5, bets_togel.number_6)
                                                           , if (
                                                               togel_game.id = 8 and bets_togel.number_3 is null and bets_togel.number_4 is null and bets_togel.number_5 is null
                                                               , concat(bets_togel.number_6, ' - ' , bets_togel.tebak_as_kop_kepala_ekor)
@@ -365,6 +365,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '4D',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_4d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota4D,
@@ -381,6 +382,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '3D',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_3d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota3D,
@@ -397,6 +399,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_2d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota2D,
@@ -413,6 +416,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Depan',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_2d_depan,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota2DD,
@@ -429,6 +433,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Tengah',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_2d_tengah,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota2DT,
@@ -447,6 +452,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '4D Set',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_4d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota4D,
@@ -463,6 +469,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '3D Set',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_3d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota3D,
@@ -479,6 +486,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Set',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_2d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota2D,
@@ -497,6 +505,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '4D Bolak Balik',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_4d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota4D,
@@ -513,6 +522,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '3D Bolak Balik',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_3d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota3D,
@@ -529,6 +539,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Bolak Balik',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_2d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota2D,
@@ -547,6 +558,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Quick2d',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_2d,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota2D,
@@ -563,6 +575,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Depan Quick2d',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_2d_depan,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota2DD,
@@ -579,6 +592,7 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Tengah Quick2d',
+                'nomor' => $checkBetTogel->Nomor,
                 'total-limit' => $settingGames->limit_total_2d_tengah,
                 'limit-terpakai' => $checkBetTogel->totalBet,
                 'sisaQuota' => $sisaQuota2DT,
@@ -597,6 +611,7 @@ class TogelSettingGameController extends ApiController
             'status' => 'success',
             'data'   =>[
             'game' => $game->name,
+            'nomor' => $checkBetTogel->Nomor,
             'total-limit' => $settingGames->limit_total,
             'limit-terpakai' => $checkBetTogel->totalBet,
             'sisaQuota' => $sisaQuota,
@@ -615,8 +630,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '4D',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_4d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_4d,
               ]            
             ];
@@ -630,8 +646,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '3D',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_3d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_3d,
               ]            
             ];
@@ -645,8 +662,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_2d,
               ]            
             ];
@@ -660,8 +678,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Depan',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_2d_depan,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_2d_depan,
               ]            
             ];
@@ -675,8 +694,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Tengah',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_2d_tengah,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_2d_tengah,
               ]            
             ];
@@ -692,8 +712,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '4D Set',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_4d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_4d,
               ]            
             ];
@@ -707,8 +728,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '3D Set',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_3d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_3d,
               ]            
             ];
@@ -722,8 +744,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Set',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_2d,
               ]            
             ];
@@ -739,8 +762,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '4D Bolak Balik',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_4d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_4d,
               ]            
             ];
@@ -754,8 +778,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '3D Bolak Balik',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_3d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_3d,
               ]            
             ];
@@ -769,8 +794,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Bolak Balik',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_2d,
               ]            
             ];
@@ -786,8 +812,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Quick2d',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_2d,
               ]            
             ];
@@ -801,8 +828,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Depan Quick2d',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_2d_depan,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_2d_depan,
               ]            
             ];
@@ -816,8 +844,9 @@ class TogelSettingGameController extends ApiController
               'status' => 'success',
               'data'   =>[
                 'game'  => '2D Tengah Quick2d',
+                'nomor' => null,
                 'total-limit' => $settingGames->limit_total_2d_tengah,
-                'limit-terpakai' => 0,
+                'limit-terpakai' => null,
                 'sisaQuota' => $settingGames->limit_total_2d_tengah,
               ]            
             ];
@@ -833,8 +862,9 @@ class TogelSettingGameController extends ApiController
             'status' => 'success',
             'data'   =>[
             'game' => $game->name,
+            'nomor' => null,
             'total-limit' => $settingGames->limit_total,
-            'limit-terpakai' => 0,
+            'limit-terpakai' => null,
             'sisaQuota' => $settingGames->limit_total,
             ]            
           ];
