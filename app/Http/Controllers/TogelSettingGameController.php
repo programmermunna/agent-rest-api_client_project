@@ -37,7 +37,7 @@ class TogelSettingGameController extends ApiController
     try {
       $pasaran = ConstantProviderTogelModel::select(['id','name'])->where('name', $request->pasaran)->firstOrFail();
       $game    = TogelGame::select(['id','name'])->where('name', $request->game)->firstOrFail();
-      $lastPeriod = BetsTogel::select('period')->where('constant_provider_togel_id', $pasaran->id)->latest()->first();
+      $lastPeriod = BetsTogel::select('period')->latest()->firstOrFail();
       $checkBetTogel = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
             ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
             ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
