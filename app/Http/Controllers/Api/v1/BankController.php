@@ -71,11 +71,10 @@ class BankController extends ApiController
             $banks = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')            
                     ->where('rekening.is_bank', '=', 1)
                     ->where('rekening.is_wd', '=', 1)
-                    ->orWhere('rekening.is_depo', '=', 1)
                     ->select(
                         'constant_rekening.id',
                         'constant_rekening.name',
-                    )->groupBy('constant_rekening.id')->get();
+                    )->get();
 
             $bank_status = [
                 'bank' => $banks->toArray(),
