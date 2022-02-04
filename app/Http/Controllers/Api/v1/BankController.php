@@ -75,7 +75,7 @@ class BankController extends ApiController
                     ->select(
                         'constant_rekening.id',
                         'constant_rekening.name',
-                    )->get();
+                    )->groupBy('constant_rekening.id')->get();
 
             $bank_status = [
                 'bank' => $banks->toArray(),
