@@ -58,7 +58,7 @@ class SettingController extends ApiController
 
             return $this->successResponse(null, 'No content', 204);
         } catch (\Throwable $th) {
-            return $this->errorResponse('internal error server', 500);
+            return $this->errorResponse('internal server error', 500);
         }
     }
 
