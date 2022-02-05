@@ -411,12 +411,12 @@ class JWTAuthController extends ApiController
             // $referrer = MembersModel::whereUsername(session()->pull('referrer'))->first();
 
             $referal = MembersModel::where('username', $request->referral)->first();
-            $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
+            // $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
             //bank agent
-            $bankAgent = [];
-            for ($i=1; $i <= 14 ; $i++) { 
-                array_push($bankAgent, RekeningModel::where('constant_rekening_id', $i)->where('is_depo', 1)->inRandomOrder()->take(1)->first());
-            }
+            // $bankAgent = [];
+            // for ($i=1; $i <= 14 ; $i++) { 
+            //     array_push($bankAgent, RekeningModel::where('constant_rekening_id', $i)->where('is_depo', 1)->inRandomOrder()->take(1)->first());
+            // }
             // dd($bankAgent[0]);
             if (is_null($referal)) {
                 // $dataRekening = RekeningTujuanDepo::create([
@@ -458,7 +458,8 @@ class JWTAuthController extends ApiController
                 // ]);
                 $rekMember = RekMemberModel::create([
                     'username_member' => $request->username,
-                    'rekening_id' => $rekeningDepoMember->id,
+                    // 'rekening_id' => $rekeningDepoMember->id,
+                    'rekening_id' => null,
                     'constant_rekening_id' => $request->bank_name,
                     'nomor_rekening' => $request->account_number,
                     'nama_rekening' => $request->account_name,
@@ -505,7 +506,8 @@ class JWTAuthController extends ApiController
                     // 'referrer_id' => $referrer ? $referrer->id : '',
                     // 'referrer_id' => $request->referral,
                     'bonus_referal' => 0,
-                    'rekening_tujuan_depo_id' => $dataRekening->id,
+                    // 'rekening_tujuan_depo_id' => $dataRekening->id,
+                    'rekening_tujuan_depo_id' => null,
                 ]);
                 // $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
                 // $updateRek->update([
@@ -513,7 +515,8 @@ class JWTAuthController extends ApiController
                 // ]);
                 $rekMember = RekMemberModel::create([
                     'username_member' => $request->username,
-                    'rekening_id' => $rekeningDepoMember->id,
+                    // 'rekening_id' => $rekeningDepoMember->id,
+                    'rekening_id' => null,
                     'constant_rekening_id' => $request->bank_name,
                     'nomor_rekening' => $request->account_number,
                     'nama_rekening' => $request->account_name,
