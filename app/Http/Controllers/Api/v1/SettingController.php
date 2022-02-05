@@ -37,14 +37,28 @@ class SettingController extends ApiController
     public function seo()
     {
         try {
-            $seo = AppSetting::select('name', 'value')->where('name', 'title')->orWhere('name', 'meta_tag')->get();
-            if ($seo) {
-                return $this->successResponse($seo->toArray());
+            $title = AppSetting::select('name', 'value')->where('name', 'title')->first();
+            $metaTag = AppSetting::select('name', 'value')->where('name', 'meta_tag')->first();
+            $data = json_decode($metaTag->value);
+            if ($title && $metaTag) {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => [
+                        'title' => [
+                            'name' => $title->name,
+                            'value' => $title->value,
+                        ],
+                        'meta_tag' => [
+                            'name' => $metaTag->name,
+                            'value' => $data,
+                        ]
+                    ]
+                ], 200);                
             }
 
             return $this->successResponse(null, 'No content', 204);
         } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse('internal Server Error', 500);
         }
     }
 
