@@ -39,18 +39,55 @@ class SettingController extends ApiController
         try {
             $title = AppSetting::select('name', 'value')->where('name', 'title')->first();
             $metaTag = AppSetting::select('name', 'value')->where('name', 'meta_tag')->first();
-            $data = json_decode($metaTag->value);
+            $linkcanonical = "";
+            $keyword = "";
+            $description = "";
+            $googleSiteVerification = "";
+            if($metaTag->value){
+                $dom = new \DOMdocument();
+                $dom->loadhtml($metaTag->value);       
+                if ($dom->getelementsbytagname('meta')) {
+                    foreach($dom->getelementsbytagname('meta') as $meta) {
+                        if($meta->getattribute('name') == 'keywords' && $meta->getattribute('content')) {
+                            $keyword = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'description' && $meta->getattribute('content')) {
+                            $description = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'google-site-verification' && $meta->getattribute('content')) {
+                            $googleSiteVerification = $meta->getattribute('content');
+                        }
+                    }
+                }              
+                if ($dom->getelementsbytagname('link')) {               
+                    foreach($dom->getelementsbytagname('link') as $link) {
+                        if($link->getattribute('rel') == 'canonical' && $link->getattribute('href')) {
+                            $linkcanonical = $link->getattribute('href');
+                        }
+                    }
+                }        
+            }  
             if ($title && $metaTag) {
                 return response()->json([
                     'status' => 'success',
                     'data' => [
-                        'title' => [
-                            'name' => $title->name,
-                            'value' => $title->value,
+                        'meta' => [
+                            [
+                                'name' => "description",
+                                'content' => $description
+                            ],
+                            [
+                                'name' => "keywords",
+                                'content' => $keyword
+                            ],
+                            [
+                                'name' => "google-site-verification",
+                                'content' => $googleSiteVerification
+                            ],
                         ],
-                        'meta_tag' => [
-                            'name' => $metaTag->name,
-                            'value' => $data,
+                        'link' => [
+                            'rel'  => 'canonical',
+                            'href' => $linkcanonical,
                         ]
                     ]
                 ], 200);                
@@ -58,7 +95,7 @@ class SettingController extends ApiController
 
             return $this->successResponse(null, 'No content', 204);
         } catch (\Throwable $th) {
-            return $this->errorResponse('internal Server Error', 500);
+            return $this->errorResponse('Internal Server Error', 500);
         }
     }
 
