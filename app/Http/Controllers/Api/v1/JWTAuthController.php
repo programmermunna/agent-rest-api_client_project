@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
+use App\Models\BetsTogel;
 use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\MembersModel;
@@ -17,7 +18,7 @@ use App\Models\UserLogModel;
 use App\Models\RekeningTujuanDepo;
 use App\Rules\IsValidPassword;
 use Carbon\Carbon;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
@@ -130,16 +131,44 @@ class JWTAuthController extends ApiController
     public function lastBet()
     {
         try {
-            $lastBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-            ->select([
-                'bets.bet',
-                'bets.created_at',
-                'bets.created_by',
+            
+            $id = auth('api')->user()->id;
+            $lastBet = DB::select("
+                            SELECT
+                                bets.bet,
+                                bets.created_at,
+                                members.username
+                            FROM
+                                bets
+                            INNER JOIN members ON members.id = bets.created_by
+                            WHERE
+                                (
+                                    bets.created_by = $id AND bets.type = 'Lose' OR bets.type = 'Settle' AND bets.win = 0
+                                ) AND bets.deleted_at IS NULL                            
 
-            ])->where('bets.type', 'Lose')
-            ->where('bets.created_by', auth('api')->user()->id)
-            ->latest()
-            ->limit(1)->first();
+                            UNION ALL
+
+                            SELECT
+                                bets_togel.bet_amount AS bet,
+                                bets_togel.created_at,
+                                members.username
+                            FROM
+                                bets_togel
+                            INNER JOIN members ON members.id = bets_togel.created_by
+                            WHERE
+                                bets_togel.win_lose_status = 0 AND bets_togel.created_by = $id AND bets_togel.deleted_at IS NULL
+                            ORDER BY created_at DESC
+                            LIMIT 1
+                        ");
+            // $lastBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+            // ->select([
+            //     'bets.bet',
+            //     'bets.created_at',
+            //     'bets.created_by',
+            // ])->where('bets.type', 'Lose')
+            // ->where('bets.created_by', auth('api')->user()->id)
+            // ->latest()
+            // ->limit(1)->first();
 
             // $getMember = MembersModel::where('id', auth('api')->user()->id)->select('is_cash')->first();
             // $dt = Carbon::now();
@@ -240,7 +269,7 @@ class JWTAuthController extends ApiController
 
             return $this->successResponse(null, 'No data', 204);
         } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse($th->getMessage(), 500);
         }
     }
     public function lastWin()
@@ -259,16 +288,44 @@ class JWTAuthController extends ApiController
                 $member = MembersModel::where('id', auth('api')->user()->id)->first();
                 $member->update(['is_next_deposit' => 0]);
             }
-            $lastWin = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-            ->select([
-                'bets.win',
-                'bets.created_at',
-                'bets.created_by',
+            // $lastWin = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+            // ->select([
+            //     'bets.win',
+            //     'bets.created_at',
+            //     'bets.created_by',
 
-            ])->where('bets.type', 'Win')
-            ->where('bets.created_by', auth('api')->user()->id)
-            ->latest()
-            ->limit(1)->get();
+            // ])->where('bets.type', 'Win')
+            // ->where('bets.created_by', auth('api')->user()->id)
+            // ->latest()
+            // ->limit(1)->get();
+            $id = auth('api')->user()->id;
+            $lastWin = DB::select("
+                            SELECT
+                                bets.win,
+                                bets.created_at,
+                                members.username
+                            FROM
+                                bets
+                            INNER JOIN members ON members.id = bets.created_by
+                            WHERE
+                                (
+                                    bets.created_by = $id AND bets.type = 'Win'
+                                ) AND bets.deleted_at IS NULL                            
+
+                            UNION ALL
+
+                            SELECT
+                                bets_togel.win_nominal AS win,
+                                bets_togel.created_at,
+                                members.username
+                            FROM
+                                bets_togel
+                            INNER JOIN members ON members.id = bets_togel.created_by
+                            WHERE
+                                bets_togel.win_lose_status = 1 AND bets_togel.created_by = $id AND bets_togel.deleted_at IS NULL
+                            ORDER BY created_at DESC
+                            LIMIT 1
+                        ");
 
             if ($lastWin) {
                 return $this->successResponse($lastWin);
