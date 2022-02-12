@@ -971,7 +971,7 @@ class MemberController extends ApiController
       }
     } catch (\Throwable $th) {
       return $this->errorResponse('Internal Server Error', 500);
-    }
+    } 
   }
   public function statementWdDepo()
   {
@@ -981,6 +981,7 @@ class MemberController extends ApiController
 
       $deposit = DepositModel::select([
         'jumlah',
+        'credit as balance',
         'approval_status',
         'created_at',
       ])
@@ -993,6 +994,7 @@ class MemberController extends ApiController
 
       $withdraw = WithdrawModel::select([
         'jumlah',
+        'credit as balance',
         'approval_status',
         'created_at',
       ])
