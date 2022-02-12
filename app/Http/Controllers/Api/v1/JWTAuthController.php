@@ -468,7 +468,7 @@ class JWTAuthController extends ApiController
             // $referrer = MembersModel::whereUsername(session()->pull('referrer'))->first();
 
             $referal = MembersModel::where('username', $request->referral)->first();
-            // $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
+            $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
             //bank agent
             // $bankAgent = [];
             // for ($i=1; $i <= 14 ; $i++) { 
@@ -523,8 +523,7 @@ class JWTAuthController extends ApiController
                 // ]);
                 $rekMember = RekMemberModel::create([
                     'username_member' => $request->username,
-                    // 'rekening_id' => $rekeningDepoMember->id,
-                    'rekening_id' => null,
+                    'rekening_id' => $rekeningDepoMember->id,
                     'constant_rekening_id' => $request->bank_name,
                     'nomor_rekening' => $request->account_number,
                     'nama_rekening' => $request->account_name,
@@ -580,8 +579,7 @@ class JWTAuthController extends ApiController
                     // ]);
                     $rekMember = RekMemberModel::create([
                         'username_member' => $request->username,
-                        // 'rekening_id' => $rekeningDepoMember->id,
-                        'rekening_id' => null,
+                        'rekening_id' => $rekeningDepoMember->id,
                         'constant_rekening_id' => $request->bank_name,
                         'nomor_rekening' => $request->account_number,
                         'nama_rekening' => $request->account_name,
