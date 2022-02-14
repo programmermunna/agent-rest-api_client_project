@@ -10,6 +10,7 @@ use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 
 class DepositController extends ApiController
@@ -17,6 +18,18 @@ class DepositController extends ApiController
     public function create(Request $request)
     {
         try {
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'rekening_id' => 'required|integer',
+                    'jumlah' => 'required|integer',
+                    'note' => 'sometimes|nullable',
+                    'rekening_member_id' => 'required|integer',
+                ]
+            );
+            if($validator->fails()){
+                return $this->errorResponse($validator->errors()->first(), 422);
+            }
             $cek_status_wd  = WithdrawModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status',0)
                 ->first();
