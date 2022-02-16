@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
+use App\Models\BetsTogel;
 use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\MembersModel;
@@ -17,7 +18,7 @@ use App\Models\UserLogModel;
 use App\Models\RekeningTujuanDepo;
 use App\Rules\IsValidPassword;
 use Carbon\Carbon;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
@@ -130,16 +131,44 @@ class JWTAuthController extends ApiController
     public function lastBet()
     {
         try {
-            $lastBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-            ->select([
-                'bets.bet',
-                'bets.created_at',
-                'bets.created_by',
+            
+            $id = auth('api')->user()->id;
+            $lastBet = DB::select("
+                            SELECT
+                                bets.bet,
+                                bets.created_at,
+                                members.username
+                            FROM
+                                bets
+                            INNER JOIN members ON members.id = bets.created_by
+                            WHERE
+                                (
+                                    bets.created_by = $id AND bets.type = 'Lose' OR bets.type = 'Settle' AND bets.win = 0
+                                ) AND bets.deleted_at IS NULL                            
 
-            ])->where('bets.type', 'Lose')
-            ->where('bets.created_by', auth('api')->user()->id)
-            ->latest()
-            ->limit(1)->first();
+                            UNION ALL
+
+                            SELECT
+                                bets_togel.bet_amount AS bet,
+                                bets_togel.created_at,
+                                members.username
+                            FROM
+                                bets_togel
+                            INNER JOIN members ON members.id = bets_togel.created_by
+                            WHERE
+                                bets_togel.win_lose_status = 0 AND bets_togel.created_by = $id AND bets_togel.deleted_at IS NULL
+                            ORDER BY created_at DESC
+                            LIMIT 1
+                        ");
+            // $lastBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+            // ->select([
+            //     'bets.bet',
+            //     'bets.created_at',
+            //     'bets.created_by',
+            // ])->where('bets.type', 'Lose')
+            // ->where('bets.created_by', auth('api')->user()->id)
+            // ->latest()
+            // ->limit(1)->first();
 
             // $getMember = MembersModel::where('id', auth('api')->user()->id)->select('is_cash')->first();
             // $dt = Carbon::now();
@@ -240,7 +269,7 @@ class JWTAuthController extends ApiController
 
             return $this->successResponse(null, 'No data', 204);
         } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse($th->getMessage(), 500);
         }
     }
     public function lastWin()
@@ -259,16 +288,44 @@ class JWTAuthController extends ApiController
                 $member = MembersModel::where('id', auth('api')->user()->id)->first();
                 $member->update(['is_next_deposit' => 0]);
             }
-            $lastWin = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-            ->select([
-                'bets.win',
-                'bets.created_at',
-                'bets.created_by',
+            // $lastWin = BetModel::join('members', 'members.id', '=', 'bets.created_by')
+            // ->select([
+            //     'bets.win',
+            //     'bets.created_at',
+            //     'bets.created_by',
 
-            ])->where('bets.type', 'Win')
-            ->where('bets.created_by', auth('api')->user()->id)
-            ->latest()
-            ->limit(1)->get();
+            // ])->where('bets.type', 'Win')
+            // ->where('bets.created_by', auth('api')->user()->id)
+            // ->latest()
+            // ->limit(1)->get();
+            $id = auth('api')->user()->id;
+            $lastWin = DB::select("
+                            SELECT
+                                bets.win,
+                                bets.created_at,
+                                members.username
+                            FROM
+                                bets
+                            INNER JOIN members ON members.id = bets.created_by
+                            WHERE
+                                (
+                                    bets.created_by = $id AND bets.type = 'Win'
+                                ) AND bets.deleted_at IS NULL                            
+
+                            UNION ALL
+
+                            SELECT
+                                bets_togel.win_nominal AS win,
+                                bets_togel.created_at,
+                                members.username
+                            FROM
+                                bets_togel
+                            INNER JOIN members ON members.id = bets_togel.created_by
+                            WHERE
+                                bets_togel.win_lose_status = 1 AND bets_togel.created_by = $id AND bets_togel.deleted_at IS NULL
+                            ORDER BY created_at DESC
+                            LIMIT 1
+                        ");
 
             if ($lastWin) {
                 return $this->successResponse($lastWin);
@@ -413,11 +470,19 @@ class JWTAuthController extends ApiController
             $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
             //bank agent
-            $bankAgent = [];
-            for ($i=1; $i <= 14 ; $i++) { 
-                array_push($bankAgent, RekeningModel::where('constant_rekening_id', $i)->where('is_depo', 1)->inRandomOrder()->take(1)->first());
-            }
+            // $bankAgent = [];
+            // for ($i=1; $i <= 14 ; $i++) { 
+            //     array_push($bankAgent, RekeningModel::where('constant_rekening_id', $i)->where('is_depo', 1)->inRandomOrder()->take(1)->first());
+            // }
             // dd($bankAgent[0]);
+
+            // check no rekening
+            $noRekArray = RekeningModel::pluck('nomor_rekening')->toArray();
+            $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
+            $noRekArrays = array_merge($noRekArray, $noMemberArray);
+            if (in_array($request->account_number, $noRekArrays)) {
+                return $this->errorResponse('Nomor rekening yang anda masukkan telah digunakan', 400);
+            }
             if (is_null($referal)) {
                 // $dataRekening = RekeningTujuanDepo::create([
                 //     'rekening_id_tujuan_depo1' => $bankAgent[0] == [] ? Null : $bankAgent[0]['id'],
@@ -492,55 +557,56 @@ class JWTAuthController extends ApiController
                 //     'rekening_id_tujuan_depo14' => $bankAgent[13] == [] ? Null : $bankAgent[13]['id'],
                 // ]);
 
-                $user = MembersModel::create([
-                    'username' => $request->username,
-                    'email' => $request->email,
-                    'password' => bcrypt($request->password),
-                    'referrer_id' => $referal->id,
-                    // 'constant_rekening_id' => $request->bank_name,
-                    // 'nomor_rekening' => $request->account_number,
-                    // 'nama_rekening' => $request->account_name,
-                    'phone' => $request->phone,
-                    // 'info_dari' => $request->provider,
-                    // 'referrer_id' => $referrer ? $referrer->id : '',
-                    // 'referrer_id' => $request->referral,
-                    'bonus_referal' => 0,
-                    'rekening_tujuan_depo_id' => $dataRekening->id,
-                ]);
-                // $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
-                // $updateRek->update([
-                //     'created_by' => $user->id
-                // ]);
-                $rekMember = RekMemberModel::create([
-                    'username_member' => $request->username,
-                    'rekening_id' => $rekeningDepoMember->id,
-                    'constant_rekening_id' => $request->bank_name,
-                    'nomor_rekening' => $request->account_number,
-                    'nama_rekening' => $request->account_name,
-                    'is_depo' => 1,
-                    'is_default' => 1,
-                    'is_wd' => 1,
-                    'created_by' => $user->id,
-                ]);
-                MembersModel::where('username', $request->username)
-                    ->update([
-                        'rek_member_id' => $rekMember->id,
+                    $user = MembersModel::create([
+                        'username' => $request->username,
+                        'email' => $request->email,
+                        'password' => bcrypt($request->password),
+                        'referrer_id' => $referal->id,
+                        // 'constant_rekening_id' => $request->bank_name,
+                        // 'nomor_rekening' => $request->account_number,
+                        // 'nama_rekening' => $request->account_name,
+                        'phone' => $request->phone,
+                        // 'info_dari' => $request->provider,
+                        // 'referrer_id' => $referrer ? $referrer->id : '',
+                        // 'referrer_id' => $request->referral,
+                        'bonus_referal' => 0,
+                        // 'rekening_tujuan_depo_id' => $dataRekening->id,
+                        'rekening_tujuan_depo_id' => null,
                     ]);
-                TurnoverModel::create([
-                    'created_by' => $user->id,
-                ]);
-            }
-            $freeBet = FreeBetModel::get();
-            foreach ($freeBet as $value) {
-                BonusHistoryModel::create([
-                    'free_bet_id' => $value->id,
-                    'constant_bonus_id' => 4,
-                    'type' => 'uang',
-                    'is_use' => 0,
-                    'created_by' => $user->id,
-                    'created_at' => Carbon::now(),
-                ]);
-            }
+                    // $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
+                    // $updateRek->update([
+                    //     'created_by' => $user->id
+                    // ]);
+                    $rekMember = RekMemberModel::create([
+                        'username_member' => $request->username,
+                        'rekening_id' => $rekeningDepoMember->id,
+                        'constant_rekening_id' => $request->bank_name,
+                        'nomor_rekening' => $request->account_number,
+                        'nama_rekening' => $request->account_name,
+                        'is_depo' => 1,
+                        'is_default' => 1,
+                        'is_wd' => 1,
+                        'created_by' => $user->id,
+                    ]);
+                    MembersModel::where('username', $request->username)
+                        ->update([
+                            'rek_member_id' => $rekMember->id,
+                        ]);
+                    TurnoverModel::create([
+                        'created_by' => $user->id,
+                    ]);
+                }
+                $freeBet = FreeBetModel::get();
+                foreach ($freeBet as $value) {
+                    BonusHistoryModel::create([
+                        'free_bet_id' => $value->id,
+                        'constant_bonus_id' => 4,
+                        'type' => 'uang',
+                        'is_use' => 0,
+                        'created_by' => $user->id,
+                        'created_at' => Carbon::now(),
+                    ]);
+                }
 
             $user->update([
                 // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
@@ -561,6 +627,7 @@ class JWTAuthController extends ApiController
             );
 
             return $this->successResponse(null, 'Member successfully registered.', 201);
+            
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }

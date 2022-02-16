@@ -65,6 +65,7 @@ class WithdrawModel extends Model
       'members_id',
       'rekening_id',
       'jumlah',
+      'credit',
       'note',
       'rek_member_id',
       'approval_status',

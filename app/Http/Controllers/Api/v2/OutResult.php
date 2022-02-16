@@ -100,7 +100,9 @@ class OutResult extends ApiController
 								from
 								togel_shio_name a
 								join togel_shio_number b on a.id = b.togel_shio_name_id
-								group by a.id;");
+								group by a.id
+								order by b.id"
+							);
 
 		return response()->json([
 			'status' => 'success',

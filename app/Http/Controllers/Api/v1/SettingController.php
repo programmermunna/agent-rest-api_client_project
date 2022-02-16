@@ -37,14 +37,89 @@ class SettingController extends ApiController
     public function seo()
     {
         try {
-            $seo = AppSetting::select('name', 'value')->where('name', 'title')->orWhere('name', 'meta_tag')->get();
-            if ($seo) {
-                return $this->successResponse($seo->toArray());
+            $title = AppSetting::select('name', 'value')->where('name', 'title')->first();
+            $metaTag = AppSetting::select('name', 'value')->where('name', 'meta_tag')->first();
+            $linkcanonical = "";
+            $keyword = "";
+            $description = "";
+            $googleSiteVerification = "";
+            if($metaTag->value){
+                $dom = new \DOMdocument();
+                $dom->loadhtml($metaTag->value);       
+                if ($dom->getelementsbytagname('meta')) {
+                    foreach($dom->getelementsbytagname('meta') as $meta) {
+                        if($meta->getattribute('name') == 'keywords' && $meta->getattribute('content')) {
+                            $keyword = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'description' && $meta->getattribute('content')) {
+                            $description = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'google-site-verification' && $meta->getattribute('content')) {
+                            $googleSiteVerification = $meta->getattribute('content');
+                        }
+                    }
+                }              
+                if ($dom->getelementsbytagname('link')) {               
+                    foreach($dom->getelementsbytagname('link') as $link) {
+                        if($link->getattribute('rel') == 'canonical' && $link->getattribute('href')) {
+                            $linkcanonical = $link->getattribute('href');
+                        }
+                    }
+                }        
+            }  
+            if ($title && $metaTag) {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => [
+                        'meta' => [
+                            [
+                                'name' => "description",
+                                'content' => $description
+                            ],
+                            [
+                                'name' => "keywords",
+                                'content' => $keyword
+                            ],
+                            [
+                                'name' => "google-site-verification",
+                                'content' => $googleSiteVerification
+                            ],
+                        ],
+                        'link' => [
+                            'rel'  => 'canonical',
+                            'href' => $linkcanonical,
+                        ]
+                    ]
+                ], 200);                
             }
 
             return $this->successResponse(null, 'No content', 204);
-        } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
+        } catch (\Throwable $th) {            
+            // return $this->errorResponse('Internal Server Error', 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'meta tag does not match, please check your meta tag code',
+                'data' => [
+                    'meta' => [
+                        [
+                            'name' => "description",
+                            'content' => $description
+                        ],
+                        [
+                            'name' => "keywords",
+                            'content' => $keyword
+                        ],
+                        [
+                            'name' => "google-site-verification",
+                            'content' => $googleSiteVerification
+                        ],
+                    ],
+                    'link' => [
+                        'rel'  => 'canonical',
+                        'href' => $linkcanonical,
+                    ]
+                ]
+            ], 400);
         }
     }
 
