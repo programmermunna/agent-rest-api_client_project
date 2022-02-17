@@ -7,12 +7,21 @@ use App\Models\TogelGame;
 use App\Models\BetsTogel;
 use App\Models\TogelSettingGames;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class TogelSettingGameController extends ApiController
 {
   public function getTogelSettingGame(Request $request)
   {
-    $request->validate(['provider' => 'required|numeric']);
+    
+    $validator = Validator::make($request->all(),[
+      'type'  => 'required',
+      'provider' => 'required|numeric'
+    ]);
+
+    if($validator->fails()){
+      return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+    }
 
     switch ($request->type) {
       case 'normal':
@@ -35,8 +44,15 @@ class TogelSettingGameController extends ApiController
 
   public function sisaQuota(Request $request){
     try {
-      $pasaran = ConstantProviderTogelModel::select(['id','name'])->where('name', $request->pasaran)->firstOrFail();
-      $game    = TogelGame::select(['id','name'])->where('name', $request->game)->firstOrFail();
+
+      $pasaran = ConstantProviderTogelModel::select(['id','name'])->where('name', $request->pasaran)->first();
+      $game    = TogelGame::select(['id','name'])->where('name', $request->game)->first();
+      if(is_null($pasaran)){
+        return $this->errorResponse('Pasaran name does not match', 400);
+      }
+      if(is_null($game)){
+        return $this->errorResponse('Game name does not match', 400);
+      }
       $lastPeriod = BetsTogel::select('period')->latest()->firstOrFail();
       $checkBetTogel = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
             ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
