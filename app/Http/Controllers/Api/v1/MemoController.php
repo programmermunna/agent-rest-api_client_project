@@ -32,6 +32,7 @@ class MemoController extends ApiController
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'subject' => 'required',
             'content' => 'required',
         ]);
 
@@ -140,6 +141,8 @@ class MemoController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'content' => 'required',
+            'subject' => 'required',
+            'memoId' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
