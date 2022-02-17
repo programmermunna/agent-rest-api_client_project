@@ -19,6 +19,7 @@ use App\Models\ConstantProviderTogelModel;
 use App\Models\BonusHistoryModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
@@ -57,7 +58,7 @@ class MemberController extends ApiController
   public $ionxBet = [];
   public $queenmakerBet = [];
   public $allProviderBet = [];
-  public $pageAll = 5;
+  public $pageAll = 10;
   public $togel = [];
 
   // history by type
@@ -65,7 +66,7 @@ class MemberController extends ApiController
   {
     try {
       $deposit = DepositModel::join('members', 'members.id', '=', 'deposit.members_id')->select([
-        'members.credit',
+        'deposit.credit',
         'deposit.jumlah',
         'deposit.approval_status',
         'deposit.created_at',
@@ -75,7 +76,7 @@ class MemberController extends ApiController
         ->orderBy('created_at', 'desc');
 
       $withdraw = WithdrawModel::join('members', 'members.id', '=', 'withdraw.members_id')->select([
-        'members.credit',
+        'withdraw.credit',
         'withdraw.jumlah',
         'withdraw.approval_status',
         'withdraw.created_at',
@@ -410,7 +411,9 @@ class MemberController extends ApiController
                   NULL as bonusHistoryType,
                   NULL as bonusHistoryJumlah,
                   NULL as bonusHistoryHadiah,
-                  NULL as bonusHistoryCreatedBy 
+                  NULL as bonusHistoryCreatedBy, 
+                  NULL as activityDeskripsi, 
+                  NULL as activityName 
               FROM bets as a
               LEFT JOIN members as b ON a.created_by = b.id
               LEFT JOIN constant_provider as c ON a.constant_provider_id = c.id              
@@ -444,7 +447,9 @@ class MemberController extends ApiController
                   NULL as bonusHistoryType,
                   NULL as bonusHistoryJumlah,
                   NULL as bonusHistoryHadiah,
-                  NULL as bonusHistoryCreatedBy
+                  NULL as bonusHistoryCreatedBy,
+                  NULL as activityDeskripsi,
+                  NULL as activityName
               FROM bets_togel_history_transaksi as a
               LEFT JOIN bets_togel as b ON a.bets_togel_id = b.id
               LEFT JOIN constant_provider_togel as c ON b.constant_provider_togel_id = c.id
@@ -468,7 +473,7 @@ class MemberController extends ApiController
                   NULL as betsTogelHistoryKredit,
                   NULL as betsTogelHistoryBalance,
                   NULL as betsTogelHistoryCreatedBy,
-                  b.credit as depositCredit,
+                  a.credit as depositCredit,
                   a.jumlah as depositJumlah,
                   a.approval_status as depositStatus,
                   NULL as withdrawCredit,
@@ -478,7 +483,9 @@ class MemberController extends ApiController
                   NULL as bonusHistoryType,
                   NULL as bonusHistoryJumlah,
                   NULL as bonusHistoryHadiah,
-                  NULL as bonusHistoryCreatedBy
+                  NULL as bonusHistoryCreatedBy,
+                  NULL as activityDeskripsi,
+                  NULL as activityName
               FROM
                   deposit as a
               INNER JOIN members as b ON b.id = a.created_by
@@ -507,14 +514,16 @@ class MemberController extends ApiController
                   NULL as depositCredit,
                   NULL as depositJumlah,
                   NULL as depositStatus,
-                  b.credit as withdrawCredit,
+                  a.credit as withdrawCredit,
                   a.jumlah as withdrawJumlah,
                   a.approval_status as withdrawStatus,
                   NULL as bonusHistoryNamaBonus,
                   NULL as bonusHistoryType,
                   NULL as bonusHistoryJumlah,
                   NULL as bonusHistoryHadiah,
-                  NULL as bonusHistoryCreatedBy
+                  NULL as bonusHistoryCreatedBy,
+                  NULL as activityDeskripsi,
+                  NULL as activityName
               FROM
                   withdraw as a
               INNER JOIN members as b ON b.id = a.created_by              
@@ -549,15 +558,83 @@ class MemberController extends ApiController
                   a.type as bonusHistoryType,
                   a.jumlah as bonusHistoryJumlah,
                   a.hadiah as bonusHistoryHadiah,
-                  a.created_by as bonusHistoryCreatedBy
+                  a.created_by as bonusHistoryCreatedBy,
+                  NULL as activityDeskripsi,
+                  NULL as activityName
               FROM
                   bonus_history as a
               INNER JOIN constant_bonus as b ON b.id = a.constant_bonus_id              
               WHERE a.created_by = $id AND a.jumlah > 0 AND a.deleted_at IS NULL
               ORDER BY created_at DESC");
 
-        $this->allProviderBet = $allProBet;
+        $activity_members = DB::select("SELECT
+                                properties,
+                                created_at
+                            FROM
+                                activity_log
+                            WHERE
+                                log_name = 'Member Login' OR log_name ='Member Log Out'");
+        $properties = [];
+        foreach ($activity_members as $activity) {
+          $array = json_decode($activity->properties, true);
+          if(array_push($array) == 3){
+            $device = Arr::add($array, 'device', null);
+            $properties [] = Arr::add($device, 'created_at', $activity->created_at);
+          } else {
+            $properties [] = Arr::add($array, 'created_at', $activity->created_at);
+          }            
+        };
+        
+        $member = MembersModel::where('id', auth('api')->user()->id)->first();
+        $activity = [];
+        foreach ($properties as $index => $json) {
+          if ($json['target'] == $member->username) {
+              $activity[] = $json;
+          }
+        }
 
+        $activitys = [];
+        foreach ($activity as $key => $value) {
+          $activity = [
+            'Tables' => 'Activity',
+            'betsBet' => null,
+            'betsWin' => null,
+            'betsGameInfo' => null,
+            'betsBetId' => null,
+            'betsGameId' => null,
+            'betsDeskripsi' => null,
+            'betsCredit' => null,
+            'created_at' => $value['created_at'],
+            'betsProviderName' => null,
+            'betsTogelHistoryId' => null,
+            'betsTogelHistoryPasaran' => null, 
+            'betsTogelHistorDeskripsi' => null,
+            'betsTogelHistoryDebit' => null,
+            'betsTogelHistoryKredit' => null,
+            'betsTogelHistoryBalance' => null,
+            'betsTogelHistoryCreatedBy' => null,
+            'depositCredit' => null,
+            'depositJumlah' => null,
+            'depositStatus' => null,
+            'withdrawCredit' => null,
+            'withdrawJumlah' => null,
+            'withdrawStatus' => null,
+            'bonusHistoryNamaBonus' => null,
+            'bonusHistoryType' => null,
+            'bonusHistoryJumlah' => null,
+            'bonusHistoryHadiah' => null,
+            'bonusHistoryCreatedBy' => null,
+            'activityDeskripsi' => $value['device'] != null ? $value['activity']." : ".$value['device'] : $value['activity'], 
+            'activityName' => $value['device'] != null ? $value['activity']." - ".$value['device'] : $value['activity'],
+          ];
+          $activitys[] = $activity;          
+        };
+
+        $alldata = array_merge($allProBet, $activitys);
+        $date = array_column($alldata, 'created_at');
+        array_multisort($date, SORT_DESC, $alldata);
+        $this->allProviderBet = $alldata;
+        // var_dump($this->allProviderBet);
         $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
         return  [
           'status' => 'success',
