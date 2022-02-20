@@ -65,25 +65,35 @@ class MemberController extends ApiController
   public function historyAll(Request $request)
   {
     try {
-      $deposit = DepositModel::join('members', 'members.id', '=', 'deposit.members_id')->select([
-        'deposit.credit',
-        'deposit.jumlah',
-        'deposit.approval_status',
-        'deposit.created_at',
-      ])
-        ->where('deposit.created_by', auth('api')->user()->id)
-        ->where('approval_status', 1)
-        ->orderBy('created_at', 'desc');
+      $id = auth('api')->user()->id;
 
-      $withdraw = WithdrawModel::join('members', 'members.id', '=', 'withdraw.members_id')->select([
-        'withdraw.credit',
-        'withdraw.jumlah',
-        'withdraw.approval_status',
-        'withdraw.created_at',
-      ])
-        ->where('withdraw.created_by', auth('api')->user()->id)
-        ->where('approval_status', 1)
-        ->orderBy('created_at', 'desc');
+      $deposit = DB::select("
+                  SELECT
+                      credit,
+                      jumlah,
+                      approval_status,
+                      created_at
+                  FROM
+                      deposit
+                  WHERE
+                      created_by = $id AND approval_status = 1 AND deleted_at IS NULL
+                  ORDER BY
+                      created_at
+                  DESC");
+
+      $withdraw = DB::select("
+                  SELECT
+                      credit,
+                      jumlah,
+                      approval_status,
+                      created_at
+                  FROM
+                      withdraw
+                  WHERE
+                      created_by = $id AND approval_status = 1 AND deleted_at IS NULL
+                  ORDER BY
+                      created_at
+                  DESC");
 
 
       $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
@@ -107,14 +117,14 @@ class MemberController extends ApiController
 
 
       if ($request->type == 'deposit') {
-        $this->deposit = $deposit->get()->toArray();
+        $this->deposit = $deposit;
         $depo = $this->paginate($this->deposit, $this->perPageDepo);
 
-        $this->withdraw = $withdraw->get()->toArray();
+        $this->withdraw = $withdraw;
         $wd = $this->paginate($this->withdraw, $this->perPageWd);
 
         return [
-          'status' => 'success',
+          'status' => 'success',  
           'deposit' => $depo,
           'withdraw' => $wd,
         ];
@@ -379,8 +389,7 @@ class MemberController extends ApiController
         //     $result->push($value);
         //   }
         // }
-        // return $this->paginate($result, $this->pageAll);
-        $id = auth('api')->user()->id;      
+        // return $this->paginate($result, $this->pageAll);      
 
         $allProBet = DB::select("SELECT 
                   'Bets' AS Tables,
@@ -696,11 +705,13 @@ class MemberController extends ApiController
                   a.debit,
                   a.kredit,
                   a.balance,
-                  a.bet_id
+                  a.bet_id,
+                  a.created_at
               ")
               ->where('a.created_by', '=', auth('api')->user()->id)->orderBy('a.created_at', 'DESC')->get()->toArray();
     return $this->togel = collect($result)->map(function ($value) {
       return [
+        'created_at'    => $value->created_at,
         'bets_togel_id' => $value->bets_togel_id,
         'pasaran'       => $value->pasaran,
         'description'   => $value->description,
