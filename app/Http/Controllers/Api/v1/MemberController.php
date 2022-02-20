@@ -210,8 +210,8 @@ class MemberController extends ApiController
           'status' => 'success',
           'jokerBet' => $jokerBet,
         ];
-      } elseif ($request->type == 'ionxBet') {
-        $iBet = $query->select(
+      } elseif ($request->type == 'playtechBet') {
+        $playBet = $query->select(
           'bets.bet',
           'bets.game_info',
           'bets.bet_id',
@@ -225,13 +225,12 @@ class MemberController extends ApiController
         )
           ->where('bets.created_by', auth('api')->user()->id)
           ->where('bets.constant_provider_id', 6)->get();
-
-        $this->ionxBet = $iBet->toArray();
-        $ionxBet = $this->paginate($this->ionxBet, $this->perPage);
+        $this->playtechBet = $playBet->toArray();
+        $playtechBet = $this->paginate($this->playtechBet, $this->perPage);
 
         return [
           'status' => 'success',
-          'ionxBet' => $ionxBet,
+          'playtechBet' => $playtechBet,
         ];
       } elseif ($request->type == 'pgBet') {
         $pBet = $query->select(
