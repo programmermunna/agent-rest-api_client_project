@@ -765,101 +765,66 @@ class ProviderController extends Controller
    */
   public function PgSoftTransaction(Request $request)
   {
-    try {
       // Depdencies 
-      $this->token = $request->token;
-      $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
-      $user_id = $data->userId;
-      $member =  MembersModel::where('id', $user_id)->first();
-      $bets = BetModel::where('bet_id', $data->code)->first();
-      $creditMember = $member->credit + $data->amount;
+    $this->token = $request->token;
+    $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+    $user_id = $data->userId;
+    $member =  MembersModel::where('id', $user_id)->first();
+    $bets = BetModel::where('bet_id', $data->code)->first();
+    $creditMember = $member->credit + $data->amount;
 
-      if ($bets) {      
+    if ($bets) {      
+      return response()->json([
+          "code" => 3202,
+          "success" => true,
+          "amount" => $member->credit
+        ], 200);
+    }
+      // Check member balance
+    elseif ($member->credit < 0) {
+      return response()->json([
+        // "success" => false,
+        "code"   => 3202,
+        "success" =>  false,
+        // "message" => "Infflucient balance",
+        "message" => "No enough cash balance to bet",
+        "amount"  => $member->credit
+      ], 200);
+    }
+    /**
+     *   assume member balance 3000 
+     *   and bet to lose 
+     *   the request from provider is 
+     *   the transafer_amount -1000 
+     *   so the logic must like curentBalance + -1000 = 2000 ;
+     */
+    $member->update([
+      'credit' => $creditMember,
+      'updated_at' => Carbon::now(),
+    ]);
+
+      
+    $bet = [
+      'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
+      'bet_id'     => $data->code,
+      'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $creditMember : 'Game Bet/Win' . ' : ' . $creditMember,
+      'round_id'   => $data->roundId,
+      'type'       => $data->winAmount == 0 ? 'Lose' : "Win",
+      'game_id'    => $data->gameId,
+      'bet'        => $data->betAmount ?? 0,
+      'win'        => $data->winAmount,
+      'game_info'  => $data->type,
+      'created_at' => Carbon::now(),
+      'credit'     => $member->credit,
+      'created_by' => $member->id
+    ];
+      
+    try {
+        $this->insertBet($bet);
         return response()->json([
-            "code" => 3202,
-            "success" => true,
-            "amount" => $member->credit
-          ], 200);
-      }
-      // Check member balance    
-        if ($member->credit < $data->amount) {
-          return response()->json([
-            "code"   => 3202,
-            "success" =>  false,
-            "message" => "No enough cash balance to bet",
-            "amount"  => $member->credit
-          ], 200);
-        } else {
-          $member->update([
-            'credit' => $creditMember,
-            'updated_at' => Carbon::now(),
-          ]);
-
-          $bet = [
-            'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
-            'bet_id'     => $data->code,
-            'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $creditMember : 'Game Bet/Win' . ' : ' . $creditMember,
-            'round_id'   => $data->roundId,
-            'type'       => $data->winAmount == 0 ? 'Lose' : "Win",
-            'game_id'    => $data->gameId,
-            'bet'        => $data->betAmount ?? 0,
-            'win'        => $data->winAmount,
-            'game_info'  => $data->type,
-            'created_at' => Carbon::now(),
-            'credit'     => $member->credit,
-            'created_by' => $member->id
-          ];
-
-          $this->insertBet($bet);
-          return response()->json([
-            "success" => true,
-            "amount"  => $member->credit
-          ], 200);
-        }
-      // elseif ($creditMember < 0) {
-      //   return response()->json([
-      //     // "success" => false,
-      //     "code"   => 3202,
-      //     "success" =>  false,
-      //     // "message" => "Infflucient balance",
-      //     "message" => "No enough cash balance to bet",
-      //     "amount"  => $member->credit
-      //   ], 200);
-      // }
-      /**
-       *   assume member balance 3000 
-       *   and bet to lose 
-       *   the request from provider is 
-       *   the transafer_amount -1000 
-       *   so the logic must like curentBalance + -1000 = 2000 ;
-       */
-      // $member->update([
-      //   'credit' => $creditMember,
-      //   'updated_at' => Carbon::now(),
-      // ]);
-
-      
-        // $bet = [
-        //   'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
-        //   'bet_id'     => $data->code,
-        //   'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $creditMember : 'Game Bet/Win' . ' : ' . $creditMember,
-        //   'round_id'   => $data->roundId,
-        //   'type'       => $data->winAmount == 0 ? 'Lose' : "Win",
-        //   'game_id'    => $data->gameId,
-        //   'bet'        => $data->betAmount ?? 0,
-        //   'win'        => $data->winAmount,
-        //   'game_info'  => $data->type,
-        //   'created_at' => Carbon::now(),
-        //   'credit'     => $member->credit,
-        //   'created_by' => $member->id
-        // ];
-      
-      // try {
-      //   $this->insertBet($bet);
-      //   return response()->json([
-      //     "success" => true,
-      //     "amount"  => $member->credit
-      //   ], 200);
+          "success" => true,
+          "amount"  => $member->credit
+        ], 200);
     } catch (\Throwable $th) {
       return response()->json(['status' => false, "message" => $th->getMessage()], 200);
     }
