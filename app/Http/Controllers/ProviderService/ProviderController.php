@@ -774,23 +774,36 @@ class ProviderController extends Controller
     $creditMember = $member->credit + $data->amount;
 
     if ($bets) {
-      return response()
+      if ($member->credit < $amountbet || $member->credit < 0 || $creditMember < 0) {
+        return response()->json([
+          "code"   => 3202,
+          "success" =>  false,
+          "message" => "Infflucient balance",
+          "amount"  => $member->credit
+        ], 200);
+      } else {
+        $member->update([
+          'credit' => $creditMember,
+          'updated_at' => Carbon::now(),
+        ]);
+        return response()
         ->json([
           "code" => 3202,
           "success" => true,
           "amount" => $member->credit
         ], 200);
+      }      
     }
     // Check member balance 
-    else if ($creditMember < 0) {
-      return response()->json([
-        "success" => false,
-        "code"   => 3202,
-        "success" =>  false,
-        "message" => "Infflucient balance",
-        "amount"  => $member->credit
-      ], 200);
-    }
+    // else if ($creditMember < 0) {
+    //   return response()->json([
+    //     "success" => false,
+    //     "code"   => 3202,
+    //     "success" =>  false,
+    //     "message" => "Infflucient balance",
+    //     "amount"  => $member->credit
+    //   ], 200);
+    // }
     /**
      *   assume member balance 3000 
      *   and bet to lose 
@@ -798,10 +811,10 @@ class ProviderController extends Controller
      *   the transafer_amount -1000 
      *   so the logic must like curentBalance + -1000 = 2000 ;
      */
-    $member->update([
-      'credit' => $creditMember,
-      'updated_at' => Carbon::now(),
-    ]);
+    // $member->update([
+    //   'credit' => $creditMember,
+    //   'updated_at' => Carbon::now(),
+    // ]);
 
     $bet = [
       'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
