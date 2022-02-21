@@ -773,24 +773,24 @@ class ProviderController extends Controller
     $bets = BetModel::where('bet_id', $data->code)->first();
     $creditMember = $member->credit + $data->amount;
 
-    if ($bets) {      
-      return response()->json([
-          "code" => 3202,
-          "success" => true,
-          "amount" => $member->credit
-        ], 200);
-    }
+    // if ($bets) {      
+    //   return response()->json([
+    //       "code" => 3202,
+    //       "success" => true,
+    //       "amount" => $member->credit
+    //     ], 200);
+    // }
       // Check member balance
-    elseif ($member->credit < 0) {
-      return response()->json([
-        // "success" => false,
-        "code"   => 3202,
-        "success" =>  false,
-        // "message" => "Infflucient balance",
-        "message" => "No enough cash balance to bet",
-        "amount"  => $member->credit
-      ], 200);
-    }
+    // elseif ($member->credit < 0) {
+    //   return response()->json([
+    //     // "success" => false,
+    //     "code"   => 3202,
+    //     "success" =>  false,
+    //     // "message" => "Infflucient balance",
+    //     "message" => "No enough cash balance to bet",
+    //     "amount"  => $member->credit
+    //   ], 200);
+    // }
     /**
      *   assume member balance 3000 
      *   and bet to lose 
@@ -798,18 +798,20 @@ class ProviderController extends Controller
      *   the transafer_amount -1000 
      *   so the logic must like curentBalance + -1000 = 2000 ;
      */
-    if ($creditMember < $data->amount || $member->credit == 0) {
-      return response()->json([
-        "code"   => 3202,
-        "success" =>  false,
-        "message" => "No enough cash balance to bet",
-        "amount"  => $member->credit
-      ], 200);
-    } else {
-      $member->update([
-        'credit' => $creditMember,
-        'updated_at' => Carbon::now(),
-      ]);
+    if ($bets) {
+      if ($creditMember < $data->amount || $member->credit <= 0 || $creditMember < 0) {
+        return response()->json([
+          "code"   => 3202,
+          "success" =>  false,
+          "message" => "No enough cash balance to bet",
+          "amount"  => $member->credit
+        ], 200);
+      } else {
+        $member->update([
+          'credit' => $creditMember,
+          'updated_at' => Carbon::now(),
+        ]);
+      }
     }
     // $member->update([
     //   'credit' => $creditMember,
