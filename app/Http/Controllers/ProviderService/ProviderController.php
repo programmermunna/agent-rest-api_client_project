@@ -828,7 +828,7 @@ class ProviderController extends Controller
         'win'        => $data->winAmount,
         'game_info'  => $data->type,
         'created_at' => Carbon::now(),
-        'credit'     => $member->credit,
+        'credit'     => $member->credit + $data->amount,
         'created_by' => $member->id
       ];
     } else {
