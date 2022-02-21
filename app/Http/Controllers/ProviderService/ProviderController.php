@@ -774,20 +774,28 @@ class ProviderController extends Controller
     $creditMember = $member->credit + $data->amount;
 
     if ($bets) {
-      return response()
-        ->json([
+      if ($member->credit < $data->amount ) {
+        return response()->json([
+          "code"   => 3202,
+          "success" =>  false,
+          "message" => "No enough cash balance to bet",
+          "amount"  => $member->credit
+        ], 200);
+      }
+      return response()->json([
           "code" => 3202,
           "success" => true,
           "amount" => $member->credit
         ], 200);
     }
     // Check member balance 
-    else if ($creditMember < 0) {
+    elseif ($creditMember < 0) {
       return response()->json([
-        "success" => false,
+        // "success" => false,
         "code"   => 3202,
         "success" =>  false,
-        "message" => "Infflucient balance",
+        // "message" => "Infflucient balance",
+        "message" => "No enough cash balance to bet",
         "amount"  => $member->credit
       ], 200);
     }
