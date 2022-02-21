@@ -778,7 +778,8 @@ class ProviderController extends Controller
         return response()->json([
           "code"   => 3202,
           "success" =>  false,
-          "message" => "Infflucient balance",
+          // "message" => "Infflucient balance",
+          "message" => "No enough cash balance to bet",
           "amount"  => $member->credit
         ], 200);
       } else {
