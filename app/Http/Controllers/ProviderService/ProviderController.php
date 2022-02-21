@@ -798,10 +798,23 @@ class ProviderController extends Controller
      *   the transafer_amount -1000 
      *   so the logic must like curentBalance + -1000 = 2000 ;
      */
-    $member->update([
-      'credit' => $creditMember,
-      'updated_at' => Carbon::now(),
-    ]);
+    if ($creditMember < $amountbet || $member->credit == 0) {
+      return response()->json([
+        "code"   => 3202,
+        "success" =>  false,
+        "message" => "No enough cash balance to bet",
+        "amount"  => $member->credit
+      ], 200);
+    } else {
+      $member->update([
+        'credit' => $creditMember,
+        'updated_at' => Carbon::now(),
+      ]);
+    }
+    // $member->update([
+    //   'credit' => $creditMember,
+    //   'updated_at' => Carbon::now(),
+    // ]);
 
       
     $bet = [
