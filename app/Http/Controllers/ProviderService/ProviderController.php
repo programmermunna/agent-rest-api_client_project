@@ -798,7 +798,7 @@ class ProviderController extends Controller
      *   the transafer_amount -1000 
      *   so the logic must like curentBalance + -1000 = 2000 ;
      */
-    if ($creditMember < $amountbet || $member->credit == 0) {
+    if ($creditMember < $data->amount || $member->credit == 0) {
       return response()->json([
         "code"   => 3202,
         "success" =>  false,
