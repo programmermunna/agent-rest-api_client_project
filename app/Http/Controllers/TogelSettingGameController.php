@@ -54,7 +54,9 @@ class TogelSettingGameController extends ApiController
         return $this->errorResponse('Game name does not match', 400);
       }
       $lastPeriod = BetsTogel::select('period')->latest()->firstOrFail();
-      $checkBetTogel = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
+      $results = [];
+      foreach ($request->data as $key => $data) {
+        $checkBetTogel = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
             ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
             ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
             ->leftJoin('togel_shio_name', 'bets_togel.tebak_shio', '=', 'togel_shio_name.id')
@@ -352,542 +354,549 @@ class TogelSettingGameController extends ApiController
             ->where('bets_togel.period', $lastPeriod->period)
             ->where('constant_provider_togel.id', $pasaran->id)
             ->where('bets_togel.togel_game_id', $game->id)
-            ->where('bets_togel.number_1', $request->number_1)
-            ->where('bets_togel.number_2', $request->number_2)
-            ->where('bets_togel.number_3', $request->number_3)
-            ->where('bets_togel.number_4', $request->number_4)
-            ->where('bets_togel.number_5', $request->number_5)
-            ->where('bets_togel.number_6', $request->number_6)
-            ->where('bets_togel.tebak_as_kop_kepala_ekor', $request->tebak_as_kop_kepala_ekor)
-            ->where('bets_togel.tebak_besar_kecil', $request->tebak_besar_kecil)
-            ->where('bets_togel.tebak_genap_ganjil', $request->tebak_genap_ganjil)
-            ->where('bets_togel.tebak_tengah_tepi', $request->tebak_tengah_tepi)
-            ->where('bets_togel.tebak_depan_tengah_belakang', $request->tebak_depan_tengah_belakang)
-            ->where('bets_togel.tebak_mono_stereo', $request->tebak_mono_stereo)
-            ->where('bets_togel.tebak_kembang_kempis_kembar', $request->tebak_kembang_kempis_kembar)
-            ->where('bets_togel.tebak_shio', $request->tebak_shio)
+            ->where('bets_togel.number_1', $data['number_1'])
+            ->where('bets_togel.number_2', $data['number_2'])
+            ->where('bets_togel.number_3', $data['number_3'])
+            ->where('bets_togel.number_4', $data['number_4'])
+            ->where('bets_togel.number_5', $data['number_5'])
+            ->where('bets_togel.number_6', $data['number_6'])
+            ->where('bets_togel.tebak_as_kop_kepala_ekor', $data['tebak_as_kop_kepala_ekor'])
+            ->where('bets_togel.tebak_besar_kecil', $data['tebak_besar_kecil'])
+            ->where('bets_togel.tebak_genap_ganjil', $data['tebak_genap_ganjil'])
+            ->where('bets_togel.tebak_tengah_tepi', $data['tebak_tengah_tepi'])
+            ->where('bets_togel.tebak_depan_tengah_belakang', $data['tebak_depan_tengah_belakang'])
+            ->where('bets_togel.tebak_mono_stereo', $data['tebak_mono_stereo'])
+            ->where('bets_togel.tebak_kembang_kempis_kembar', $data['tebak_kembang_kempis_kembar'])
+            ->where('bets_togel.tebak_shio', $data['tebak_shio'])
             ->groupBy('bets_togel.togel_game_id')->first();
 
-      // dd($checkBetTogel);
+            // dd($checkBetTogel);
 
-      if ($checkBetTogel == true) {
-        if ($game->id == 1){
-          if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_4d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '4D',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_4d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota4D,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_3d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '3D',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_3d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota3D,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota2D,
-              ]            
-            ];
-          } elseif ($request->number_6 == null && $request->number_5 == null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d_depan'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota2DD = $settingGames->limit_total_2d_depan - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Depan',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_2d_depan,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota2DD,
-              ]            
-            ];
-          } elseif ($request->number_6 == null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d_tengah'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota2DT = $settingGames->limit_total_2d_tengah - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Tengah',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_2d_tengah,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota2DT,
-              ]            
-            ];
-          }
-        } elseif ($game->id == 2){
-          if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_4d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '4D Set',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_4d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota4D,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_3d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '3D Set',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_3d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota3D,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Set',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota2D,
-              ]            
-            ];
-          } 
-        } elseif ($game->id == 3){
-          if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_4d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '4D Bolak Balik',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_4d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota4D,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_3d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '3D Bolak Balik',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_3d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota3D,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Bolak Balik',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota2D,
-              ]            
-            ];
-          } 
-        } elseif ($game->id == 4){          
-          if ($request->number_6 !== null && $request->number_5 !== null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Quick2d',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota2D,
-              ]            
-            ];
-          } elseif ($request->number_6 == null && $request->number_5 == null && $request->number_4 !== null && $request->number_3 !== null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d_depan'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota2DD = $settingGames->limit_total_2d_depan - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Depan Quick2d',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_2d_depan,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota2DD,
-              ]            
-            ];
-          } elseif ($request->number_6 == null && $request->number_5 !== null && $request->number_4 !== null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d_tengah'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            $sisaQuota2DT = $settingGames->limit_total_2d_tengah - $checkBetTogel->totalBet;
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Tengah Quick2d',
-                'nomor' => $checkBetTogel->Nomor,
-                'total-limit' => $settingGames->limit_total_2d_tengah,
-                'limit-terpakai' => $checkBetTogel->totalBet,
-                'sisaQuota' => $sisaQuota2DT,
-              ]            
-            ];
-          }
-        } else {
-          $settingGames = TogelSettingGames::select(
-                    'limit_total'
-                  )
-                  ->where('constant_provider_togel_id', $pasaran->id)
-                  ->where('togel_game_id', $game->id)->first();
-          $game =TogelGame::select('name')->where('id', $game->id)->first();
-          $sisaQuota = $settingGames->limit_total - $checkBetTogel->totalBet;
-          return  [
-            'status' => 'success',
-            'data'   =>[
-            'game' => $game->name,
-            'nomor' => $checkBetTogel->Nomor,
-            'total-limit' => $settingGames->limit_total,
-            'limit-terpakai' => $checkBetTogel->totalBet,
-            'sisaQuota' => $sisaQuota,
-            ]            
-          ];
-        } 
-      } else {
-        if ($game->id == 1){
-          if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_4d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '4D',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_4d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_4d,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_3d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '3D',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_3d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_3d,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_2d,
-              ]            
-            ];
-          } elseif ($request->number_6 == null && $request->number_5 == null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d_depan'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Depan',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_2d_depan,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_2d_depan,
-              ]            
-            ];
-          } elseif ($request->number_6 == null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d_tengah'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Tengah',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_2d_tengah,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_2d_tengah,
-              ]            
-            ];
-          }
-        } elseif ($game->id == 2){
-          if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_4d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '4D Set',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_4d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_4d,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_3d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '3D Set',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_3d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_3d,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Set',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_2d,
-              ]            
-            ];
-          } 
-        } elseif ($game->id == 3){
-          if ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_4d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '4D Bolak Balik',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_4d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_4d,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_3d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '3D Bolak Balik',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_3d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_3d,
-              ]            
-            ];
-          } elseif ($request->number_6 != null && $request->number_5 != null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Bolak Balik',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_2d,
-              ]            
-            ];
-          } 
-        } elseif ($game->id == 4){
-          if ($request->number_6 != null && $request->number_5 != null && $request->number_4 == null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Quick2d',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_2d,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_2d,
-              ]            
-            ];
-          } elseif ($request->number_6 == null && $request->number_5 == null && $request->number_4 != null && $request->number_3 != null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d_depan'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Depan Quick2d',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_2d_depan,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_2d_depan,
-              ]            
-            ];
-          } elseif ($request->number_6 == null && $request->number_5 != null && $request->number_4 != null && $request->number_3 == null && $request->number_2 == null && $request->number_1 == null){
-            $settingGames = TogelSettingGames::select(
-                            'limit_total_2d_tengah'
-                          )
-                          ->where('constant_provider_togel_id', $pasaran->id)
-                          ->where('togel_game_id', $game->id)->first();
-            return  [
-              'status' => 'success',
-              'data'   =>[
-                'game'  => '2D Tengah Quick2d',
-                'nomor' => null,
-                'total-limit' => $settingGames->limit_total_2d_tengah,
-                'limit-terpakai' => null,
-                'sisaQuota' => $settingGames->limit_total_2d_tengah,
-              ]            
-            ];
-          }
-        } else {
-          $settingGames = TogelSettingGames::select(
-                    'limit_total'
-                  )
-                  ->where('constant_provider_togel_id', $pasaran->id)
-                  ->where('togel_game_id', $game->id)->first();
-          $game =TogelGame::select('name')->where('id', $game->id)->first();
-          return  [
-            'status' => 'success',
-            'data'   =>[
-            'game' => $game->name,
-            'nomor' => null,
-            'total-limit' => $settingGames->limit_total,
-            'limit-terpakai' => null,
-            'sisaQuota' => $settingGames->limit_total,
-            ]            
-          ];
-        }
+            if ($checkBetTogel == true) {
+              if ($game->id == 1){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_4d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '4D',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_4d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota4D,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_3d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '3D',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_3d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota3D,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_2d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota2D,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d_depan'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota2DD = $settingGames->limit_total_2d_depan - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Depan',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_2d_depan,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota2DD,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d_tengah'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota2DT = $settingGames->limit_total_2d_tengah - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Tengah',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_2d_tengah,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota2DT,
+                    ]            
+                  ];
+                }
+              } elseif ($game->id == 2){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_4d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '4D Set',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_4d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota4D,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_3d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '3D Set',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_3d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota3D,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Set',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_2d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota2D,
+                    ]            
+                  ];
+                } 
+              } elseif ($game->id == 3){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_4d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '4D Bolak Balik',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_4d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota4D,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_3d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '3D Bolak Balik',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_3d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota3D,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Bolak Balik',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_2d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota2D,
+                    ]            
+                  ];
+                } 
+              } elseif ($game->id == 4){          
+                if ($data['number_6'] !== null && $data['number_5'] !== null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Quick2d',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_2d,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota2D,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] !== null && $data['number_3'] !== null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d_depan'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota2DD = $settingGames->limit_total_2d_depan - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Depan Quick2d',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_2d_depan,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota2DD,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] == null && $data['number_5'] !== null && $data['number_4'] !== null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d_tengah'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $sisaQuota2DT = $settingGames->limit_total_2d_tengah - $checkBetTogel->totalBet;
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Tengah Quick2d',
+                      'nomor' => $checkBetTogel->Nomor,
+                      'total-limit' => $settingGames->limit_total_2d_tengah,
+                      'limit-terpakai' => $checkBetTogel->totalBet,
+                      'sisaQuota' => $sisaQuota2DT,
+                    ]            
+                  ];
+                }
+              } else {
+                $settingGames = TogelSettingGames::select(
+                          'limit_total'
+                        )
+                        ->where('constant_provider_togel_id', $pasaran->id)
+                        ->where('togel_game_id', $game->id)->first();
+                $game =TogelGame::select('name')->where('id', $game->id)->first();
+                $sisaQuota = $settingGames->limit_total - $checkBetTogel->totalBet;
+                $result =  [
+                  'status' => 'success',
+                  'data'   =>[
+                  'game' => $game->name,
+                  'nomor' => $checkBetTogel->Nomor,
+                  'total-limit' => $settingGames->limit_total,
+                  'limit-terpakai' => $checkBetTogel->totalBet,
+                  'sisaQuota' => $sisaQuota,
+                  ]            
+                ];
+              } 
+            } else {
+              if ($game->id == 1){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_4d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '4D',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_4d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_4d,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_3d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '3D',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_3d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_3d,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_2d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_2d,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d_depan'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Depan',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_2d_depan,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_2d_depan,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d_tengah'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Tengah',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_2d_tengah,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_2d_tengah,
+                    ]            
+                  ];
+                }
+              } elseif ($game->id == 2){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_4d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '4D Set',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_4d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_4d,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_3d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '3D Set',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_3d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_3d,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Set',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_2d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_2d,
+                    ]            
+                  ];
+                } 
+              } elseif ($game->id == 3){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_4d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '4D Bolak Balik',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_4d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_4d,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_3d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '3D Bolak Balik',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_3d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_3d,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Bolak Balik',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_2d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_2d,
+                    ]            
+                  ];
+                } 
+              } elseif ($game->id == 4){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Quick2d',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_2d,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_2d,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d_depan'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Depan Quick2d',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_2d_depan,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_2d_depan,
+                    ]            
+                  ];
+                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                  $settingGames = TogelSettingGames::select(
+                                  'limit_total_2d_tengah'
+                                )
+                                ->where('constant_provider_togel_id', $pasaran->id)
+                                ->where('togel_game_id', $game->id)->first();
+                  $result =  [
+                    'status' => 'success',
+                    'data'   =>[
+                      'game'  => '2D Tengah Quick2d',
+                      'nomor' => null,
+                      'total-limit' => $settingGames->limit_total_2d_tengah,
+                      'limit-terpakai' => null,
+                      'sisaQuota' => $settingGames->limit_total_2d_tengah,
+                    ]            
+                  ];
+                }
+              } else {
+                $settingGames = TogelSettingGames::select(
+                          'limit_total'
+                        )
+                        ->where('constant_provider_togel_id', $pasaran->id)
+                        ->where('togel_game_id', $game->id)->first();
+                $game =TogelGame::select('name')->where('id', $game->id)->first();
+                $result =  [
+                  'status' => 'success',
+                  'data'   =>[
+                  'game' => $game->name,
+                  'nomor' => null,
+                  'total-limit' => $settingGames->limit_total,
+                  'limit-terpakai' => null,
+                  'sisaQuota' => $settingGames->limit_total,
+                  ]            
+                ];
+              }
+            }
+
+            $results[] = $result;
       }
+
+      return $this->successResponse($results);
+
+      
     } catch (\Throwable $th) {
       return $this->errorResponse($th->getMessage(), 500);
     }
