@@ -765,6 +765,7 @@ class ProviderController extends Controller
    */
   public function PgSoftTransaction(Request $request)
   {
+    try{
       // Depdencies 
     $this->token = $request->token;
     $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
@@ -826,6 +827,11 @@ class ProviderController extends Controller
           'credit'     => $member->credit,
           'created_by' => $member->id
         ];
+        $this->insertBet($bet);
+        return response()->json([
+          "success" => true,
+          "amount"  => $member->credit
+        ], 200);
       }
     // }
     // $member->update([
@@ -849,12 +855,12 @@ class ProviderController extends Controller
     //   'created_by' => $member->id
     // ];
       
-    try {
-        $this->insertBet($bet);
-        return response()->json([
-          "success" => true,
-          "amount"  => $member->credit
-        ], 200);
+    // try {
+        // $this->insertBet($bet);
+        // return response()->json([
+        //   "success" => true,
+        //   "amount"  => $member->credit
+        // ], 200);
     } catch (\Throwable $th) {
       return response()->json(['status' => false, "message" => $th->getMessage()], 200);
     }
