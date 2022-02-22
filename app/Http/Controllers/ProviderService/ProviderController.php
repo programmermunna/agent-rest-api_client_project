@@ -801,13 +801,13 @@ class ProviderController extends Controller
      *   the transafer_amount -1000 
      *   so the logic must like curentBalance + -1000 = 2000 ;
      */
-    if ($bets->count() == 1 ) {
-      if ($creditMember < 0 || $member->credit < $data->amount) {
+      if ($bets->count() > 1 || $creditMember < 0 || $member->credit < $data->amount) {
         return response()->json([
-          "code"   => 3202,
-          "success" =>  false,
-          "message" => "No enough cash balance to bet",
-          "amount"  => $member->credit
+          "data"=> null,
+          "error"=> [
+              "code"=> 3202,
+              "message"=> "Not enough cash balance to bet"
+          ]
         ], 200);
       } else {
         $member->update([
@@ -834,13 +834,6 @@ class ProviderController extends Controller
           "amount"  => $member->credit
         ], 200);
       }
-    } else {
-      return response()->json([
-        "code"   => 3202,
-        "success" =>  false,
-        "message" => "No enough cash balance to bet",
-      ], 200);
-    }
     // $member->update([
     //   'credit' => $creditMember,
     //   'updated_at' => Carbon::now(),
