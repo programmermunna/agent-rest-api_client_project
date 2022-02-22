@@ -771,8 +771,9 @@ class ProviderController extends Controller
     $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
     $user_id = $data->userId;
     $member =  MembersModel::where('id', $user_id)->first();
-    $bets = BetModel::where('bet_id', $data->code)->first();
+    $bets = BetModel::where('bet_id', $data->code)->get();
     $creditMember = $member->credit + $data->amount;
+    // dd($data, $bets->count());
 
     // dd('credit member : '.$member->credit, 'taruhan : '.$data->amount, $member->cedit < $data->amount);
     // if ($bets) {      
@@ -800,7 +801,7 @@ class ProviderController extends Controller
      *   the transafer_amount -1000 
      *   so the logic must like curentBalance + -1000 = 2000 ;
      */
-    // if ($bets) {
+    if ($bets->count() == 1 ) {
       if ($creditMember < 0 || $member->credit < $data->amount) {
         return response()->json([
           "code"   => 3202,
@@ -833,7 +834,13 @@ class ProviderController extends Controller
           "amount"  => $member->credit
         ], 200);
       }
-    // }
+    } else {
+      return response()->json([
+        "code"   => 3202,
+        "success" =>  false,
+        "message" => "No enough cash balance to bet",
+      ], 200);
+    }
     // $member->update([
     //   'credit' => $creditMember,
     //   'updated_at' => Carbon::now(),
