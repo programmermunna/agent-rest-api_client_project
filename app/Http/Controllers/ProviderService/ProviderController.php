@@ -812,7 +812,7 @@ class ProviderController extends Controller
         $this->insertBet($bet);
         return response()->json([
           "success" => true,
-          "message" => "transaction id success",
+          "message" => "transaction is success",
           "balance"  => $member->credit
         ], 200);
       }
