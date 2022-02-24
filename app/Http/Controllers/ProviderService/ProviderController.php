@@ -771,37 +771,16 @@ class ProviderController extends Controller
     $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
     $user_id = $data->userId;
     $member =  MembersModel::where('id', $user_id)->first();
-    $bets = BetModel::where('bet_id', $data->code)->get();
+    $bets = BetModel::where('bet_id', $data->code)->first();
     $creditMember = $member->credit + $data->amount;
-    // dd($data, $bets->count());
+    if ($bets == true) {      
+      return response()->json([
+          "success" => true,
+          "amount" => $member->credit
+        ], 200);
+    } else {    
 
-    // dd('credit member : '.$member->credit, 'taruhan : '.$data->amount, $member->cedit < $data->amount);
-    // if ($bets) {      
-    //   return response()->json([
-    //       "code" => 3202,
-    //       "success" => true,
-    //       "amount" => $member->credit
-    //     ], 200);
-    // }
-      // Check member balance
-    // elseif ($member->credit < 0) {
-    //   return response()->json([
-    //     // "success" => false,
-    //     "code"   => 3202,
-    //     "success" =>  false,
-    //     // "message" => "Infflucient balance",
-    //     "message" => "No enough cash balance to bet",
-    //     "amount"  => $member->credit
-    //   ], 200);
-    // }
-    /**
-     *   assume member balance 3000 
-     *   and bet to lose 
-     *   the request from provider is 
-     *   the transafer_amount -1000 
-     *   so the logic must like curentBalance + -1000 = 2000 ;
-     */
-      if ($bets->count() > 1 || $creditMember < 0 || $member->credit < $data->amount) {
+      if ($creditMember < 0 || $member->credit < $data->amount) {
         return response()->json([
           "data"=> null,
           "error"=> [
@@ -834,6 +813,25 @@ class ProviderController extends Controller
           "amount"  => $member->credit
         ], 200);
       }
+    }
+      // Check member balance
+    // elseif ($member->credit < 0) {
+    //   return response()->json([
+    //     // "success" => false,
+    //     "code"   => 3202,
+    //     "success" =>  false,
+    //     // "message" => "Infflucient balance",
+    //     "message" => "No enough cash balance to bet",
+    //     "amount"  => $member->credit
+    //   ], 200);
+    // }
+    /**
+     *   assume member balance 3000 
+     *   and bet to lose 
+     *   the request from provider is 
+     *   the transafer_amount -1000 
+     *   so the logic must like curentBalance + -1000 = 2000 ;
+     */
     // $member->update([
     //   'credit' => $creditMember,
     //   'updated_at' => Carbon::now(),

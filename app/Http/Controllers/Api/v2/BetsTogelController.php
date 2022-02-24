@@ -27,6 +27,14 @@ class BetsTogelController extends ApiController
    */
   public function store(BetsTogelRequest $request)
   {
+    $pasaran = ConstantProviderTogelModel::select(['id','name'])->where('name', $request->provider)->first();
+    $game    = TogelGame::select(['id','name'])->where('name', $request->type)->first();
+    if(is_null($pasaran)){
+      return $this->errorResponse('Provider name does not match', 400);
+    }
+    if(is_null($game)){
+      return $this->errorResponse('Type game name does not match', 400);
+    }
     // First For All Take The Type Of Game 
     $togelGames = TogelGame::query()->get()->pluck(['id'], 'name');
     $providerGame = ConstantProviderTogelModel::query()->get()->pluck(['id'], 'name');
