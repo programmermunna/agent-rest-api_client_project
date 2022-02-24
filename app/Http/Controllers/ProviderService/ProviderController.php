@@ -773,14 +773,16 @@ class ProviderController extends Controller
     $member =  MembersModel::where('id', $user_id)->first();
     $bets = BetModel::where('bet_id', $data->code)->first();
     $creditMember = $member->credit + $data->amount;
+    $betAmount = $data->betAmount * 1000;
     if ($bets == true) {      
       return response()->json([
           "success" => true,
-          "amount" => $member->credit
+          "message" => "transaction id duplicate",
+          "balance" => $member->credit
         ], 200);
     } else {    
 
-      if ($creditMember < 0 || $member->credit < $data->amount) {
+      if ($creditMember < 0 || $member->credit < $betAmount) {
         return response()->json([
           "data"=> null,
           "error"=> [
@@ -810,7 +812,8 @@ class ProviderController extends Controller
         $this->insertBet($bet);
         return response()->json([
           "success" => true,
-          "amount"  => $member->credit
+          "message" => "transaction is success",
+          "balance"  => $member->credit
         ], 200);
       }
     }
