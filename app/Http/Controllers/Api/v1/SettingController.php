@@ -43,6 +43,9 @@ class SettingController extends ApiController
             $keyword = "";
             $description = "";
             $googleSiteVerification = "";
+            $itempropName = "";
+            $itempropDescription = "";
+            $itempropImage = "";
             if($metaTag->value){
                 $dom = new \DOMdocument();
                 $dom->loadhtml($metaTag->value);       
@@ -56,6 +59,15 @@ class SettingController extends ApiController
                         }
                         if($meta->getattribute('name') == 'google-site-verification' && $meta->getattribute('content')) {
                             $googleSiteVerification = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('itemprop') == 'name' && $meta->getattribute('content')) {
+                            $itempropName = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('itemprop') == 'description' && $meta->getattribute('content')) {
+                            $itempropDescription = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('itemprop') == 'image' && $meta->getattribute('content')) {
+                            $itempropImage = $meta->getattribute('content');
                         }
                     }
                 }              
@@ -83,6 +95,18 @@ class SettingController extends ApiController
                             [
                                 'name' => "google-site-verification",
                                 'content' => $googleSiteVerification
+                            ],                            
+                            [
+                                'itemprop' => "name",
+                                'content' => $itempropName
+                            ],                            
+                            [
+                                'itemprop' => "description",
+                                'content' => $itempropDescription
+                            ],                            
+                            [
+                                'itemprop' => "image",
+                                'content' => $itempropImage
                             ],
                         ],
                         'link' => [
