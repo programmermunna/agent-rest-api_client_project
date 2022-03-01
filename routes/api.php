@@ -137,7 +137,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/referral_game/{type}', 'SettingController@referral_game');
             Route::get('/list_togel', 'SettingController@list_togel');
             Route::get('/web_page', 'SettingController@web_page');
-            Route::get('/footer_tag', 'SettingController@footer_tag');            
+            Route::get('/footer_tag', 'SettingController@footer_tag');
             Route::get('/whatsapp_url', 'SettingController@whatsappUrl');
             Route::get('/social', 'SettingController@social');
             Route::get('/seo', 'SettingController@seo');
@@ -161,7 +161,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 
     /**
      * @deprecated
-     */ 
+     */
     /* Route::post('transfer-in-out', [ProviderController::class, 'resultPgSoft']); */
     Route::post('transfer-in-out', [ProviderController::class, 'PgSoftTransaction']);
     # Game Gall
@@ -176,7 +176,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 	# Togel
   Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
 	Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
-	Route::get("sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
+	Route::match(['get', 'post'],"sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
 	Route::get('provider', [OutResult::class, 'getResultByProvider']);
 	Route::get('shio' , [OutResult::class , 'getShioTables']);
 	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
