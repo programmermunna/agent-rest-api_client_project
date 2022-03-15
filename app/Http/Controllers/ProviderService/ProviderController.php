@@ -822,6 +822,7 @@ class ProviderController extends Controller
       $this->insertBet($bet);
       return response()->json([
         "success" => true,
+        "message" => "transaction is success",
         "amount"  => $member->credit
       ], 200);
     } catch (\Throwable $th) {
