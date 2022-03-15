@@ -780,8 +780,7 @@ class ProviderController extends Controller
             "message" => "transaction id duplicate",
             "balance" => $member->credit
           ], 200);
-      } else {
-        if ($member->credit < $betAmount) {
+      } elseif ($member->credit < $betAmount) {
           return response()->json([
             "data"=> null,
             "error"=> [
@@ -789,33 +788,34 @@ class ProviderController extends Controller
                 "message"=> "Not enough cash balance to bet"
             ]
           ], 200);
-        } else {
-          $member->update([
-            'credit' => $creditMember,
-            'updated_at' => Carbon::now(),
-          ]);
-          $bet = [
-            'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
-            'bet_id'     => $data->code,
-            'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $creditMember : 'Game Bet/Win' . ' : ' . $creditMember,
-            'round_id'   => $data->roundId,
-            'type'       => $data->winAmount == 0 ? 'Lose' : "Win",
-            'game_id'    => $data->gameId,
-            'bet'        => $data->betAmount ?? 0,
-            'win'        => $data->winAmount,
-            'game_info'  => $data->type,
-            'created_at' => Carbon::now(),
-            'credit'     => $member->credit,
-            'created_by' => $member->id
-          ];
-          $this->insertBet($bet);
-          return response()->json([
-            "success" => true,
-            "message" => "transaction is success",
-            "balance"  => $member->credit
-          ], 200);
-        }
       }
+
+      $member->update([
+        'credit' => $creditMember,
+        'updated_at' => Carbon::now(),
+      ]);
+
+      $bet = [
+        'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
+        'bet_id'     => $data->code,
+        'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $creditMember : 'Game Bet/Win' . ' : ' . $creditMember,
+        'round_id'   => $data->roundId,
+        'type'       => $data->winAmount == 0 ? 'Lose' : "Win",
+        'game_id'    => $data->gameId,
+        'bet'        => $data->betAmount ?? 0,
+        'win'        => $data->winAmount,
+        'game_info'  => $data->type,
+        'created_at' => Carbon::now(),
+        'credit'     => $member->credit,
+        'created_by' => $member->id
+      ];
+
+      $this->insertBet($bet);
+      return response()->json([
+        "success" => true,
+        "message" => "transaction is success",
+        "balance"  => $member->credit
+      ], 200);
     } catch (\Throwable $th) {
       return response()->json(['status' => false, "message" => $th->getMessage()], 500);
     }
