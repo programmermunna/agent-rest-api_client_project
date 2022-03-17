@@ -775,13 +775,16 @@ class ProviderController extends Controller
     $betAmount = $data->betAmount * 1000;
       
     // Check member balance
-    if ($bets) {      
-      return response()->json([
-          "success" => true,
-          "message" => "transaction id duplicate",
-          "balance" => $member->credit
-        ], 200);
-    } elseif ($member->credit < $betAmount) {
+    // if ($bets) {      
+    //   return response()->json([
+    //     "data"=> null,
+    //     "error"=> [
+    //         "code"=> 3202,
+    //         "message"=> "Not enough cash balance to bet"
+    //      ]
+    //   ], 200);
+    // } else
+    if ($bets || $member->credit < $betAmount) {
       return response()->json([
         "data"=> null,
         "error"=> [
