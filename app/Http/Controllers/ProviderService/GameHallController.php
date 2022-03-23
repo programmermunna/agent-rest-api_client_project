@@ -200,24 +200,25 @@ class GameHallController extends Controller
     foreach ($token->data->txns as $tokenRaw) {
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $creditMember = $member->credit;
-      $betUpdate = BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+      //update type bet
+      BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
         ->update([
           'type' => 'Cancel'
         ]);
-      if ($betUpdate) {
-        $betCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
-                    ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')-first();
-        $member->update([
+      //update balance member
+      $betCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                    ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
+      MembersModel::where('id', $tokenRaw->userId)->update([
           'credit' => $creditMember + $betCancel->bet
-        ]);
-      }
+      ]);
     }
-    return [
+    $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+    return response()->json([
       "status" => '0000',
-      "balance" => $creditMember,
+      "balance" => $member->credit,
       "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
-    ];
+    ]);
   }
 
   public function VoidBet()
