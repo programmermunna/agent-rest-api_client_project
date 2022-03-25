@@ -777,12 +777,10 @@ class ProviderController extends Controller
     // Check transaction id duplicate
     if ($bets) {      
       return response()->json([
-        "data"=> [
-          "id"  => $bets->id,
-          "message" => "duplicate transaction id",
-          "amount"  => $member->credit
-        ],
-        "error"=> null
+        "success" => true,
+        "id"  => $bets->id,
+        "message" => "duplicate transaction id",
+        "amount"  => $member->credit
       ], 200);
     } elseif ($member->credit < $betAmount) {     // Check member balance
       return response()->json([
