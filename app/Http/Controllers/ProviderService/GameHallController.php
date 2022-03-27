@@ -197,28 +197,43 @@ class GameHallController extends Controller
   {
     // call betInformation
     $token = $this->betInformation();
+    $datas;
     foreach ($token->data->txns as $tokenRaw) {
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $creditMember = $member->credit;
-      //update type bet
-      BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
-        ->where('platform', $tokenRaw->platform)
-        ->update([
-          'type' => 'Cancel'
-        ]);
-      //update balance member
-      $betCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
-                    ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
-      MembersModel::where('id', $tokenRaw->userId)->update([
-          'credit' => $creditMember + $betCancel->bet
-      ]);
+      $bet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+            ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
+      if ($bet) {
+        $data = [
+          "status" => '0000',
+          "balance" => $member->credit,
+          "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+        ];
+        $datas = $data;
+      } else {
+        //update type bet
+        BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+          ->where('platform', $tokenRaw->platform)
+          ->update([
+            'type' => 'Cancel'
+          ]);
+        //update balance member
+        $betCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                      ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
+        MembersModel::where('id', $tokenRaw->userId)->update([
+            'credit' => $creditMember + $betCancel->bet
+        ]);        
+        $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
+        $data = [
+          "status" => '0000',
+          "balance" => $balanceUpdate->credit,
+          "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+        ];
+        $datas = $data;
+
+      }
     }
-    $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-    return response()->json([
-      "status" => '0000',
-      "balance" => $member->credit,
-      "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
-    ]);
+    return response()->json($datas);
   }
 
   public function VoidBet()
