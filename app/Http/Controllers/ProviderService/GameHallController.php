@@ -216,11 +216,11 @@ class GameHallController extends Controller
                       ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->first();
         if ($betBeforeCancel) {
           //update type bet
-          // BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
-          // ->where('platform', $tokenRaw->platform)
-          // ->update([
-          //   'type' => 'Cancel'
-          // ]);
+          BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+          ->where('platform', $tokenRaw->platform)
+          ->update([
+            'type' => 'Cancel'
+          ]);
           //update balance member
           $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
                         ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
