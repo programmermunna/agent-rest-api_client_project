@@ -131,7 +131,7 @@ class GameHallController extends Controller
         
         if ($tokenRaw->action == "cancelBet") {
           return [
-            "status" => '1025',
+            "status" => '0000',
             "balance" => intval($creditMember),
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
           ];
