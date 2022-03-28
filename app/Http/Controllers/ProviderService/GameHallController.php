@@ -220,17 +220,26 @@ class GameHallController extends Controller
         //update balance member
         $betCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
                       ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
-        MembersModel::where('id', $tokenRaw->userId)->update([
-            'credit' => $creditMember + $betCancel->bet
-        ]);        
-        $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
-        $data = [
-          "status" => '0000',
-          "balance" => $balanceUpdate->credit,
-          "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
-        ];
-        $datas = $data;
-
+        if ($betCancel) {
+          MembersModel::where('id', $tokenRaw->userId)->update([
+              'credit' => $creditMember + $betCancel->bet
+          ]);        
+          $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
+          $data = [
+            "status" => '0000',
+            "balance" => $balanceUpdate->credit,
+            "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+          ];
+          $datas = $data;
+        } else {
+          $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
+          $data = [
+            "status" => '1039',
+            "balance" => $balanceUpdate->credit,
+            "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+          ];
+          $datas = $data;
+        }
       }
     }
     return response()->json($datas);
