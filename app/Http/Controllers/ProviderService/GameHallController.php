@@ -126,7 +126,9 @@ class GameHallController extends Controller
         ]);
       } else {
         // check if bet already exist
-        $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+        $bets = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+          ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->first();
+        
         if ($bets) {
           return [
             "status" => '1025',
