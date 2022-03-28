@@ -616,15 +616,67 @@ class GameHallController extends Controller
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $creditMember = $member->credit;
       $amount = $creditMember - $tipAmount;
-      // update credit to table member
-      $member->update([
-        'credit' => $amount,
-        'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
-      ]);
+      if ($creditMember < $tipAmount) {
+        return response()->json([
+          "status" => '1018',
+          "desc"  => 'Not enough balance',
+          "balance" => $creditMember,
+          "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+        ]);
+      } else {
+        $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
+        if ($bets) {
+          return response()->json([
+            "status" => '1038',
+            "desc"  => 'Duplicate transaction',
+            "balance" => $creditMember,
+            "balanceTs"   =>  Carbon::parse($bets->created_at)->format("Y-m-d\TH:i:s.vP")
+          ]);
+        } else {
+          // update credit to table member
+          $member->update([
+            'credit' => $amount,
+            'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
+          ]);
+          $bets = BetModel::create([
+            'platform'  => $tokenRaw->platform,
+            'created_by' => $tokenRaw->userId,
+            'bet_id' => $tokenRaw->platformTxId,
+            'game_info' => 'live_casino',
+            'game_id' => $tokenRaw->gameCode,
+            'type' => 'Tip',
+            'game' => $tokenRaw->gameName,
+            'bet' => $tipAmount,
+            'created_at' => now(),
+            'constant_provider_id' => 7,
+            'deskripsi' => 'Game Tip' . ' : ' . $tipAmount,
+          ]);
+
+          $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+            ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+            ->where('bets.id', $bets->id)->first();
+          $member =  MembersModel::where('id', $bets->created_by)->first();
+
+          UserLogModel::logMemberActivity(
+            'create bet',
+            $member,
+            $bets,
+            [
+              'target' => $nameProvider->username,
+              'activity' => 'Tip',
+              'device' => $nameProvider->device,
+              'ip' => $nameProvider->last_login_ip,
+            ],
+            "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+          );
+        }
+      }      
     }
+    $member =  MembersModel::where('id', $tokenRaw->userId)->first();
     return [
       "status" => '0000',
-      "balance" => $creditMember ?? 0.0,
+      "desc"  => 'Success',
+      "balance" => $member->credit,
       "balanceTs" => now()->format("Y-m-d\TH:i:s.vP")
     ];
   }
