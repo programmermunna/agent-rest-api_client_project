@@ -232,10 +232,9 @@ class GameHallController extends Controller
           ];
           $datas = $data;
         } else {
-          $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
           $data = [
-            "status" => '1039',
-            "balance" => $balanceUpdate->credit,
+            "status" => '0000',
+            "balance" => $creditMember,
             "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
           ];
           $datas = $data;
