@@ -211,18 +211,21 @@ class GameHallController extends Controller
         ];
         $datas = $data;
       } else {
-        //update type bet
-        BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
-          ->where('platform', $tokenRaw->platform)
-          ->update([
-            'type' => 'Cancel'
-          ]);
         //update balance member
-        $betCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
-                      ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
-        if ($betCancel) {
+        $betBeforeCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                      ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->first();
+        if ($betBeforeCancel) {
+          //update type bet
+          // BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+          // ->where('platform', $tokenRaw->platform)
+          // ->update([
+          //   'type' => 'Cancel'
+          // ]);
+          //update balance member
+          $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                        ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
           MembersModel::where('id', $tokenRaw->userId)->update([
-              'credit' => $creditMember + $betCancel->bet
+              'credit' => $creditMember + $betAfterCancel->bet
           ]);        
           $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
           $data = [
