@@ -99,6 +99,10 @@ class GameHallController extends Controller
       case 'give':
         return $this->Give();
         break;
+
+      case 'cancelTip':
+        return $this->CancelTip();
+        break;
     }
     return response()->json([
       'status' => 'error',
@@ -683,25 +687,61 @@ class GameHallController extends Controller
 
   public function CancelTip()
   {
-    // call betInformation
-    $token = $this->betInformation();
-    foreach ($token->data->txns as $tokenRaw) {
-      $tipAmount = $tokenRaw->tip;
-      $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-      $creditMember = $member->credit;
-      $amount = $creditMember + $tipAmount;
-      $member->update([
-        'credit' => $amount,
-        'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
-      ]);
+    {
+      // call betInformation
+      $token = $this->betInformation();
+      $datas;
+      foreach ($token->data->txns as $tokenRaw) {
+        $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+        $creditMember = $member->credit;
+        $cancelTip = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+              ->where('platform', $tokenRaw->platform)->where('type', 'Cancel_tip')->first();
+  
+        if ($cancelTip) {
+          $data = [
+            "status" => '00001',
+            "balance" => $creditMember,
+            "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+          ];
+
+          $datas = $data;
+        }else{
+          $tipBeforeCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                        ->where('platform', $tokenRaw->platform)->where('type', 'Tip')->first();
+          if ($tipBeforeCancel) {
+            //update type Cancel_tip
+            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+              ->where('platform', $tokenRaw->platform)
+              ->update([
+                'type' => 'Cancel_tip'
+              ]);
+            //update balance member
+            $tipAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                          ->where('platform', $tokenRaw->platform)->where('type', 'Cancel_tip')->first();
+  
+            MembersModel::where('id', $tokenRaw->userId)->update([
+                'credit' => $creditMember + $tipAfterCancel->bet
+            ]);        
+            $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $data = [
+              "status" => '0000',
+              "balance" => $balanceUpdate->credit,
+              "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+            ];
+            $datas = $data;
+          } else {
+            $data = [
+              "status" => '0000',
+              "balance" => $creditMember,
+              "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+            ];
+            $datas = $data;
+          }
+        }
+      }
+      // For $creditMember will be Call on last index of loop and return again
+      return response()->json($datas);
     }
-    // For $creditMember will be Call on last index of loop and return again
-    return [
-      "status" => '0000',
-      "desc" => 'succes',
-      "balance" => $creditMember,
-      "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
-    ];
   }
 
   // slot and fish
