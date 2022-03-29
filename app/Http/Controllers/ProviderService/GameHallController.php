@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\ProviderService;
 
 use App\Http\Controllers\Controller;
+use App\Models\ConstantProvider;
 use Firebase\JWT\JWT;
 use App\Models\MembersModel;
 use App\Models\BetModel;
@@ -69,9 +70,10 @@ class GameHallController extends Controller
         return $this->AdjustBet();
         break;
 
-      case 'adjustBet':
-        return $this->AdjustBet();
-        break;
+        //this is duplicated
+//      case 'adjustBet':
+//        return $this->AdjustBet();
+//        break;
 
       case 'voidBet':
         return $this->VoidBet();
@@ -135,7 +137,7 @@ class GameHallController extends Controller
         // $afterCancelBet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
         //   ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
 
-        if ($token->data->action == "cancelBet") {
+        if ($token->data->action === "cancelBet") {
           return [
             "status" => '0000',
             "balance" => intval($creditMember),
@@ -147,7 +149,9 @@ class GameHallController extends Controller
             'credit' => $amount,
             'updated_at' => $tokenRaw->betTime,
           ]);
-          $bets = BetModel::create([
+          //creates from provider
+            $provider = ConstantProvider::firstOrCreate(['id' => 7]);
+          $bets = $provider->bets()->create([
             'platform'  => $tokenRaw->platform,
             'created_by' => $tokenRaw->userId,
             'updated_by' => $tokenRaw->userId,
@@ -159,7 +163,7 @@ class GameHallController extends Controller
             'game' => $tokenRaw->gameName,
             'bet' => $amountbet,
             'created_at' => $tokenRaw->betTime,
-            'constant_provider_id' => 7,
+//            'constant_provider_id' => 7,
             'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
           ]);
 
@@ -698,7 +702,7 @@ class GameHallController extends Controller
         $creditMember = $member->credit;
         $cancelTip = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
               ->where('platform', $tokenRaw->platform)->where('type', 'Cancel_tip')->first();
-  
+
         if ($cancelTip) {
           $data = [
             "status" => '0000',
@@ -721,10 +725,10 @@ class GameHallController extends Controller
             //update balance member
             $tipAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
                           ->where('platform', $tokenRaw->platform)->where('type', 'Cancel_tip')->first();
-  
+
             MembersModel::where('id', $tokenRaw->userId)->update([
                 'credit' => $creditMember + $tipAfterCancel->bet
-            ]);        
+            ]);
             $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
             $data = [
               "status" => '0000',
