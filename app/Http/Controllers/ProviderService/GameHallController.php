@@ -699,7 +699,8 @@ class GameHallController extends Controller
   
         if ($cancelTip) {
           $data = [
-            "status" => '00001',
+            "status" => '0000',
+            "desc"  => 'Success',
             "balance" => $creditMember,
             "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
           ];
@@ -725,6 +726,7 @@ class GameHallController extends Controller
             $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
             $data = [
               "status" => '0000',
+              "desc"  => 'Success',
               "balance" => $balanceUpdate->credit,
               "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
             ];
