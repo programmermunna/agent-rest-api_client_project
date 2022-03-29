@@ -8,6 +8,7 @@ use App\Models\MembersModel;
 use App\Models\BetModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class GameHallController extends Controller
 {
@@ -112,6 +113,7 @@ class GameHallController extends Controller
     // call betInformation
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
+//        Log::info($tokenRaw);
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $amountbet = $tokenRaw->betAmount;
       $creditMember = $member->credit;
@@ -128,8 +130,8 @@ class GameHallController extends Controller
         // check if bet already exist
         // $afterCancelBet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
         //   ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
-        
-        if ($tokenRaw->action == "cancelBet") {
+
+        if ($token->data->action == "cancelBet") {
           return [
             "status" => '0000',
             "balance" => intval($creditMember),
@@ -228,7 +230,7 @@ class GameHallController extends Controller
                         ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
           MembersModel::where('id', $tokenRaw->userId)->update([
               'credit' => $creditMember + $betAfterCancel->bet
-          ]);        
+          ]);
           $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
           $data = [
             "status" => '0000',
@@ -670,7 +672,7 @@ class GameHallController extends Controller
             "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
           );
         }
-      }      
+      }
     }
     $member =  MembersModel::where('id', $tokenRaw->userId)->first();
     return [
@@ -812,7 +814,7 @@ class GameHallController extends Controller
         ];
       }
 
-      // Prevent if bet already deducted 
+      // Prevent if bet already deducted
       if ($bets->type === 'Cancel') {
         return [
           "status" => '0000',
