@@ -734,6 +734,7 @@ class GameHallController extends Controller
           } else {
             $data = [
               "status" => '0000',
+              "desc"  => 'Success',
               "balance" => $creditMember,
               "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
             ];
