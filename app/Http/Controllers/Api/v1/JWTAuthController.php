@@ -285,7 +285,7 @@ class JWTAuthController extends ApiController
                 $member = MembersModel::where('id', auth('api')->user()->id)->first();
                 $member->update(['is_next_deposit' => 1]);
             } elseif ($cekKondisi > 2 && $cekKondisi <= 3) {
-                $member = MembersModel::where('id', auth('api')->user()->id->id)->first();
+                $member = MembersModel::where('id', auth('api')->user()->id)->first();
                 $member->update(['is_next_deposit' => 0]);
             }
             // $lastWin = BetModel::join('members', 'members.id', '=', 'bets.created_by')
