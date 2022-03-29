@@ -38,6 +38,11 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::post('/change-password', 'JWTAuthController@changePassword');
         Route::get('/bonus-referal', 'MemberController@bonusReferal');
 
+        // Probation        
+        Route::post('/updateAccount', 'JWTAuthController@probationUpdateAccount');
+        Route::post('/deleteAccount', 'JWTAuthController@probationDeleteAccount');
+        Route::get('/accountList', 'JWTAuthController@probationAccountList');
+
         // Deposit
         Route::post('/deposit/create', 'DepositController@create');
 

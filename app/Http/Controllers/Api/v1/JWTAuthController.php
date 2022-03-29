@@ -113,7 +113,7 @@ class JWTAuthController extends ApiController
     public function getAuthenticatedMember()
     {
         try {
-            $member = auth('api')->user();
+            $member = auth('api')->user()->id;
             if (! $member) {
                 return $this->errorResponse('Member not found', 404);
             } 
@@ -132,7 +132,7 @@ class JWTAuthController extends ApiController
     {
         try {
             
-            $id = auth('api')->user()->id;
+            $id = auth('api')->user()->id->id;
             $lastBet = DB::select("
                             SELECT
                                 bets.bet,
@@ -166,11 +166,11 @@ class JWTAuthController extends ApiController
             //     'bets.created_at',
             //     'bets.created_by',
             // ])->where('bets.type', 'Lose')
-            // ->where('bets.created_by', auth('api')->user()->id)
+            // ->where('bets.created_by', auth('api')->user()->id->id)
             // ->latest()
             // ->limit(1)->first();
 
-            // $getMember = MembersModel::where('id', auth('api')->user()->id)->select('is_cash')->first();
+            // $getMember = MembersModel::where('id', auth('api')->user()->id->id)->select('is_cash')->first();
             // $dt = Carbon::now();
 
             // if ($dt->dayOfWeek == Carbon::MONDAY && $getMember->is_cash === 0) {
@@ -183,7 +183,7 @@ class JWTAuthController extends ApiController
             //         DB::raw("(sum(bets.win)) - (sum(bets.bet)) as Balance"),
             //     )
             //         ->where('bets.created_at', '>=', $date)
-            //         ->where('bets.created_by', auth('api')->user()->id)
+            //         ->where('bets.created_by', auth('api')->user()->id->id)
             //         ->groupBy('bets.created_by')->first();
             //     if (is_null($cbMember) && is_null($enableCashback)) {
             //         return $this->successResponse(null, 'Belum Pernah Melakukan Betting', 200);
@@ -256,7 +256,7 @@ class JWTAuthController extends ApiController
 
             // #update is_cash to be 0
             // if ($dt->dayOfWeek == Carbon::SUNDAY) {
-            //     $member = MembersModel::where('id', auth('api')->user()->id);
+            //     $member = MembersModel::where('id', auth('api')->user()->id->id);
             //     $member->update([
             //         'is_cash' => 0,
             //     ]);
@@ -276,16 +276,16 @@ class JWTAuthController extends ApiController
     {
         try {
             $cekKondisi = DepositModel::where('approval_status', 1)
-                ->where('created_by', auth('api')->user()->id)
+                ->where('created_by', auth('api')->user()->id->id)
                 ->orderBy('approval_status_at', 'asc')->count();
             // dd($cekKondisi);
             if (is_null($cekKondisi)) {
                 'no data';
             } elseif ($cekKondisi >= 0 && $cekKondisi <= 2) {
-                $member = MembersModel::where('id', auth('api')->user()->id)->first();
+                $member = MembersModel::where('id', auth('api')->user()->id->id)->first();
                 $member->update(['is_next_deposit' => 1]);
             } elseif ($cekKondisi > 2 && $cekKondisi <= 3) {
-                $member = MembersModel::where('id', auth('api')->user()->id)->first();
+                $member = MembersModel::where('id', auth('api')->user()->id->id)->first();
                 $member->update(['is_next_deposit' => 0]);
             }
             // $lastWin = BetModel::join('members', 'members.id', '=', 'bets.created_by')
@@ -295,10 +295,10 @@ class JWTAuthController extends ApiController
             //     'bets.created_by',
 
             // ])->where('bets.type', 'Win')
-            // ->where('bets.created_by', auth('api')->user()->id)
+            // ->where('bets.created_by', auth('api')->user()->id->id)
             // ->latest()
             // ->limit(1)->get();
-            $id = auth('api')->user()->id;
+            $id = auth('api')->user()->id->id;
             $lastWin = DB::select("
                             SELECT
                                 bets.win,
@@ -359,7 +359,7 @@ class JWTAuthController extends ApiController
                 'constant_provider.constant_provider_name',
             ])
             ->orderBy('bets.created_at', 'desc')
-            ->where('bets.created_by', auth('api')->user()->id)
+            ->where('bets.created_by', auth('api')->user()->id->id)
             ->where('bets.created_at', '>=', $date);
             $this->history = $history->get()->toArray();
             $arrHistory = $this->paginate($this->history, $this->perPage);
@@ -378,7 +378,7 @@ class JWTAuthController extends ApiController
         $token = $request->header('Authorization');
 
         try {
-            $user = auth('api')->user();
+            $user = auth('api')->user()->id;
             JWTAuth::parseToken()->invalidate($token);
 
             UserLogModel::logMemberActivity(
@@ -391,7 +391,7 @@ class JWTAuthController extends ApiController
                 ],
                 'Successfully'
             );
-            auth('api')->user()->update([
+            auth('api')->user()->id->update([
                 'last_login_ip' => $request->ip,
             ]);
 
@@ -428,7 +428,7 @@ class JWTAuthController extends ApiController
             'token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL(),
-            // 'member' => auth('api')->user(),
+            // 'member' => auth('api')->user()->id,
         ]);
     }
 
@@ -661,10 +661,10 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
             }
 
-            if (Hash::check($request->old_password, auth('api')->user()->password)) {
-                MembersModel::find(auth('api')->user()->id)->update(['password' => bcrypt($request->new_password)]);
+            if (Hash::check($request->old_password, auth('api')->user()->id->password)) {
+                MembersModel::find(auth('api')->user()->id->id)->update(['password' => bcrypt($request->new_password)]);
 
-                $user = auth('api')->user();
+                $user = auth('api')->user()->id;
                 UserLogModel::logMemberActivity(
                     'Password Change',
                     $user,
@@ -675,7 +675,7 @@ class JWTAuthController extends ApiController
                     ],
                     'Berhasil Ganti Password.'
                 );
-                auth('api')->user()->update([
+                auth('api')->user()->id->update([
                     'last_login_ip' => $request->ip,
                 ]);
 
@@ -695,5 +695,103 @@ class JWTAuthController extends ApiController
         $items = $items instanceof Collection ? $items : Collection::make($items);
 
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
+    }
+
+    //probation
+    public function probationUpdateAccount(Request $request)
+    {
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                [
+                    'id' => 'required|integer',
+                    'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
+                    'email' => 'required|email|max:100|unique:members',
+                    'password' => 'required|min:6|regex:/^\S*$/u',
+                    'bank_name' => 'required',
+                    'account_number' => 'required',
+                    'account_name' => 'required',
+                    'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
+                ],
+                [
+                    'password.required' => 'Password cannot be empty.',
+                    'password.min' => 'Password must be at least 6 characters.',
+                    'password.regex' => 'Password cannot use spaces.',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return $this->errorResponse($validator->errors()->first(), 400);
+            }
+
+            $checkUser = MembersModel::find($request->id);
+            // dd($checkUser);
+            if ($checkUser == null) {
+                return $this->errorResponse('User does not exist', 400);
+            }
+
+            $referal = MembersModel::where('username', $request->referral)->first();
+            $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
+            $checkUser->update([
+                        'username' => $request->username,
+                        'email' => $request->email,
+                        'password' => bcrypt($request->password),
+                        'referrer_id' => $referal == null ? "" : $referal->id,
+                        'phone' => $request->phone,
+                    ]);              
+            $rekMember = RekMemberModel::where('created_by', $request->id)->update([
+                    'rekening_id' => $rekeningDepoMember->id,
+                    'constant_rekening_id' => $request->bank_name,
+                    'nomor_rekening' => $request->account_number,
+                    'nama_rekening' => $request->account_name,
+                ]);
+            return $this->successResponse(null, 'Member successfully updated', 201);
+            
+        } catch (\Throwable $th) {
+            return $this->errorResponse($th->getMessage(), 500);
+        }
+    }
+
+    public function probationDeleteAccount(Request $request)
+    {
+        try {
+            $checkUser = MembersModel::find($request->id);
+            if (is_null($checkUser)) {
+                return $this->errorResponse('User does not exist', 400);
+            }
+            $user = $checkUser->id;
+            $member = MembersModel::find($user);
+            if($member){
+                $rekMember = RekMemberModel::find($member->rek_member_id);
+                $member->delete();
+                $rekMember->delete();
+                return $this->successResponse(null, 'account deleted successfully', 200);
+            }
+            return $this->errorResponse('account not found!', 400);
+        } catch (\Throwable $th) {
+            return $this->errorResponse($th->getMessage(), 500);
+        }
+    }
+
+    public function probationAccountList()
+    {
+        try {
+            $members = MembersModel::leftJoin('rek_member as a', 'a.id', '=', 'members.rek_member_id')
+            ->leftJoin('constant_rekening as b', 'b.id', '=', 'a.constant_rekening_id')
+            ->select(
+                'members.username',
+                'members.phone',
+                'members.email',
+                'b.name as name_bank',
+                'a.nama_rekening',
+                'a.nomor_rekening'
+            )->where('members.id', '>=', 50)->get()->toArray();
+            if ($members) {
+                return $this->successResponse($members, 'account list successfully displayed', 200);
+            }
+            return $this->successResponse('account list does not exist', 200);
+        } catch (\Throwable $th) {
+            return $this->errorResponse($th->getMessage(), 500);
+        }
     }
 }
