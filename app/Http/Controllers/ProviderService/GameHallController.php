@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\ProviderService;
 
 use App\Http\Controllers\Controller;
+use App\Models\ConstantProvider;
 use Firebase\JWT\JWT;
 use App\Models\MembersModel;
 use App\Models\BetModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class GameHallController extends Controller
 {
@@ -68,9 +70,10 @@ class GameHallController extends Controller
         return $this->AdjustBet();
         break;
 
-      case 'adjustBet':
-        return $this->AdjustBet();
-        break;
+        //this is duplicated
+//      case 'adjustBet':
+//        return $this->AdjustBet();
+//        break;
 
       case 'voidBet':
         return $this->VoidBet();
@@ -116,6 +119,7 @@ class GameHallController extends Controller
     // call betInformation
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
+//        Log::info($tokenRaw);
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $amountbet = $tokenRaw->betAmount;
       $creditMember = $member->credit;
@@ -132,8 +136,8 @@ class GameHallController extends Controller
         // check if bet already exist
         // $afterCancelBet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
         //   ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
-        
-        if ($tokenRaw->action == "cancelBet") {
+
+        if ($token->data->action === "cancelBet") {
           return [
             "status" => '0000',
             "balance" => intval($creditMember),
@@ -145,7 +149,9 @@ class GameHallController extends Controller
             'credit' => $amount,
             'updated_at' => $tokenRaw->betTime,
           ]);
-          $bets = BetModel::create([
+          //creates from provider
+            $provider = ConstantProvider::firstOrCreate(['id' => 7]);
+          $bets = $provider->bets()->create([
             'platform'  => $tokenRaw->platform,
             'created_by' => $tokenRaw->userId,
             'updated_by' => $tokenRaw->userId,
@@ -157,7 +163,7 @@ class GameHallController extends Controller
             'game' => $tokenRaw->gameName,
             'bet' => $amountbet,
             'created_at' => $tokenRaw->betTime,
-            'constant_provider_id' => 7,
+//            'constant_provider_id' => 7,
             'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
           ]);
 
@@ -232,7 +238,7 @@ class GameHallController extends Controller
                         ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
           MembersModel::where('id', $tokenRaw->userId)->update([
               'credit' => $creditMember + $betAfterCancel->bet
-          ]);        
+          ]);
           $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
           $data = [
             "status" => '0000',
@@ -674,7 +680,7 @@ class GameHallController extends Controller
             "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
           );
         }
-      }      
+      }
     }
     $member =  MembersModel::where('id', $tokenRaw->userId)->first();
     return [
@@ -696,7 +702,7 @@ class GameHallController extends Controller
         $creditMember = $member->credit;
         $cancelTip = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
               ->where('platform', $tokenRaw->platform)->where('type', 'Cancel_tip')->first();
-  
+
         if ($cancelTip) {
           $data = [
             "status" => '0000',
@@ -719,10 +725,10 @@ class GameHallController extends Controller
             //update balance member
             $tipAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
                           ->where('platform', $tokenRaw->platform)->where('type', 'Cancel_tip')->first();
-  
+
             MembersModel::where('id', $tokenRaw->userId)->update([
                 'credit' => $creditMember + $tipAfterCancel->bet
-            ]);        
+            ]);
             $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
             $data = [
               "status" => '0000',
@@ -855,7 +861,7 @@ class GameHallController extends Controller
         ];
       }
 
-      // Prevent if bet already deducted 
+      // Prevent if bet already deducted
       if ($bets->type === 'Cancel') {
         return [
           "status" => '0000',

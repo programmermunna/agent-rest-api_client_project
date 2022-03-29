@@ -50,4 +50,9 @@ class ConstantProvider extends Model
         'deleted_by',
         'deleted_at',
     ];
+
+    public function bets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(BetModel::class, 'constant_provider_id');
+    }
 }
