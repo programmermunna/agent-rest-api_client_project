@@ -697,7 +697,165 @@ class JWTAuthController extends ApiController
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
 
-    //probation
+    // funcrion  probation
+    public function probationLogin(Request $request)
+    {
+        $input = $request->all();
+
+        $fieldType = filter_var($request->user_account, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        if ($fieldType == 'email') {
+            $validator = Validator::make($request->all(), [
+                'user_account' => 'required|email',
+                'password' => 'required',
+            ]);
+        } else {
+            $validator = Validator::make($request->all(), [
+                'user_account' => 'required',
+                'password' => 'required',
+            ]);
+        }
+
+        if ($validator->fails()) {
+            return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+        }
+
+        $member = MembersModel::where('email', $input['user_account'])
+                                ->orWhere('username', $input['user_account'])
+                                ->first();
+
+        if ($member) {
+            if ($member->status == 0){
+                return $this->errorResponse('Member has been banned', 401);
+            } elseif ($member->status == 2){
+                return $this->errorResponse('Member has been suspend', 401);
+            } elseif ($member->status == 1){
+                $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
+            }
+
+            \Config::set('auth.defaults.guard', 'api');
+
+            try {
+                $token = auth('api')->attempt($credentials);
+                if (! $token) {
+                    return $this->errorResponse('Password is wrong', 401);
+                }
+            } catch (JWTException $e) {
+                return $this->errorResponse('Could not create token', 500);
+            }
+
+        } else {
+            return $this->errorResponse('Username not found', 401);
+        }       
+
+        return $this->createNewToken($token);
+    }
+
+    public function probationRegister(Request $request)
+    {
+
+        $date = Carbon::now();
+
+        if ($request->has('ref')) {
+            session(['referrer' => $request->query('ref')]);
+        }
+
+        try {
+            $validator = Validator::make(
+                $request->all(),
+                [
+            'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
+            'email' => 'required|email|max:100|unique:members',
+            'password' => 'required|min:6|regex:/^\S*$/u',
+            'bank_name' => 'required',
+            'account_number' => 'required',
+            'account_name' => 'required',
+            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
+            ],
+                [
+                'password.required' => 'Password tidak boleh kosong.',
+                'password.min' => 'Password harus minimal 6 karakter.',
+                'password.regex' => 'Password tidak boleh menggunakan spasi.',
+            ]
+            );
+
+            if ($validator->fails()) {
+                return $this->errorResponse($validator->errors()->first(), 400);
+            }
+
+            $referal = MembersModel::where('username', $request->referral)->first();
+            $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
+
+            // check no rekening
+            $noRekArray = RekeningModel::pluck('nomor_rekening')->toArray();
+            $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
+            $noRekArrays = array_merge($noRekArray, $noMemberArray);
+            if (in_array($request->account_number, $noRekArrays)) {
+                return $this->errorResponse('Nomor rekening yang anda masukkan telah digunakan', 400);
+            }
+            if (is_null($referal)) {
+                $user = MembersModel::create([
+                    'username' => $request->username,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                    'phone' => $request->phone,
+                    'bonus_referal' => 0,
+                ]);
+                $rekMember = RekMemberModel::create([
+                    'username_member' => $request->username,
+                    'rekening_id' => $rekeningDepoMember->id,
+                    'constant_rekening_id' => $request->bank_name,
+                    'nomor_rekening' => $request->account_number,
+                    'nama_rekening' => $request->account_name,
+                    'is_depo' => 1,
+                    'is_default' => 1,
+                    'is_wd' => 1,
+                    'created_by' => $user->id,
+                ]);
+                MembersModel::where('username', $request->username)
+                    ->update([
+                        'rek_member_id' => $rekMember->id,
+                    ]);
+                TurnoverModel::create([
+                    'created_by' => $user->id,
+                ]);
+            } else {
+                $user = MembersModel::create([
+                    'username' => $request->username,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                    'referrer_id' => $referal->id,
+                    'phone' => $request->phone,
+                    'bonus_referal' => 0,
+                    'rekening_tujuan_depo_id' => null,
+                ]);
+                $rekMember = RekMemberModel::create([
+                    'username_member' => $request->username,
+                    'rekening_id' => $rekeningDepoMember->id,
+                    'constant_rekening_id' => $request->bank_name,
+                    'nomor_rekening' => $request->account_number,
+                    'nama_rekening' => $request->account_name,
+                    'is_depo' => 1,
+                    'is_default' => 1,
+                    'is_wd' => 1,
+                    'created_by' => $user->id,
+                ]);
+                MembersModel::where('username', $request->username)
+                    ->update([
+                        'rek_member_id' => $rekMember->id,
+                ]);
+                TurnoverModel::create([
+                    'created_by' => $user->id,
+                ]);
+            }            
+
+            return $this->successResponse(null, 'Member successfully registered.', 201);
+            
+        } catch (\Throwable $th) {
+            return $this->errorResponse($th->getMessage(), 500);
+        }
+    }
+
     public function probationUpdateAccount(Request $request)
     {
         try {
@@ -725,7 +883,6 @@ class JWTAuthController extends ApiController
             }
 
             $checkUser = MembersModel::find($request->id);
-            // dd($checkUser);
             if ($checkUser == null) {
                 return $this->errorResponse('User does not exist', 400);
             }
@@ -776,16 +933,21 @@ class JWTAuthController extends ApiController
     public function probationAccountList()
     {
         try {
-            $members = MembersModel::leftJoin('rek_member as a', 'a.id', '=', 'members.rek_member_id')
-            ->leftJoin('constant_rekening as b', 'b.id', '=', 'a.constant_rekening_id')
-            ->select(
-                'members.username',
-                'members.phone',
-                'members.email',
-                'b.name as name_bank',
-                'a.nama_rekening',
-                'a.nomor_rekening'
-            )->where('members.id', '>=', 50)->get()->toArray();
+            $members = DB::select('SELECT
+                    members.id,
+                    members.username,
+                    members.phone,
+                    members.email,
+                    b.name as name_bank,
+                    a.nama_rekening,
+                    a.nomor_rekening
+                FROM
+                    members
+                    left join rek_member as a on a.id = members.rek_member_id
+                    left join constant_rekening as b on b.id = a.constant_rekening_id
+                WHERE
+                    members.id >= 50
+                    and members.deleted_at is null');
             if ($members) {
                 return $this->successResponse($members, 'account list successfully displayed', 200);
             }

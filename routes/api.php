@@ -25,6 +25,10 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
     Route::post('/member/login', 'JWTAuthController@authenticate');
     Route::post('/member/register', 'JWTAuthController@register')->name('registerJwt');
 
+    // probation login and register
+    Route::post('/login', 'JWTAuthController@probationLogin');
+    Route::post('/register', 'JWTAuthController@probationRegister');
+
     Route::group(['middleware' => ['jwt.verify'], 'prefix' => 'member'], function () {
         Route::get('/history_by_type', 'MemberController@historyAll');
         // Member
