@@ -113,7 +113,7 @@ class JWTAuthController extends ApiController
     public function getAuthenticatedMember()
     {
         try {
-            $member = auth('api')->user()->id;
+            $member = auth('api')->user();
             if (! $member) {
                 return $this->errorResponse('Member not found', 404);
             } 
@@ -132,7 +132,7 @@ class JWTAuthController extends ApiController
     {
         try {
             
-            $id = auth('api')->user()->id->id;
+            $id = auth('api')->user()->id;
             $lastBet = DB::select("
                             SELECT
                                 bets.bet,
@@ -166,11 +166,11 @@ class JWTAuthController extends ApiController
             //     'bets.created_at',
             //     'bets.created_by',
             // ])->where('bets.type', 'Lose')
-            // ->where('bets.created_by', auth('api')->user()->id->id)
+            // ->where('bets.created_by', auth('api')->user()->id)
             // ->latest()
             // ->limit(1)->first();
 
-            // $getMember = MembersModel::where('id', auth('api')->user()->id->id)->select('is_cash')->first();
+            // $getMember = MembersModel::where('id', auth('api')->user()->id)->select('is_cash')->first();
             // $dt = Carbon::now();
 
             // if ($dt->dayOfWeek == Carbon::MONDAY && $getMember->is_cash === 0) {
@@ -183,7 +183,7 @@ class JWTAuthController extends ApiController
             //         DB::raw("(sum(bets.win)) - (sum(bets.bet)) as Balance"),
             //     )
             //         ->where('bets.created_at', '>=', $date)
-            //         ->where('bets.created_by', auth('api')->user()->id->id)
+            //         ->where('bets.created_by', auth('api')->user()->id)
             //         ->groupBy('bets.created_by')->first();
             //     if (is_null($cbMember) && is_null($enableCashback)) {
             //         return $this->successResponse(null, 'Belum Pernah Melakukan Betting', 200);
@@ -256,7 +256,7 @@ class JWTAuthController extends ApiController
 
             // #update is_cash to be 0
             // if ($dt->dayOfWeek == Carbon::SUNDAY) {
-            //     $member = MembersModel::where('id', auth('api')->user()->id->id);
+            //     $member = MembersModel::where('id', auth('api')->user()->id);
             //     $member->update([
             //         'is_cash' => 0,
             //     ]);
@@ -276,13 +276,13 @@ class JWTAuthController extends ApiController
     {
         try {
             $cekKondisi = DepositModel::where('approval_status', 1)
-                ->where('created_by', auth('api')->user()->id->id)
+                ->where('created_by', auth('api')->user()->id)
                 ->orderBy('approval_status_at', 'asc')->count();
             // dd($cekKondisi);
             if (is_null($cekKondisi)) {
                 'no data';
             } elseif ($cekKondisi >= 0 && $cekKondisi <= 2) {
-                $member = MembersModel::where('id', auth('api')->user()->id->id)->first();
+                $member = MembersModel::where('id', auth('api')->user()->id)->first();
                 $member->update(['is_next_deposit' => 1]);
             } elseif ($cekKondisi > 2 && $cekKondisi <= 3) {
                 $member = MembersModel::where('id', auth('api')->user()->id->id)->first();
@@ -295,10 +295,10 @@ class JWTAuthController extends ApiController
             //     'bets.created_by',
 
             // ])->where('bets.type', 'Win')
-            // ->where('bets.created_by', auth('api')->user()->id->id)
+            // ->where('bets.created_by', auth('api')->user()->id)
             // ->latest()
             // ->limit(1)->get();
-            $id = auth('api')->user()->id->id;
+            $id = auth('api')->user()->id;
             $lastWin = DB::select("
                             SELECT
                                 bets.win,
@@ -359,7 +359,7 @@ class JWTAuthController extends ApiController
                 'constant_provider.constant_provider_name',
             ])
             ->orderBy('bets.created_at', 'desc')
-            ->where('bets.created_by', auth('api')->user()->id->id)
+            ->where('bets.created_by', auth('api')->user()->id)
             ->where('bets.created_at', '>=', $date);
             $this->history = $history->get()->toArray();
             $arrHistory = $this->paginate($this->history, $this->perPage);
@@ -378,7 +378,7 @@ class JWTAuthController extends ApiController
         $token = $request->header('Authorization');
 
         try {
-            $user = auth('api')->user()->id;
+            $user = auth('api')->user();
             JWTAuth::parseToken()->invalidate($token);
 
             UserLogModel::logMemberActivity(
@@ -391,7 +391,7 @@ class JWTAuthController extends ApiController
                 ],
                 'Successfully'
             );
-            auth('api')->user()->id->update([
+            auth('api')->user()->update([
                 'last_login_ip' => $request->ip,
             ]);
 
@@ -428,7 +428,7 @@ class JWTAuthController extends ApiController
             'token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL(),
-            // 'member' => auth('api')->user()->id,
+            // 'member' => auth('api')->user(),
         ]);
     }
 
@@ -661,10 +661,10 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
             }
 
-            if (Hash::check($request->old_password, auth('api')->user()->id->password)) {
-                MembersModel::find(auth('api')->user()->id->id)->update(['password' => bcrypt($request->new_password)]);
+            if (Hash::check($request->old_password, auth('api')->user()->password)) {
+                MembersModel::find(auth('api')->user()->id)->update(['password' => bcrypt($request->new_password)]);
 
-                $user = auth('api')->user()->id;
+                $user = auth('api')->user();
                 UserLogModel::logMemberActivity(
                     'Password Change',
                     $user,
@@ -675,7 +675,7 @@ class JWTAuthController extends ApiController
                     ],
                     'Berhasil Ganti Password.'
                 );
-                auth('api')->user()->id->update([
+                auth('api')->user()->update([
                     'last_login_ip' => $request->ip,
                 ]);
 
