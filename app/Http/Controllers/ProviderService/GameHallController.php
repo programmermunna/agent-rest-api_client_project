@@ -138,9 +138,9 @@ class GameHallController extends Controller
           ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->first();
 
         $cancelBet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
-          ->where('platform', $tokenRaw->platform)->first();
+          ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
 
-        if ($token->data->action === "cancelBet" || $bet || $cancelBet->type === 'Cancel') {
+        if ($token->data->action === "cancelBet" || $bet || $cancelBet) {
           return [
             "status" => '0000',
             "balance" => intval($creditMember),
