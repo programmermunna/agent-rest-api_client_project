@@ -645,13 +645,14 @@ class GameHallController extends Controller
           "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ]);
       } else {
-        $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
-        if ($bets) {
+        $tipAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                        ->where('type', 'Cancel_tip')->first();
+        if ($tipAfterCancel) {
           return response()->json([
-            "status" => '1038',
-            "desc"  => 'Duplicate transaction',
+            "status" => '0000',
+            "desc"  => 'Success',
             "balance" => $creditMember,
-            "balanceTs"   =>  Carbon::parse($bets->created_at)->format("Y-m-d\TH:i:s.vP")
+            "balanceTs"   =>  Carbon::parse($tipAfterCancel->created_at)->format("Y-m-d\TH:i:s.vP")
           ]);
         } else {
           // update credit to table member
@@ -748,7 +749,21 @@ class GameHallController extends Controller
               "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
             ];
             $datas = $data;
-          } else {
+          } else {      
+            
+            BetModel::create([
+              'platform'  => $tokenRaw->platform,
+              'created_by' => $tokenRaw->userId,
+              'bet_id' => $tokenRaw->platformTxId,
+              'game_info' => 'live_casino',
+              'game_id' => $tokenRaw->gameCode,
+              'type' => 'Cancel_tip',
+              'game' => $tokenRaw->gameName,
+              'bet' => 0,
+              'created_at' => now(),
+              'constant_provider_id' => 7,
+              'deskripsi' => 'Cancel tip before place bet',
+            ]);
             $data = [
               "status" => '0000',
               "desc"  => 'Success',
