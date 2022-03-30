@@ -133,7 +133,8 @@ class GameHallController extends Controller
         ]);
       } else {
         // check if bet already exist
-        $betAfterCancel = BetModel::orderBy('id', 'DESC')->where('type', 'Cancel')->first();
+        $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                        ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
         
         if ($betAfterCancel) {
           return [
@@ -210,25 +211,6 @@ class GameHallController extends Controller
     foreach ($token->data->txns as $tokenRaw) {
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $creditMember = $member->credit;
-
-      // check bet_id
-      $betId = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)->first();
-      if (!$betId) {
-        $bets = BetModel::create([
-          'platform'  => $tokenRaw->platform,
-          'created_by' => $tokenRaw->userId,
-          'bet_id' => $tokenRaw->platformTxId,
-          'game_info' => 'live_casino',
-          'game_id' => $tokenRaw->gameCode,
-          'round_id' => $tokenRaw->roundId,
-          'type' => 'Cancel',
-          'bet' => 0,
-          'created_at' => Carbon::now()->format("Y-m-d\TH:i:s.vP"),
-          'constant_provider_id' => 7,
-          'deskripsi' => 'Cancel bet befor place bet' ,
-        ]); 
-      }
-
       $bet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
             ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
       if ($bet) {
@@ -263,6 +245,19 @@ class GameHallController extends Controller
           ];
           $datas = $data;
         } else {
+          $bets = BetModel::create([
+            'platform'  => $tokenRaw->platform,
+            'created_by' => $tokenRaw->userId,
+            'bet_id' => $tokenRaw->platformTxId,
+            'game_info' => 'live_casino',
+            'game_id' => $tokenRaw->gameCode,
+            'round_id' => $tokenRaw->roundId,
+            'type' => 'Cancel',
+            'bet' => 0,
+            'created_at' => Carbon::now()->format("Y-m-d\TH:i:s.vP"),
+            'constant_provider_id' => 7,
+            'deskripsi' => 'Cancel bet befor place bet' ,
+          ]);
           $data = [
             "status" => '0000',
             "balance" => $creditMember,
