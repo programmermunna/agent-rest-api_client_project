@@ -133,10 +133,10 @@ class GameHallController extends Controller
         ]);
       } else {
         // check if bet already exist
-        // $afterCancelBet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
-        //   ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
+        $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+          ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
         
-        if ($tokenRaw->action == "cancelBet") {
+        if ($betAfterCancel) {
           return [
             "status" => '0000',
             "balance" => intval($creditMember),
@@ -148,6 +148,7 @@ class GameHallController extends Controller
             'credit' => $amount,
             'updated_at' => $tokenRaw->betTime,
           ]);
+          
           $bets = BetModel::create([
             'platform'  => $tokenRaw->platform,
             'created_by' => $tokenRaw->userId,
@@ -210,6 +211,7 @@ class GameHallController extends Controller
     foreach ($token->data->txns as $tokenRaw) {
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $creditMember = $member->credit;
+
       $bet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
             ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
       if ($bet) {
