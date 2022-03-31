@@ -135,7 +135,7 @@ class GameHallController extends Controller
         // check if bet already exist
         $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
                         ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
-        
+
         if ($betAfterCancel) {
           return [
             "status" => '0000',
@@ -444,7 +444,7 @@ class GameHallController extends Controller
         $amountWin = $tokenRaw->winAmount;
         $creditMember = $member->credit;
         $amount = $creditMember + $amountWin;
-        
+
         // update credit to table member
         $member->update([
           'credit' => $amount,
@@ -470,7 +470,7 @@ class GameHallController extends Controller
         }
       }
     }
-    
+
     return [
       "status" => '0000',
       "balance" => $amount,
@@ -589,19 +589,19 @@ class GameHallController extends Controller
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-      $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
-        ->where('platform', $tokenRaw->platform)
+      $bets = BetModel::where('platform', $tokenRaw->platform)
         ->first();
-
-      $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-        ->leftJoin('members', 'members.id', '=', 'bets.created_by')
-        ->where('bets.id', $bets->id)->first();
 
       if ($bets == null) {
         return [
           "status" => '0000',
         ];
       } else {
+
+          $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+              ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+              ->where('bets.id', $bets->id)->first();
+
         $bonusAmount = $tokenRaw->amount;
         $creditMember = $member->credit;
         $amount = $creditMember + $bonusAmount;
@@ -750,8 +750,8 @@ class GameHallController extends Controller
               "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
             ];
             $datas = $data;
-          } else {      
-            
+          } else {
+
             BetModel::create([
               'platform'  => $tokenRaw->platform,
               'created_by' => $tokenRaw->userId,
