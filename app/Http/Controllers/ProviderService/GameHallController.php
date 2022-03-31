@@ -458,6 +458,7 @@ class GameHallController extends Controller
             'deskripsi' => 'Game Bet/Lose' . ' : ' . $tokenRaw->betAmount,
             'updated_at' => $tokenRaw->updateTime,
             'created_at' => $tokenRaw->betTime,
+            'credit' => $amount
           ]);
         } else {
           $bets->update([
@@ -466,6 +467,7 @@ class GameHallController extends Controller
             'deskripsi' => 'Game win' . ' : ' . $amountWin,
             'updated_at' => $tokenRaw->updateTime,
             'created_at' => $tokenRaw->betTime,
+            'credit' => $amount
           ]);
         }
       }
