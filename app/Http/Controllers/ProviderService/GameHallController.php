@@ -652,7 +652,7 @@ class GameHallController extends Controller
             "status" => '0000',
             "desc"  => 'Success',
             "balance" => $creditMember,
-            "balanceTs"   =>  Carbon::parse($tipAfterCancel->created_at)->format("Y-m-d\TH:i:s.vP")
+            "balanceTs"   =>  Carbon::now()->format("Y-m-d\TH:i:s.vP")
           ]);
         } else {
           // update credit to table member
