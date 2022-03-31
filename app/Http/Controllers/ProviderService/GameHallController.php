@@ -421,7 +421,6 @@ class GameHallController extends Controller
       "balanceTs"   => now()
     ];
   }
-
   public function Settle()
   {
     // call betInformation
@@ -434,6 +433,7 @@ class GameHallController extends Controller
         ->first();
 
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+
       if ($bets == null) {
         return [
           "status" => '0000',
@@ -441,35 +441,36 @@ class GameHallController extends Controller
           "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
         ];
       } else {
-
         $amountWin = $tokenRaw->winAmount;
         $creditMember = $member->credit;
         $amount = $creditMember + $amountWin;
+        
         // update credit to table member
         $member->update([
           'credit' => $amount,
           'updated_at' => $tokenRaw->betTime,
         ]);
 
-        // check win / lose
-        if ($tokenRaw->winAmount == 0) {
+        // check win / lose (settle)
+        if ($tokenRaw->winAmount <= 0) {
           $bets->update([
             'type' => 'Settle',
-            'created_at' => $tokenRaw->betTime,
-            'updated_at' => $tokenRaw->updateTime,
             'deskripsi' => 'Game Bet/Lose' . ' : ' . $tokenRaw->betAmount,
+            'updated_at' => $tokenRaw->updateTime,
+            'created_at' => $tokenRaw->betTime,
           ]);
         } else {
           $bets->update([
             'type' => 'Settle',
             'win' => $amountWin,
-            'created_at' => $tokenRaw->betTime,
-            'updated_at' => $tokenRaw->updateTime,
             'deskripsi' => 'Game win' . ' : ' . $amountWin,
+            'updated_at' => $tokenRaw->updateTime,
+            'created_at' => $tokenRaw->betTime,
           ]);
         }
       }
     }
+    
     return [
       "status" => '0000',
       "balance" => $amount,
