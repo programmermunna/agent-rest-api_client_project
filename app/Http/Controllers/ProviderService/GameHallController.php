@@ -120,6 +120,7 @@ class GameHallController extends Controller
   {
     // call betInformation
     $token = $this->betInformation();
+    $datas;
     foreach ($token->data->txns as $tokenRaw) {
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
       $amountbet = $tokenRaw->betAmount;
@@ -139,11 +140,12 @@ class GameHallController extends Controller
                         ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
 
         if ($betAfterCancel) {
-          return [
+          $data = [
             "status" => '0000',
             "balance" => intval($creditMember),
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
           ];
+          $datas = $data;
         } else {
           // update credit to table member
           $member->update([
@@ -186,16 +188,16 @@ class GameHallController extends Controller
             "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
           );
 
-          BetModel::where('game_id', $tokenRaw->gameCode)->first();
+          $data = [
+            "status" => '0000',
+            "balance" => intval($amount),
+            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+          ];
+          $datas = $data;
         }
       }
     }
-    $balance =  MembersModel::where('id', $tokenRaw->userId)->first();
-    return [
-      "status" => '0000',
-      "balance" => intval($balance->credit),
-      "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
-    ];
+    return response()->json($datas, 200);
   }
 
   // Get the information of the user
