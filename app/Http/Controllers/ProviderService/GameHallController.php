@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\ProviderService;
 
 use App\Http\Controllers\Controller;
+use App\Models\BonusModel;
 use App\Models\ConstantProvider;
+use App\Models\UploadBonusModel;
 use Firebase\JWT\JWT;
 use App\Models\MembersModel;
 use App\Models\BetModel;
@@ -590,19 +592,28 @@ class GameHallController extends Controller
     // @todo Need Changes or Waiting For UAT
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
-      $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-      $bets = BetModel::where('platform', $tokenRaw->platform)
-        ->first();
 
-      if ($bets == null) {
-        return [
-          "status" => '0000',
-        ];
+      // trims user id with strings on them e.g. 45pti
+      $trimmedUserId = preg_replace("/[^0-9]/", "", $tokenRaw->userId );
+
+      $member =  MembersModel::where('id', $trimmedUserId)->first()->setAppends([]);
+      $member = $member->makeHidden(['referral_link']);
+//      $bets = BetModel::where('platform', $tokenRaw->platform)
+//        ->first();
+
+        Log::info($member);
+      if($member === null) {
+          return [
+              "status" => '1000',
+          ];
       } else {
 
-          $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-              ->leftJoin('members', 'members.id', '=', 'bets.created_by')
-              ->where('bets.id', $bets->id)->first();
+//          $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+//              ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+//              ->where('bets.id', $bets->id)->first();
+
+          $bonus = BonusModel::where('code', $tokenRaw->promotionTxId)
+                    ->first();
 
         $bonusAmount = $tokenRaw->amount;
         $creditMember = $member->credit;
@@ -612,17 +623,19 @@ class GameHallController extends Controller
           'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
         ]);
 
+        $performedOn = $bonus === null ? $member : $bonus;
+
         UserLogModel::logMemberActivity(
           'Member Bonus',
           $member,
-          $bets,
+          $performedOn,
           [
-            'target' => $nameProvider->username,
+            'target' => $member->username,
             'activity' => 'Credit Bonus',
-            'device' => $nameProvider->device,
-            'ip' => $nameProvider->last_login_ip,
+            'device' => $member->device,
+            'ip' => $member->last_login_ip,
           ],
-          "$nameProvider->username Received Bonus On $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+          "$member->username Received Bonus On $tokenRaw->platform . ' idr '. $bonusAmount"
         );
       }
     }
