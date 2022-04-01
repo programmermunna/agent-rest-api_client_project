@@ -629,7 +629,7 @@ class GameHallController extends Controller
         UserLogModel::logMemberActivity(
           'Member Bonus',
           $member,
-          $performedOn,
+          $bets,
           [
             'target' => $member->username,
             'activity' => 'Credit Bonus',
