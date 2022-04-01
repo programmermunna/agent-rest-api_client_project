@@ -276,6 +276,7 @@ class GameHallController extends Controller
   {
     // call betInformation
     $token = $this->betInformation();
+    $datas;
     foreach ($token->data->txns as $tokenRaw) {
       $amountbet = $tokenRaw->betAmount;
 
@@ -284,18 +285,14 @@ class GameHallController extends Controller
 
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
+        ->where('type', 'Void')
         ->first();
 
-      if($bets->type === 'Void'){
-        return [
-          "status" => '0000',
-        ];
-      }
-
       if ($bets == null) {
-        return [
+        $data = [
           "status" => '0000',
         ];
+        $datas = $data;
       } else {
         $bets->update([
           'type' => 'Void',
@@ -306,11 +303,13 @@ class GameHallController extends Controller
         $member->update([
           'credit' => $creditMember
         ]);
+        $data = [
+          "status" => '0000',
+        ];
+        $datas = $data;
       }
     }
-    return [
-      "status" => '0000',
-    ];
+    return response()->json($datas);
   }
 
 
