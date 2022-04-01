@@ -288,7 +288,7 @@ class GameHallController extends Controller
         ->where('type', 'Void')
         ->first();
 
-      if ($bets == null) {
+      if ($bets) {
         $data = [
           "status" => '0000',
         ];
