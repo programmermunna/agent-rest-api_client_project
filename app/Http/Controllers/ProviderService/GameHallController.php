@@ -289,13 +289,11 @@ class GameHallController extends Controller
         ->where('platform', $tokenRaw->platform)
         ->where('type', 'Void')
         ->first();
-
-      if ($bets) {
-        $data = [
+      if($bets){
+        return [
           "status" => '0000',
         ];
-        $datas = $data;
-      } else {
+      }else {
         $bets->update([
           'type' => 'Void',
           'bet' => $amountbet,
