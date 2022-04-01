@@ -286,19 +286,14 @@ class GameHallController extends Controller
 
       $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
+        ->where('type', 'Void')
         ->first();
 
-      if($bets->type === 'Void'){
+      if($bets){
         return [
           "status" => '0000',
         ];
-      }
-
-      if ($bets == null) {
-        return [
-          "status" => '0000',
-        ];
-      } else {
+      }else {
         $bets->update([
           'type' => 'Void',
           'bet' => $amountbet,
