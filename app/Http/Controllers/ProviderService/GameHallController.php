@@ -300,6 +300,7 @@ class GameHallController extends Controller
         $bets->update([
           'type' => 'Void',
           'bet' => $amountbet,
+          'credit' => $creditMember,
           'updated_at' => $tokenRaw->updateTime,
         ]);
         $member->update([
@@ -592,29 +593,15 @@ class GameHallController extends Controller
     // @todo Need Changes or Waiting For UAT
     $token = $this->betInformation();
     foreach ($token->data->txns as $tokenRaw) {
+      $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+      $betsGive = BetModel::where('bet_id', '=', $tokenRaw->promotionTxId)
+      ->where('type', 'Give')->first();
 
-      // trims user id with strings on them e.g. 45pti
-      $trimmedUserId = preg_replace("/[^0-9]/", "", $tokenRaw->userId );
-
-      $member =  MembersModel::where('id', $trimmedUserId)->first()->setAppends([]);
-      $member = $member->makeHidden(['referral_link']);
-//      $bets = BetModel::where('platform', $tokenRaw->platform)
-//        ->first();
-
-        Log::info($member);
-      if($member === null) {
-          return [
-              "status" => '1000',
-          ];
+      if ($betsGive) {
+        return [
+          "status" => '0000',
+        ];
       } else {
-
-//          $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-//              ->leftJoin('members', 'members.id', '=', 'bets.created_by')
-//              ->where('bets.id', $bets->id)->first();
-
-          $bonus = BonusModel::where('code', $tokenRaw->promotionTxId)
-                    ->first();
-
         $bonusAmount = $tokenRaw->amount;
         $creditMember = $member->credit;
         $amount = $creditMember + $bonusAmount;
@@ -622,13 +609,27 @@ class GameHallController extends Controller
           'credit' => $amount,
           'updated_at' => now()->format("Y-m-d\TH:i:s.vP"),
         ]);
+        $bets = BetModel::create([
+          'platform'  => $tokenRaw->platform,
+          'created_by' => $tokenRaw->userId,
+          'bet_id' => $tokenRaw->promotionTxId,
+          'game_info' => 'live_casino',
+          'type' => 'Give',
+          'credit' => $amount,
+          'bonus_daily_referal' => $bonusAmount,
+          'created_at' => now(),
+          'constant_provider_id' => 7,
+          'deskripsi' => 'Give' . ' : ' . $bonusAmount,
+        ]);
 
-        $performedOn = $bonus === null ? $member : $bonus;
+        $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+              ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+              ->where('bets.id', $bets->id)->first();
 
         UserLogModel::logMemberActivity(
           'Member Bonus',
           $member,
-          $performedOn,
+          $bets,
           [
             'target' => $member->username,
             'activity' => 'Credit Bonus',
