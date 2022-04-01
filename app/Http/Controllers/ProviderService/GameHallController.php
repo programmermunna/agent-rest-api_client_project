@@ -283,17 +283,22 @@ class GameHallController extends Controller
       $amountbet = $tokenRaw->betAmount;
 
       $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-      $creditMember = $member->credit + $amountbet;
+      $creditMember = $member->credit + $amountbet;      
 
-      $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+      $CheckVoid = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
         ->where('platform', $tokenRaw->platform)
         ->where('type', 'Void')
         ->first();
-      if($bets){
+
+      if($CheckVoid){
         return [
           "status" => '0000',
         ];
       }else {
+        $bets = BetModel::query()->where('bet_id', $tokenRaw->platformTxId)
+        ->where('platform', $tokenRaw->platform)
+        ->where('type', 'Bet')
+        ->first();
         $bets->update([
           'type' => 'Void',
           'bet' => $amountbet,
