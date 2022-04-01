@@ -162,6 +162,7 @@ class GameHallController extends Controller
             'type' => 'Bet',
             'game' => $tokenRaw->gameName,
             'bet' => $amountbet,
+            'credit' => $amount,
             'created_at' => $tokenRaw->betTime,
             'constant_provider_id' => 7,
             'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
