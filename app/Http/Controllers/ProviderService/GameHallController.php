@@ -278,6 +278,7 @@ class GameHallController extends Controller
   {
     // call betInformation
     $token = $this->betInformation();
+    $datas;
     foreach ($token->data->txns as $tokenRaw) {
       $amountbet = $tokenRaw->betAmount;
 
@@ -288,7 +289,6 @@ class GameHallController extends Controller
         ->where('platform', $tokenRaw->platform)
         ->where('type', 'Void')
         ->first();
-
       if($bets){
         return [
           "status" => '0000',
@@ -303,11 +303,13 @@ class GameHallController extends Controller
         $member->update([
           'credit' => $creditMember
         ]);
+        $data = [
+          "status" => '0000',
+        ];
+        $datas = $data;
       }
     }
-    return [
-      "status" => '0000',
-    ];
+    return response()->json($datas);
   }
 
 
