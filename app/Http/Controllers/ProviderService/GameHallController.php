@@ -190,9 +190,10 @@ class GameHallController extends Controller
         }
       }
     }
+    $balance =  MembersModel::where('id', $tokenRaw->userId)->first();
     return [
       "status" => '0000',
-      "balance" => intval($amount),
+      "balance" => intval($balance->credit),
       "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
     ];
   }
