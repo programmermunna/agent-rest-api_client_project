@@ -147,53 +147,113 @@ class GameHallController extends Controller
           ];
           $datas = $data;
         } else {
-          // update credit to table member
-          $member->update([
-            'credit' => $amount,
-            'updated_at' => $tokenRaw->betTime,
-          ]);
+          $checkMulti = BetModel::selectRaw('Count(id) as total')->where('created_by', $tokenRaw->userId)
+                        ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->where('created_at', now()->format("Y-m-d"))
+                        ->orderBy('created_at', 'desc')->groupBy('created_at')->first();
+          if ($checkMulti === null) {
+            // update credit to table member
+            $member->update([
+              'credit' => $amount,
+              'updated_at' => $tokenRaw->betTime,
+            ]);
 
-          $bets = BetModel::create([
-            'platform'  => $tokenRaw->platform,
-            'created_by' => $tokenRaw->userId,
-            'updated_by' => $tokenRaw->userId,
-            'bet_id' => $tokenRaw->platformTxId,
-            'game_info' => 'live_casino',
-            'game_id' => $tokenRaw->gameCode,
-            'round_id' => $tokenRaw->roundId,
-            'type' => 'Bet',
-            'game' => $tokenRaw->gameName,
-            'bet' => $amountbet,
-            'credit' => $amount,
-            'created_at' => $tokenRaw->betTime,
-            'constant_provider_id' => 7,
-            'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
-          ]);
+            $bets = BetModel::create([
+              'platform'  => $tokenRaw->platform,
+              'created_by' => $tokenRaw->userId,
+              'bet_id' => $tokenRaw->platformTxId,
+              'game_info' => 'live_casino',
+              'game_id' => $tokenRaw->gameCode,
+              'round_id' => $tokenRaw->roundId,
+              'type' => 'Bet',
+              'game' => $tokenRaw->gameName,
+              'bet' => $amountbet,
+              'credit' => $amount,
+              'created_at' => $tokenRaw->betTime,
+              'constant_provider_id' => 7,
+              'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+            ]);
 
-          $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-            ->leftJoin('members', 'members.id', '=', 'bets.created_by')
-            ->where('bets.id', $bets->id)->first();
-          $member =  MembersModel::where('id', $bets->created_by)->first();
+            $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+              ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+              ->where('bets.id', $bets->id)->first();
+            $member =  MembersModel::where('id', $bets->created_by)->first();
 
-          UserLogModel::logMemberActivity(
-            'create bet',
-            $member,
-            $bets,
-            [
-              'target' => $nameProvider->username,
-              'activity' => 'Bet',
-              'device' => $nameProvider->device,
-              'ip' => $nameProvider->last_login_ip,
-            ],
-            "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
-          );
+            UserLogModel::logMemberActivity(
+              'create bet',
+              $member,
+              $bets,
+              [
+                'target' => $nameProvider->username,
+                'activity' => 'Bet',
+                'device' => $nameProvider->device,
+                'ip' => $nameProvider->last_login_ip,
+              ],
+              "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+            );
 
-          $data = [
-            "status" => '0000',
-            "balance" => intval($amount),
-            "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
-          ];
-          $datas = $data;
+            $data = [
+              "status" => '0000',
+              "balance" => intval($amount),
+              "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+            ];
+            $datas = $data;
+          }
+
+          if ($checkMulti->total > 3) {
+            $data = [
+              "status" => '0000',
+              "balance" => intval($creditMember),
+              "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+            ];
+            $datas = $data;
+          } else {
+            // update credit to table member
+            $member->update([
+              'credit' => $amount,
+              'updated_at' => $tokenRaw->betTime,
+            ]);
+
+            $bets = BetModel::create([
+              'platform'  => $tokenRaw->platform,
+              'created_by' => $tokenRaw->userId,
+              'bet_id' => $tokenRaw->platformTxId,
+              'game_info' => 'live_casino',
+              'game_id' => $tokenRaw->gameCode,
+              'round_id' => $tokenRaw->roundId,
+              'type' => 'Bet',
+              'game' => $tokenRaw->gameName,
+              'bet' => $amountbet,
+              'credit' => $amount,
+              'created_at' => $tokenRaw->betTime,
+              'constant_provider_id' => 7,
+              'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+            ]);
+
+            $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+              ->leftJoin('members', 'members.id', '=', 'bets.created_by')
+              ->where('bets.id', $bets->id)->first();
+            $member =  MembersModel::where('id', $bets->created_by)->first();
+
+            UserLogModel::logMemberActivity(
+              'create bet',
+              $member,
+              $bets,
+              [
+                'target' => $nameProvider->username,
+                'activity' => 'Bet',
+                'device' => $nameProvider->device,
+                'ip' => $nameProvider->last_login_ip,
+              ],
+              "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+            );
+
+            $data = [
+              "status" => '0000',
+              "balance" => intval($amount),
+              "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+            ];
+            $datas = $data;
+          }
         }
       }
     }
