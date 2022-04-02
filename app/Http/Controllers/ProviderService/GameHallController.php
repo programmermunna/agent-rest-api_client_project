@@ -137,10 +137,12 @@ class GameHallController extends Controller
           ]);
         } else {
           // check if bet already exist
+          $BetAlready = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                          ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->first();
           $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
                           ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
   
-          if ($betAfterCancel) {
+          if ($BetAlready || $betAfterCancel) {
             $data = [
               "status" => '0000',
               "balance" => intval($creditMember),
@@ -214,10 +216,12 @@ class GameHallController extends Controller
           ]);
         } else {
           // check if bet already exist
+          $BetAlready = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                          ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->first();
           $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
                           ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
 
-          if ($betAfterCancel) {
+          if ($BetAlready || $betAfterCancel) {
             $data = [
               "status" => '0000',
               "balance" => intval($creditMember),
@@ -275,9 +279,7 @@ class GameHallController extends Controller
                 "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
               ];
               $datas = $data;
-            }
-
-            if ($checkMulti->total > 3) {
+            } elseif ($checkMulti->total > 3) {
               $data = [
                 "status" => '0000',
                 "balance" => intval($creditMember),
