@@ -21,8 +21,6 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             pwd
-            whoami
-            ls -la
             ./rest.sh
         
   slackNotification:
