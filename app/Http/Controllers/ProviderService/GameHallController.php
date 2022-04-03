@@ -168,7 +168,7 @@ class GameHallController extends Controller
               'credit' => $amount,
               'created_at' => $tokenRaw->betTime,
               'constant_provider_id' => 7,
-              'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+              'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
             ]);
 
             $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
@@ -219,7 +219,7 @@ class GameHallController extends Controller
                 'credit' => $amount,
                 'created_at' => $tokenRaw->betTime,
                 'constant_provider_id' => 7,
-                'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+                'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
               ]);
 
               $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
@@ -273,7 +273,7 @@ class GameHallController extends Controller
                 'credit' => $amount,
                 'created_at' => $tokenRaw->betTime,
                 'constant_provider_id' => 7,
-                'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+                'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
               ]);
 
               $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
@@ -572,7 +572,8 @@ class GameHallController extends Controller
         if ($tokenRaw->winAmount <= 0) {
           $bets->update([
             'type' => 'Settle',
-            'deskripsi' => 'Game Bet/Lose' . ' : ' . $tokenRaw->betAmount,
+            'deskripsi' => 'Game Lose' . ' : ' . $tokenRaw->betAmount,
+            'updated_by' => $member->id,
             'updated_at' => $tokenRaw->updateTime,
             'created_at' => $tokenRaw->betTime,
             'credit' => $amount
@@ -582,6 +583,7 @@ class GameHallController extends Controller
             'type' => 'Settle',
             'win' => $amountWin,
             'deskripsi' => 'Game win' . ' : ' . $amountWin,
+            'updated_by' => $member->id,
             'updated_at' => $tokenRaw->updateTime,
             'created_at' => $tokenRaw->betTime,
             'credit' => $amount
