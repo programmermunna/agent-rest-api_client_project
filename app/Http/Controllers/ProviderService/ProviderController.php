@@ -772,23 +772,23 @@ class ProviderController extends Controller
     $member =  MembersModel::where('id', $user_id)->first();
     $bets = BetModel::where('bet_id', $data->code)->first();
     $creditMember = $member->credit + $data->amount;
-
-    if ($bets) {
-      return response()
-        ->json([
-          "code" => 3202,
-          "success" => true,
-          "amount" => $member->credit
-        ], 200);
-    }
-    // Check member balance 
-    else if ($creditMember < 0) {
+    $betAmount = $data->betAmount * 1000;
+      
+    // Check transaction id duplicate
+    if ($bets) {      
       return response()->json([
-        "success" => false,
-        "code"   => 3202,
-        "success" =>  false,
-        "message" => "Infflucient balance",
+        "success" => true,
+        "id"  => $bets->id,
+        "message" => "duplicate transaction id",
         "amount"  => $member->credit
+      ], 200);
+    } elseif ($member->credit < $betAmount) {     // Check member balance
+      return response()->json([
+        "data"=> null,
+        "error"=> [
+            "code"=> 3202,
+            "message"=> "Not enough cash balance to bet"
+         ]
       ], 200);
     }
     /**
@@ -803,10 +803,11 @@ class ProviderController extends Controller
       'updated_at' => Carbon::now(),
     ]);
 
+      
     $bet = [
       'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
       'bet_id'     => $data->code,
-      'deskripsi'  => 'Game Bet/Lose' . ' : ' . $creditMember,
+      'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $creditMember : 'Game Bet/Win' . ' : ' . $creditMember,
       'round_id'   => $data->roundId,
       'type'       => $data->winAmount == 0 ? 'Lose' : "Win",
       'game_id'    => $data->gameId,
@@ -817,14 +818,16 @@ class ProviderController extends Controller
       'credit'     => $member->credit,
       'created_by' => $member->id
     ];
+      
     try {
       $this->insertBet($bet);
       return response()->json([
         "success" => true,
+        "message" => "transaction is success",
         "amount"  => $member->credit
       ], 200);
     } catch (\Throwable $th) {
-      return response()->json(['status' => false, "message" => $th->getMessage()], 200);
+      return response()->json(['status' => false, "message" => $th->getMessage()], 500);
     }
   }
 }

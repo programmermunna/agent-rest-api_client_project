@@ -25,6 +25,10 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
     Route::post('/member/login', 'JWTAuthController@authenticate');
     Route::post('/member/register', 'JWTAuthController@register')->name('registerJwt');
 
+    // probation login and register
+    Route::post('/login', 'JWTAuthController@probationLogin');
+    Route::post('/register', 'JWTAuthController@probationRegister');
+
     Route::group(['middleware' => ['jwt.verify'], 'prefix' => 'member'], function () {
         Route::get('/history_by_type', 'MemberController@historyAll');
         // Member
@@ -37,6 +41,11 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::get('/bank_account', 'MemberController@bank_account');
         Route::post('/change-password', 'JWTAuthController@changePassword');
         Route::get('/bonus-referal', 'MemberController@bonusReferal');
+
+        // Probation        
+        Route::post('/updateAccount', 'JWTAuthController@probationUpdateAccount');
+        Route::post('/deleteAccount', 'JWTAuthController@probationDeleteAccount');
+        Route::get('/accountList', 'JWTAuthController@probationAccountList');
 
         // Deposit
         Route::post('/deposit/create', 'DepositController@create');
@@ -137,7 +146,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/referral_game/{type}', 'SettingController@referral_game');
             Route::get('/list_togel', 'SettingController@list_togel');
             Route::get('/web_page', 'SettingController@web_page');
-            Route::get('/footer_tag', 'SettingController@footer_tag');            
+            Route::get('/footer_tag', 'SettingController@footer_tag');
             Route::get('/whatsapp_url', 'SettingController@whatsappUrl');
             Route::get('/social', 'SettingController@social');
             Route::get('/seo', 'SettingController@seo');
@@ -161,7 +170,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 
     /**
      * @deprecated
-     */ 
+     */
     /* Route::post('transfer-in-out', [ProviderController::class, 'resultPgSoft']); */
     Route::post('transfer-in-out', [ProviderController::class, 'PgSoftTransaction']);
     # Game Gall
@@ -176,7 +185,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 	# Togel
   Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
 	Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
-	Route::get("sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
+	Route::match(['get', 'post'],"sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
 	Route::get('provider', [OutResult::class, 'getResultByProvider']);
 	Route::get('shio' , [OutResult::class , 'getShioTables']);
 	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
