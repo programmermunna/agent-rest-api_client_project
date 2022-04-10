@@ -17,12 +17,11 @@ jobs:
         with:
           host: ${{ secrets.IP_PROD }}
           username: ${{ secrets.HOSTNAME }}
-          password: ${{ secrets.KEY }}
+          password: ${{ secrets.PASS }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd  agent-rest-api 
-            sudo git fetch
-            sudo git pull origin master
+            pwd
+            ./rest.sh
         
   slackNotification:
     needs: deploy
