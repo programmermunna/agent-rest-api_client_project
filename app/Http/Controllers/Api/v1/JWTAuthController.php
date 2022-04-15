@@ -887,7 +887,7 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse('User does not exist', 400);
             }
 
-            $referal = MembersModel::where('username', $request->referral)->first();
+//             $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
             $checkUser->update([
 //                         'username' => $request->username,
