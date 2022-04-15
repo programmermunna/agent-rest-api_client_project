@@ -863,6 +863,7 @@ class JWTAuthController extends ApiController
                 $request->all(),
                 [
                     'id' => 'required|integer',
+//                     'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
                     'email' => 'required|email|max:100|unique:members',
                     'password' => 'required|min:6|regex:/^\S*$/u',
                     'bank_name' => 'required',
@@ -892,7 +893,7 @@ class JWTAuthController extends ApiController
 //                         'username' => $request->username,
                         'email' => $request->email,
                         'password' => bcrypt($request->password),
-                        'referrer_id' => $referal == null ? "" : $referal->id,
+//                         'referrer_id' => $referal == null ? "" : $referal->id,
                         'phone' => $request->phone,
                     ]);              
             $rekMember = RekMemberModel::where('created_by', $request->id)->update([
