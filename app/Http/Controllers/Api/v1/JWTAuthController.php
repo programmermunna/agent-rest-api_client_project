@@ -697,7 +697,7 @@ class JWTAuthController extends ApiController
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
 
-    // funcrion  probation
+    // function  probation
     public function probationLogin(Request $request)
     {
         $input = $request->all();
@@ -863,7 +863,7 @@ class JWTAuthController extends ApiController
                 $request->all(),
                 [
                     'id' => 'required|integer',
-                    'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
+//                     'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
                     'email' => 'required|email|max:100|unique:members',
                     'password' => 'required|min:6|regex:/^\S*$/u',
                     'bank_name' => 'required',
