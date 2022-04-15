@@ -882,7 +882,7 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse($validator->errors()->first(), 400);
             }
 
-//             $checkUser = MembersModel::find($request->id);
+            $checkUser = MembersModel::find($request->id);
 //             if ($checkUser == null) {
 //                 return $this->errorResponse('User does not exist', 400);
 //             }
