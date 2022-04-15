@@ -863,7 +863,6 @@ class JWTAuthController extends ApiController
                 $request->all(),
                 [
                     'id' => 'required|integer',
-//                     'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
                     'email' => 'required|email|max:100|unique:members',
                     'password' => 'required|min:6|regex:/^\S*$/u',
                     'bank_name' => 'required',
@@ -883,9 +882,9 @@ class JWTAuthController extends ApiController
             }
 
             $checkUser = MembersModel::find($request->id);
-//             if ($checkUser == null) {
-//                 return $this->errorResponse('User does not exist', 400);
-//             }
+            if ($checkUser == null) {
+                return $this->errorResponse('User does not exist', 400);
+            }
 
             $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
