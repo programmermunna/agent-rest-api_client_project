@@ -156,7 +156,7 @@ class JWTAuthController extends ApiController
                                 bets_togel
                             INNER JOIN members ON members.id = bets_togel.created_by
                             WHERE
-                                bets_togel.win_lose_status = 0 AND bets_togel.created_by = $id AND bets_togel.deleted_at IS NULL
+                                bets_togel.created_by = $id AND bets_togel.deleted_at IS NULL
                             ORDER BY created_at DESC
                             LIMIT 1
                         ");
@@ -852,13 +852,13 @@ class JWTAuthController extends ApiController
             $validator = Validator::make(
                 $request->all(),
                 [
-                    'id' => 'required|integer',
-//                     'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
-                    'email' => 'required|email|max:100|unique:members',
-                    'password' => 'required|min:6|regex:/^\S*$/u',
+                    // 'id' => 'required|integer',
+                    // 'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
+                    'email' => 'required|email|max:100',
+                    'password' => 'min:6|regex:/^\S*$/u',
                     'bank_name' => 'required',
-                    'account_number' => 'required',
-                    'account_name' => 'required',
+                    // 'account_number' => 'required',
+                    // 'account_name' => 'required',
                     'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
                 ],
                 [
@@ -871,14 +871,20 @@ class JWTAuthController extends ApiController
             if ($validator->fails()) {
                 return $this->errorResponse($validator->errors()->first(), 400);
             }
-
-            $checkUser = MembersModel::find($request->id);
+            $checkEmailUser = MembersModel::where('email', $request->email)->whereNotIn('id', [auth('api')->user()->id])->first();
+            if ($checkEmailUser){
+                return $this->errorResponse('The email has already been taken', 400);
+            }           
+            $checkUser = MembersModel::find(auth('api')->user()->id);
             if ($checkUser == null) {
                 return $this->errorResponse('User does not exist', 400);
             }
 
 //             $referal = MembersModel::where('username', $request->referral)->first();
-            $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
+            $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_wd', '=', 1)->first();
+            if ($rekeningDepoMember == null) {                
+                return $this->errorResponse('Bank not found', 400);
+            }
             $checkUser->update([
 //                         'username' => $request->username,
                         'email' => $request->email,
@@ -886,7 +892,7 @@ class JWTAuthController extends ApiController
 //                         'referrer_id' => $referal == null ? "" : $referal->id,
                         'phone' => $request->phone,
                     ]);              
-            $rekMember = RekMemberModel::where('created_by', $request->id)->update([
+            $rekMember = RekMemberModel::where('created_by', auth('api')->user()->id)->update([
                     'rekening_id' => $rekeningDepoMember->id,
                     'constant_rekening_id' => $request->bank_name,
                     'nomor_rekening' => $request->account_number,
