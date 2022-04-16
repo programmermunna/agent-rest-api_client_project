@@ -66,34 +66,61 @@ class MemberController extends ApiController
   {
     try {
       $id = auth('api')->user()->id;
-
-      $deposit = DB::select("
+      $deposit = DB::select(\DB::raw("
                   SELECT
                       credit,
                       jumlah,
                       approval_status,
-                      created_at
+                      created_at,
+                      created_by,
+                      if (
+                        approval_status = 0
+                          , 'Pending'
+                          , if (
+                              approval_status = 1
+                              , 'Success'
+                              , if (
+                                  approval_status = 2
+                                  , 'Rejected'
+                                  , 'nulled'
+                              )
+                          )
+                      ) as 'deposit status'
                   FROM
                       deposit
                   WHERE
-                      created_by = $id AND approval_status = 1 AND deleted_at IS NULL
+                    (created_by = $id AND deleted_at IS NULL) OR deleted_at IS NOT NULL AND created_by = $id
                   ORDER BY
                       created_at
-                  DESC");
-
-      $withdraw = DB::select("
+                  DESC"));
+      
+      $withdraw = DB::select(\DB::raw("
                   SELECT
                       credit,
                       jumlah,
                       approval_status,
-                      created_at
+                      created_at,
+                      created_by,
+                      if (
+                        approval_status = 0
+                          , 'Pending'
+                          , if (
+                              approval_status = 1
+                              , 'Success'
+                              , if (
+                                  approval_status = 2
+                                  , 'Rejected'
+                                  , 'nulled'
+                              )
+                          )
+                      ) as 'Withdraw status'
                   FROM
                       withdraw
                   WHERE
-                      created_by = $id AND approval_status = 1 AND deleted_at IS NULL
+                      (created_by = $id AND deleted_at IS NULL) OR deleted_at IS NOT NULL AND created_by = $id
                   ORDER BY
                       created_at
-                  DESC");
+                  DESC"));
 
 
       $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
@@ -391,7 +418,7 @@ class MemberController extends ApiController
         // }
         // return $this->paginate($result, $this->pageAll);      
 
-        $allProBet = DB::select("SELECT 
+        $allProBet = DB::select(\DB::raw("SELECT 
                   'Bets' AS Tables,
                   a.bet as betsBet,
                   a.win as betsWin,
@@ -412,9 +439,11 @@ class MemberController extends ApiController
                   NULL as depositCredit,
                   NULL as depositJumlah,
                   NULL as depositStatus,
+                  NULL as depositDescription,
                   NULL as withdrawCredit,
                   NULL as withdrawJumlah,
                   NULL as withdrawStatus,
+                  NULL as withdrawDescription,
                   NULL as bonusHistoryNamaBonus,
                   NULL as bonusHistoryType,
                   NULL as bonusHistoryJumlah,
@@ -448,9 +477,11 @@ class MemberController extends ApiController
                   NULL as depositCredit,
                   NULL as depositJumlah,
                   NULL as depositStatus,
+                  NULL as depositDescription,
                   NULL as withdrawCredit,
                   NULL as withdrawJumlah,
                   NULL as withdrawStatus,
+                  NULL as withdrawDescription,
                   NULL as bonusHistoryNamaBonus,
                   NULL as bonusHistoryType,
                   NULL as bonusHistoryJumlah,
@@ -484,9 +515,23 @@ class MemberController extends ApiController
                   a.credit as depositCredit,
                   a.jumlah as depositJumlah,
                   a.approval_status as depositStatus,
+                  if (
+                    a.approval_status = 0
+                      , 'Pending'
+                      , if (
+                          a.approval_status = 1
+                          , 'Success'
+                          , if (
+                              a.approval_status = 2
+                              , 'Rejected'
+                              , 'nulled'
+                          )
+                      )
+                  ) as 'depositDescription',
                   NULL as withdrawCredit,
                   NULL as withdrawJumlah,
                   NULL as withdrawStatus,
+                  NULL as withdrawDescription,
                   NULL as bonusHistoryNamaBonus,
                   NULL as bonusHistoryType,
                   NULL as bonusHistoryJumlah,
@@ -494,12 +539,13 @@ class MemberController extends ApiController
                   NULL as bonusHistoryCreatedBy,
                   NULL as activityDeskripsi,
                   NULL as activityName
+                  
               FROM
                   deposit as a
               INNER JOIN members as b ON b.id = a.created_by
               
               WHERE
-                  a.created_by = $id AND a.approval_status = 1 AND a.deleted_at IS NULL
+                  (a.created_by = $id AND a.deleted_at IS NULL) OR a.deleted_at IS NOT NULL AND a.created_by = $id
               UNION ALL
               SELECT
                   'Withdraw' as Tables,
@@ -522,9 +568,23 @@ class MemberController extends ApiController
                   NULL as depositCredit,
                   NULL as depositJumlah,
                   NULL as depositStatus,
+                  NULL as depositDescription,
                   a.credit as withdrawCredit,
                   a.jumlah as withdrawJumlah,
                   a.approval_status as withdrawStatus,
+                  if (
+                    a.approval_status = 0
+                      , 'Pending'
+                      , if (
+                          a.approval_status = 1
+                          , 'Success'
+                          , if (
+                              a.approval_status = 2
+                              , 'Rejected'
+                              , 'nulled'
+                          )
+                      )
+                  ) as 'withdrawDescription',
                   NULL as bonusHistoryNamaBonus,
                   NULL as bonusHistoryType,
                   NULL as bonusHistoryJumlah,
@@ -536,7 +596,7 @@ class MemberController extends ApiController
                   withdraw as a
               INNER JOIN members as b ON b.id = a.created_by              
               WHERE
-                  a.created_by = $id AND a.approval_status = 1 AND a.deleted_at IS NULL
+                (a.created_by = $id AND a.deleted_at IS NULL) OR a.deleted_at IS NOT NULL AND a.created_by = $id
               UNION ALL
               SELECT
                   'Bonus History' as Tables,
@@ -559,9 +619,11 @@ class MemberController extends ApiController
                   NULL as depositCredit,
                   NULL as depositJumlah,
                   NULL as depositStatus,
+                  NULL as depositDescription,
                   NULL as withdrawCredit,
                   NULL as withdrawJumlah,
                   NULL as withdrawStatus,
+                  NULL as withdrawDescription,
                   b.nama_bonus as bonusHistoryNamaBonus,
                   a.type as bonusHistoryType,
                   a.jumlah as bonusHistoryJumlah,
@@ -573,7 +635,7 @@ class MemberController extends ApiController
                   bonus_history as a
               INNER JOIN constant_bonus as b ON b.id = a.constant_bonus_id              
               WHERE a.created_by = $id AND a.jumlah > 0 AND a.deleted_at IS NULL
-              ORDER BY created_at DESC");
+              ORDER BY created_at DESC"));
 
         $activity_members = DB::select("SELECT
                                 properties,
@@ -624,9 +686,11 @@ class MemberController extends ApiController
             'depositCredit' => null,
             'depositJumlah' => null,
             'depositStatus' => null,
+            'depositDescription' => null,
             'withdrawCredit' => null,
             'withdrawJumlah' => null,
             'withdrawStatus' => null,
+            'withdrawDescription' => null,
             'bonusHistoryNamaBonus' => null,
             'bonusHistoryType' => null,
             'bonusHistoryJumlah' => null,
@@ -763,7 +827,7 @@ class MemberController extends ApiController
 
   public function depostiWithdrawStatus()
   {
-    try {
+    try {   
       #member
       // $deposit = DepositModel::leftJoin('members', 'members.id', 'deposit.members_id')
       //     ->leftJoin('constant_rekening as constRek', 'constRek.id', '=', 'members.constant_rekening_id')
@@ -775,6 +839,7 @@ class MemberController extends ApiController
           'deposit.created_at',
           'constRek.name AS bankNameMember',
         ])
+        ->withTrashed()
         ->where('members_id', $this->member->id)->latest()->first();
 
       #member
@@ -788,6 +853,7 @@ class MemberController extends ApiController
           'withdraw.approval_status',
           'constRek.name AS bankNameMember',
         ])
+        ->withTrashed()
         ->where('members_id', $this->member->id)->latest()->first();
 
       $response = [
@@ -796,18 +862,23 @@ class MemberController extends ApiController
       ];
       if ($deposit || $withdraw) {
         if ($deposit) {
+          $depositStatus = $deposit->approval_status == 0 ? 'Pending' : ($deposit->approval_status == 1 ? 'Success' : 'Rejected');
+
           $response['deposit'] = [
             'amount' => $deposit->jumlah,
             'status' => $deposit->approval_status,
+            'deposit_description' => $depositStatus,
             'created_at' => $deposit->created_at,
             'bank_member' => $deposit->bankNameMember,
           ];
         }
 
         if ($withdraw) {
+          $wdStatus = $withdraw->approval_status == 0 ? 'Pending' : ($withdraw->approval_status == 1 ? 'Success' : 'Rejected');
           $response['withdraw'] = [
             'amount' => $withdraw->jumlah,
             'status' => $withdraw->approval_status,
+            'withdraw_description' => $wdStatus,
             'created_at' => $withdraw->created_at,
             'agent_bank' => $withdraw->bankNameMember,
           ];
