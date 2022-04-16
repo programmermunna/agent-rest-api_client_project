@@ -45,7 +45,7 @@ class TogelSettingGameController extends ApiController
   public function sisaQuota(Request $request){
     try {
 
-      $pasaran = ConstantProviderTogelModel::select(['id','name'])->where('id', $request->pasaran_id)->first();
+      $pasaran = ConstantProviderTogelModel::select(['id','name'])->where('id', $request->pasaran_id)->orWhere('name', $request->pasaran)->first();
       $game    = TogelGame::select(['id','name'])->where('name', $request->game)->first();
       if(is_null($pasaran)){
         return $this->errorResponse('Pasaran name does not match', 400);
