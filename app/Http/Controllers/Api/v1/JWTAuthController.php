@@ -82,6 +82,7 @@ class JWTAuthController extends ApiController
             }
 
             auth('api')->user()->update([
+                'active' => 1,
                 'last_login_at' => now(),
                 // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
                 'last_login_ip' => $request->ip,
@@ -382,6 +383,7 @@ class JWTAuthController extends ApiController
                 'Successfully'
             );
             auth('api')->user()->update([
+                'active' => 0,
                 'last_login_ip' => $request->ip,
             ]);
 
