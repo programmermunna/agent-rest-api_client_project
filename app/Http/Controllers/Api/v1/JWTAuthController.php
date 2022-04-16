@@ -262,12 +262,7 @@ class JWTAuthController extends ApiController
             //     ]);
             // }
 
-
-            if ($lastBet) {
-                return $this->successResponse($lastBet);
-            }
-
-            return $this->successResponse(null, 'No data', 204);
+            return $this->successResponse($lastBet);
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
@@ -309,7 +304,7 @@ class JWTAuthController extends ApiController
                             INNER JOIN members ON members.id = bets.created_by
                             WHERE
                                 (
-                                    bets.created_by = $id AND bets.type = 'Win' OR bets.type = 'Settle' AND bets.win > 0
+                                    bets.created_by = $id
                                 ) AND bets.deleted_at IS NULL                            
 
                             UNION ALL
@@ -326,12 +321,7 @@ class JWTAuthController extends ApiController
                             ORDER BY created_at DESC
                             LIMIT 1
                         ");
-
-            if ($lastWin) {
                 return $this->successResponse($lastWin);
-            }
-
-            return $this->successResponse(null, 'No data', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
