@@ -854,30 +854,25 @@ class JWTAuthController extends ApiController
             $validator = Validator::make(
                 $request->all(),
                 [
-                    // 'id' => 'required|integer',
+                    'id' => 'required|integer',
                     // 'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
                     'email' => 'required|email|max:100',
                     'password' => 'min:6|regex:/^\S*$/u',
-                    'bank_name' => 'required',
+                    'bank_name' => 'required|integer',
                     // 'account_number' => 'required',
                     // 'account_name' => 'required',
                     'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
-                ],
-                [
-                    'password.required' => 'Password cannot be empty.',
-                    'password.min' => 'Password must be at least 6 characters.',
-                    'password.regex' => 'Password cannot use spaces.',
                 ]
             );
 
             if ($validator->fails()) {
                 return $this->errorResponse($validator->errors()->first(), 400);
             }
-            $checkEmailUser = MembersModel::where('email', $request->email)->whereNotIn('id', [auth('api')->user()->id])->first();
+            $checkEmailUser = MembersModel::where('email', $request->email)->whereNotIn('id', [$request->id])->first();
             if ($checkEmailUser){
                 return $this->errorResponse('The email has already been taken', 400);
             }           
-            $checkUser = MembersModel::find(auth('api')->user()->id);
+            $checkUser = MembersModel::find($request->id);
             if ($checkUser == null) {
                 return $this->errorResponse('User does not exist', 400);
             }
@@ -890,15 +885,15 @@ class JWTAuthController extends ApiController
             $checkUser->update([
 //                         'username' => $request->username,
                         'email' => $request->email,
-                        'password' => bcrypt($request->password),
+                        // 'password' => bcrypt($request->password),
 //                         'referrer_id' => $referal == null ? "" : $referal->id,
                         'phone' => $request->phone,
                     ]);              
-            $rekMember = RekMemberModel::where('created_by', auth('api')->user()->id)->update([
+            $rekMember = RekMemberModel::where('created_by', $request->id)->update([
                     'rekening_id' => $rekeningDepoMember->id,
                     'constant_rekening_id' => $request->bank_name,
-                    'nomor_rekening' => $request->account_number,
-                    'nama_rekening' => $request->account_name,
+                    // 'nomor_rekening' => $request->account_number,
+                    // 'nama_rekening' => $request->account_name,
                 ]);
             return $this->successResponse(null, 'Member successfully updated', 201);
             
