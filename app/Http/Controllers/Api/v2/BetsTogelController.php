@@ -124,15 +124,17 @@ class BetsTogelController extends ApiController
         $response = $this->CheckIsBuangan($id);
       }
       // Cek This is Bet Buangan 
-      if ($response[0]->results != null) {
-        foreach (json_decode($response[0]->results) as $bet) {
-          BetsTogel::query()
-            ->where('id', $bet->bet_id)
-            ->where('constant_provider_togel_id', $bet->constant_provider_togel_id)
-            ->update([
-              'is_bets_buangan' => $bet->is_bets_buangan,
-              'buangan_before_submit' => $bet->buangan_before_submit,
-            ]);
+      if ($response != []) {
+        if ($response[0]->results != null) {
+          foreach (json_decode($response[0]->results) as $bet) {
+            BetsTogel::query()
+              ->where('id', $bet->bet_id)
+              ->where('constant_provider_togel_id', $bet->constant_provider_togel_id)
+              ->update([
+                'is_bets_buangan' => $bet->is_bets_buangan,
+                'buangan_before_submit' => $bet->buangan_before_submit,
+              ]);
+          }
         }
       }
 
