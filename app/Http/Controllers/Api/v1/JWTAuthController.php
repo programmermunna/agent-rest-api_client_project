@@ -941,7 +941,7 @@ class JWTAuthController extends ApiController
                 WHERE
                     members.id >= 50
                     and members.deleted_at is null');
-            $data = $this->paginate($members, $this->perPage);
+            $data = $this->paginate($members, 10);
             if ($members) {
                 return $this->successResponse($data, 'account list successfully displayed', 200);
             }
