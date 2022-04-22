@@ -149,7 +149,7 @@ class SettingController extends ApiController
                             'content' => $itempropImage
                         ],
                     ],
-                    'google-site-verification' => $googleSiteVerificationArr,    
+                    'google-site-verification' => [],    
                     'link' => [
                         'rel'  => 'canonical',
                         'href' => $linkcanonical,
