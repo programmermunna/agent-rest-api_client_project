@@ -50,6 +50,7 @@ class SettingController extends ApiController
                 $dom = new \DOMdocument();
                 $dom->loadhtml($metaTag->value);       
                 if ($dom->getelementsbytagname('meta')) {
+                    $datas = [];
                     foreach($dom->getelementsbytagname('meta') as $meta) {
                         if($meta->getattribute('name') == 'keywords' && $meta->getattribute('content')) {
                             $keyword = $meta->getattribute('content');
@@ -59,6 +60,7 @@ class SettingController extends ApiController
                         }
                         if($meta->getattribute('name') == 'google-site-verification' && $meta->getattribute('content')) {
                             $googleSiteVerification = $meta->getattribute('content');
+                            $datas[] = $googleSiteVerification;                            
                         }
                         if($meta->getattribute('itemprop') == 'name' && $meta->getattribute('content')) {
                             $itempropName = $meta->getattribute('content');
@@ -78,7 +80,11 @@ class SettingController extends ApiController
                         }
                     }
                 }        
-            }  
+            }
+            $googleSiteVerificationArr = [];
+            foreach ($datas as $data){
+                $googleSiteVerificationArr[] = ['name' => 'google-site-verification', 'content' => $data];
+            }
             if ($title && $metaTag) {
                 return response()->json([
                     'status' => 'success',
@@ -91,11 +97,7 @@ class SettingController extends ApiController
                             [
                                 'name' => "keywords",
                                 'content' => $keyword
-                            ],
-                            [
-                                'name' => "google-site-verification",
-                                'content' => $googleSiteVerification
-                            ],                            
+                            ],                        
                             [
                                 'itemprop' => "name",
                                 'content' => $itempropName
@@ -109,6 +111,7 @@ class SettingController extends ApiController
                                 'content' => $itempropImage
                             ],
                         ],
+                        'google-site-verification' => $googleSiteVerificationArr,    
                         'link' => [
                             'rel'  => 'canonical',
                             'href' => $linkcanonical,
@@ -119,7 +122,7 @@ class SettingController extends ApiController
 
             return $this->successResponse(null, 'No content', 204);
         } catch (\Throwable $th) {            
-            // return $this->errorResponse('Internal Server Error', 500);
+            // return $this->errorResponse($th->getMessage(), 500);
             return response()->json([
                 'status' => 'error',
                 'message' => 'meta tag does not match, please check your meta tag code',
@@ -132,12 +135,21 @@ class SettingController extends ApiController
                         [
                             'name' => "keywords",
                             'content' => $keyword
-                        ],
+                        ],                        
                         [
-                            'name' => "google-site-verification",
-                            'content' => $googleSiteVerification
+                            'itemprop' => "name",
+                            'content' => $itempropName
+                        ],                            
+                        [
+                            'itemprop' => "description",
+                            'content' => $itempropDescription
+                        ],                            
+                        [
+                            'itemprop' => "image",
+                            'content' => $itempropImage
                         ],
                     ],
+                    'google-site-verification' => [],    
                     'link' => [
                         'rel'  => 'canonical',
                         'href' => $linkcanonical,
