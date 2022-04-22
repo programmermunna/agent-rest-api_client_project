@@ -48,6 +48,28 @@ class OutResult extends ApiController
 	 * Get Pasaran Blok Angka
 	 * @return LengthAwarePaginator 
 	 */
+	public function getAllPasaran()
+	{
+
+		$results = ConstantProviderTogelModel::select([
+								'id',
+								'name_initial as nama_id',
+								'name as pasaran',
+								'website_url as web',
+								'hari_diundi as hari_undi',
+								'libur as libur',
+								'tutup as tutup',
+								'jadwal as jadwal',
+								'period as periode',
+								'status as is_active'
+							])
+							->with('resultNumber')
+							->orderBy('name', 'asc')
+							->get()
+							->toArray();
+		return $this->paginate($results , 20);
+	}
+
 	public function getPasaran()
 	{
 
