@@ -122,31 +122,40 @@ class SettingController extends ApiController
 
             return $this->successResponse(null, 'No content', 204);
         } catch (\Throwable $th) {            
-            return $this->errorResponse($th->getMessage(), 500);
-            // return response()->json([
-            //     'status' => 'error',
-            //     'message' => 'meta tag does not match, please check your meta tag code',
-            //     'data' => [
-            //         'meta' => [
-            //             [
-            //                 'name' => "description",
-            //                 'content' => $description
-            //             ],
-            //             [
-            //                 'name' => "keywords",
-            //                 'content' => $keyword
-            //             ],
-            //             [
-            //                 'name' => "google-site-verification",
-            //                 'content' => $googleSiteVerification
-            //             ],
-            //         ],
-            //         'link' => [
-            //             'rel'  => 'canonical',
-            //             'href' => $linkcanonical,
-            //         ]
-            //     ]
-            // ], 400);
+            // return $this->errorResponse($th->getMessage(), 500);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'meta tag does not match, please check your meta tag code',
+                'data' => [
+                    'meta' => [
+                        [
+                            'name' => "description",
+                            'content' => $description
+                        ],
+                        [
+                            'name' => "keywords",
+                            'content' => $keyword
+                        ],                        
+                        [
+                            'itemprop' => "name",
+                            'content' => $itempropName
+                        ],                            
+                        [
+                            'itemprop' => "description",
+                            'content' => $itempropDescription
+                        ],                            
+                        [
+                            'itemprop' => "image",
+                            'content' => $itempropImage
+                        ],
+                    ],
+                    'google-site-verification' => $googleSiteVerificationArr,    
+                    'link' => [
+                        'rel'  => 'canonical',
+                        'href' => $linkcanonical,
+                    ]
+                ]
+            ], 400);
         }
     }
 
