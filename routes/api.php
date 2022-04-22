@@ -191,6 +191,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 	Route::get('shio' , [OutResult::class , 'getShioTables']);
 	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
 	Route::get('pasaran', [OutResult::class, 'getPasaran']);
+	Route::get('allPasaran', [OutResult::class, 'getAllPasaran']);
 	Route::get('dreamBooks', [TogelDreamsBookController::class, 'getDreamsBook']);
 	Route::get('globalSetting' , [TogelSettingGameController::class , 'getGlobalSettingGame']);
 	Route::get('rules' , [TogelPeraturanGame::class , 'getPeraturanGame']);
