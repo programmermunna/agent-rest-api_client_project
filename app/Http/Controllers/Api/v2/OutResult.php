@@ -65,9 +65,8 @@ class OutResult extends ApiController
 							])
 							->with('resultNumber')
 							->orderBy('name', 'asc')
-							->get()
-							->toArray();
-		return $this->paginate($results , 20);
+							->get();
+		return OutResultResource::collection($results);
 	}
 
 	public function getPasaran()
