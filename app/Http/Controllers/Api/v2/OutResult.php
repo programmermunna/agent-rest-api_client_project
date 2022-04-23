@@ -64,7 +64,7 @@ class OutResult extends ApiController
 								'status as is_active'
 							])
 							->with('resultNumber')
-							->orderBy('id', 'desc')
+							->orderBy('id', 'asc')
 							->get();
 		return OutResultResource::collection($results);
 	}
