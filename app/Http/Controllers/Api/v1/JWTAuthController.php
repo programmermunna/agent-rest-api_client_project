@@ -30,6 +30,8 @@ use JWTAuth;            # pagination pake ini
 use Livewire\WithPagination;              # pagination pake ini
 use Tymon\JWTAuth\Exceptions\JWTException; # pagination pake ini
 
+use Illuminate\Support\Facades\Auth;
+
 class JWTAuthController extends ApiController
 {
     use WithPagination;
@@ -37,6 +39,8 @@ class JWTAuthController extends ApiController
     public $history = [];
     public function authenticate(Request $request)
     {
+        Auth::logoutOtherDevices($request->pasword);
+
         $input = $request->all();
 
         $fieldType = filter_var($request->user_account, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
