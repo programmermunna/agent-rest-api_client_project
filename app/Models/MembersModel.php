@@ -89,6 +89,7 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
         'nomor_rekening',
         'phone',
         'active',
+        'remember_token',
         'status',
         'referal',
         'info_dari',
@@ -109,7 +110,7 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
      */
     protected $hidden = [
         'password',
-        'remember_token',
+        // 'remember_token',
     ];
 
     /**
