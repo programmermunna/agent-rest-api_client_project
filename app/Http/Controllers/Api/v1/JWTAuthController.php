@@ -70,10 +70,8 @@ class JWTAuthController extends ApiController
             }
 
             if($member->active == 1){
-                $token = $request->header('Authorization');
-                $user = auth('api')->user();
-                // JWTAuth::parseToken()->invalidate($token);
-                JWTAuth::invalidate($token);
+                $token = auth('api')->attempt($credentials);
+                JWTAuth::parseToken()->invalidate($token);
             }
 
             \Config::set('auth.defaults.guard', 'api');
