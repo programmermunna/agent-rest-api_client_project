@@ -45,7 +45,7 @@ class TogelSettingGameController extends ApiController
   public function sisaQuota(Request $request){
     try {
 
-      $pasaran = ConstantProviderTogelModel::select(['id','name'])->where('id', $request->pasaran_id)->orWhere('name', $request->pasaran)->first();
+      $pasaran = ConstantProviderTogelModel::select(['id','name'])->where('id', $request->pasaran_id)->orWhere('name', $request->pasaran)->firstorFail();
       $game    = TogelGame::select(['id','name'])->where('name', $request->game)->first();
       if(is_null($pasaran)){
         return $this->errorResponse('Pasaran name does not match', 400);
@@ -53,10 +53,10 @@ class TogelSettingGameController extends ApiController
       if(is_null($game)){
         return $this->errorResponse('Game name does not match', 400);
       }
-      $lastPeriod = BetsTogel::select('period')->latest()->firstOrFail();
+      $lastPeriod = BetsTogel::select('period')->latest()->first();
       $results = [];
       foreach ($request->data as $key => $data) {
-        $checkBetTogel = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
+        $checkBetTogels = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
             ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
             ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
             ->leftJoin('togel_shio_name', 'bets_togel.tebak_shio', '=', 'togel_shio_name.id')
@@ -351,7 +351,6 @@ class TogelSettingGameController extends ApiController
               ) as 'Nomor'
             ")
             ->where('bets_togel.updated_at', null)
-            ->where('bets_togel.period', $lastPeriod->period)
             ->where('constant_provider_togel.id', $pasaran->id)
             ->where('bets_togel.togel_game_id', $game->id)
             ->where('bets_togel.number_1', $data['number_1'])
@@ -367,11 +366,16 @@ class TogelSettingGameController extends ApiController
             ->where('bets_togel.tebak_depan_tengah_belakang', $data['tebak_depan_tengah_belakang'])
             ->where('bets_togel.tebak_mono_stereo', $data['tebak_mono_stereo'])
             ->where('bets_togel.tebak_kembang_kempis_kembar', $data['tebak_kembang_kempis_kembar'])
-            ->where('bets_togel.tebak_shio', $data['tebak_shio'])
-            ->groupBy('bets_togel.togel_game_id')->first();
+            ->where('bets_togel.tebak_shio', $data['tebak_shio']);
 
+            if ($lastPeriod) {             
+              $checkBetTogels->where('bets_togel.period', $lastPeriod->period)
+              ->groupBy('bets_togel.togel_game_id');
+            } else {
+              $checkBetTogels->groupBy('bets_togel.togel_game_id');
+            }
+            $checkBetTogel = $checkBetTogels->first();
             // dd($checkBetTogel);
-
             if ($checkBetTogel == true) {
               if ($game->id == 1){
                 if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
@@ -894,9 +898,7 @@ class TogelSettingGameController extends ApiController
             $results[] = $result;
       }
 
-      return $this->successResponse($results);
-
-      
+      return $this->successResponse($results);      
     } catch (\Throwable $th) {
       return $this->errorResponse($th->getMessage(), 500);
     }
