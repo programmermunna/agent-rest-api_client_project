@@ -70,8 +70,7 @@ class JWTAuthController extends ApiController
             }
 
             if($member->active == 1){
-                $token = auth('api')->attempt($credentials);
-                JWTAuth::parseToken()->invalidate($token);
+                //force user to logout first, then do login below.
             }
 
             \Config::set('auth.defaults.guard', 'api');
