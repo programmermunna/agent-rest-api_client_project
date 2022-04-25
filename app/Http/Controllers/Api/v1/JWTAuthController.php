@@ -60,31 +60,29 @@ class JWTAuthController extends ApiController
         $member = MembersModel::where('email', $input['user_account'])
                                 ->orWhere('username', $input['user_account'])
                                 ->first();
-
         if ($member) {
             if ($member->status == 0){
                 return $this->errorResponse('Member has been banned', 401);
             } elseif ($member->status == 2){
                 return $this->errorResponse('Member has been suspend', 401);
-            } elseif ($member->status == 1){
+            } elseif ($member->status == 1){                                
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
             }
 
             \Config::set('auth.defaults.guard', 'api');
-
             try {
                 $token = auth('api')->attempt($credentials);
+                $rememberToken = $token;
                 if (! $token) {
                     return $this->errorResponse('Password is wrong', 401);
                 }
             } catch (JWTException $e) {
                 return $this->errorResponse('Could not create token', 500);
             }
-
-            auth('api')->user()->update([
+            auth('api')->user()->update([                            
+                'remember_token' => $token,
                 'active' => 1,
                 'last_login_at' => now(),
-                // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
                 'last_login_ip' => $request->ip,
             ]);
 
@@ -382,7 +380,8 @@ class JWTAuthController extends ApiController
                 ],
                 'Successfully'
             );
-            auth('api')->user()->update([
+            auth('api')->user()->update([                
+                'remember_token' => null,
                 'active' => 0,
                 'last_login_ip' => $request->ip,
             ]);
@@ -438,20 +437,20 @@ class JWTAuthController extends ApiController
             $validator = Validator::make(
                 $request->all(),
                 [
-            'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
-            'email' => 'required|email|max:100|unique:members',
-            'password' => 'required|min:6|regex:/^\S*$/u',
-            'bank_name' => 'required',
-            'account_number' => 'required',
-            'account_name' => 'required',
-            // 'provider' => 'required',
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
-            ],
+                    'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
+                    'email' => 'required|email|max:100|unique:members',
+                    'password' => 'required|min:6|regex:/^\S*$/u',
+                    'bank_name' => 'required',
+                    'account_number' => 'required',
+                    'account_name' => 'required',
+                    // 'provider' => 'required',
+                    'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
+                ],
                 [
-                'password.required' => 'Password tidak boleh kosong.',
-                'password.min' => 'Password harus minimal 6 karakter.',
-                'password.regex' => 'Password tidak boleh menggunakan spasi.',
-            ]
+                    'password.required' => 'Password tidak boleh kosong.',
+                    'password.min' => 'Password harus minimal 6 karakter.',
+                    'password.regex' => 'Password tidak boleh menggunakan spasi.',
+                ]
             );
 
             if ($validator->fails()) {
