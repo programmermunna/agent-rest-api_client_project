@@ -30,16 +30,12 @@ use JWTAuth;            # pagination pake ini
 use Livewire\WithPagination;              # pagination pake ini
 use Tymon\JWTAuth\Exceptions\JWTException; # pagination pake ini
 
-use Illuminate\Support\Facades\Auth;
-
 class JWTAuthController extends ApiController
 {
     use WithPagination;
     public $perPage = 20;
     public $history = [];
     public function authenticate(Request $request)
-    {
-        Auth::logoutOtherDevices($request->pasword);
 
         $input = $request->all();
 
@@ -71,6 +67,12 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse('Member has been suspend', 401);
             } elseif ($member->status == 1){                                
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
+            }
+
+            if($member->active == 1){
+                $token = $request->header('Authorization');
+                $user = auth('api')->user();
+                JWTAuth::parseToken()->invalidate($token);
             }
 
             \Config::set('auth.defaults.guard', 'api');
