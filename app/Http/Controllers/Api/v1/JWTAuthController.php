@@ -72,7 +72,6 @@ class JWTAuthController extends ApiController
             \Config::set('auth.defaults.guard', 'api');
             try {
                 $token = auth('api')->attempt($credentials);
-                $rememberToken = $token;
                 if (! $token) {
                     return $this->errorResponse('Password is wrong', 401);
                 }
