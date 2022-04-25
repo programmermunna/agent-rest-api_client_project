@@ -35,7 +35,7 @@ class JWTAuthController extends ApiController
     use WithPagination;
     public $perPage = 20;
     public $history = [];
-    public function authenticate(Request $request)
+    public function authenticate(Request $request){
 
         $input = $request->all();
 
