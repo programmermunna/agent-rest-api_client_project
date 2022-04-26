@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class WithdrawModel extends Model
 {
-    public const MIN_WITHDRAW_AMOUNT = 50000;
-
     use SoftDeletes;
 
     protected $connection = 'mysql';
