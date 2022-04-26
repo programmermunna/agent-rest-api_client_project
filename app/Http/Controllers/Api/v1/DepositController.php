@@ -41,9 +41,9 @@ class DepositController extends ApiController
             }
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id],['is_depo', 1]])->first();
 
-            if ($request->jumlah < DepositModel::MIN_DEPOSIT_AMOUNT) {
-                return $this->errorResponse("Minimal deposit ". number_format(DepositModel::MIN_DEPOSIT_AMOUNT), 400);
-            }
+            // if ($request->jumlah < DepositModel::MIN_DEPOSIT_AMOUNT) {
+            //     return $this->errorResponse("Minimal deposit ". number_format(DepositModel::MIN_DEPOSIT_AMOUNT), 400);
+            // }
             $payload = [
                     'rek_member_id' => $request->rekening_member_id,
                     'members_id' => auth('api')->user()->id,

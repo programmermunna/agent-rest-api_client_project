@@ -40,9 +40,9 @@ class WithdrawController extends ApiController
             }
 
             # minimal jumlah wd
-            if ($jumlah < WithdrawModel::MIN_WITHDRAW_AMOUNT) {
-                return $this->errorResponse("Minimal withdraw ". number_format(WithdrawModel::MIN_WITHDRAW_AMOUNT), 400);
-            }
+            // if ($jumlah < WithdrawModel::MIN_WITHDRAW_AMOUNT) {
+            //     return $this->errorResponse("Minimal withdraw ". number_format(WithdrawModel::MIN_WITHDRAW_AMOUNT), 400);
+            // }
             $memberWithdraw = $jumlah;
             $currCredit = MembersModel::find($memberId)->credit;
 
