@@ -7,8 +7,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DepositModel extends Model
 {
-  // public const MIN_DEPOSIT_AMOUNT = 25000;
-
   use SoftDeletes;
 
   protected $connection = 'mysql';
