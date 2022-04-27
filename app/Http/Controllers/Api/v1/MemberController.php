@@ -747,9 +747,9 @@ class MemberController extends ApiController
         );
 
       if ($bonus->count() < 1) {
-        return $this->successResponse($bonus->get(), 'Daily referal not exist', 200);
+        return $this->successResponse($bonus->get(), 'Tidak ada bonus harian', 200);
       } else {
-        return $this->successResponse($bonus->get(), 'Daily referal exist', 200);
+        return $this->successResponse($bonus->get(), 'Ada bonus harian', 200);
       }
     } catch (\Throwable $th) {
       return $this->errorResponse($th->getMessage(), 500);
@@ -810,7 +810,7 @@ class MemberController extends ApiController
   //             return $this->successResponse($bank_account->only(['name', 'nomor_rekening', 'nama_rekening']));
   //         }
 
-  //         return $this->successResponse(null, 'No content', 204);
+  //         return $this->successResponse(null, 'Tidak ada konten', 204);
   //     } catch (\Throwable $th) {
   //         return $this->errorResponse('Internal Server Error', 500);
   //     }
@@ -819,7 +819,7 @@ class MemberController extends ApiController
   public function winLoseStatus()
   {
     try {
-      return $this->successResponse(null, 'No content', 204);
+      return $this->successResponse(null, 'Tidak ada konten', 204);
     } catch (\Throwable $th) {
       return $this->errorResponse('Internal Server Error', 500);
     }
@@ -1095,7 +1095,7 @@ class MemberController extends ApiController
 
         return $this->successResponse($response);
       } else {
-        return $this->successResponse(null, 'No content', 204);
+        return $this->successResponse(null, 'Tidak ada konten', 204);
       }
     } catch (\Throwable $th) {
       return $this->errorResponse('Internal Server Error', 500);
@@ -1125,7 +1125,7 @@ class MemberController extends ApiController
       if ($arrStatement != null) {
         return $this->successResponse($arrStatement);
       } else {
-        return $this->successResponse('No statement', 204);
+        return $this->successResponse('Tidak ada statement', 204);
       }
     } catch (\Throwable $th) {
       return $this->errorResponse('Internal Server Error', 500);
@@ -1239,7 +1239,7 @@ class MemberController extends ApiController
           'last_login_ip' => $request->ip,
         ]);
 
-        return $this->successResponse(null, 'Successful create New Rekening ', 200);
+        return $this->successResponse(null, 'Berhasil membuat rekening baru', 200);
       }
     } catch (\Exception $e) {
       return $this->errorResponse($e->getMessage(), 500);
@@ -1284,13 +1284,13 @@ class MemberController extends ApiController
       ]);
 
 
-      return $this->successResponse(null, 'Successful update Rekening withdraw', 200);
+      return $this->successResponse(null, 'Berhasil mengubah Rekening withdraw', 200);
     } catch (\Exception $e) {
       return $this->errorResponse('Hubungi CS kami untuk mengubah Rekening Withdraw', 500);
     }
   }
   
-  // list rekening member
+  // Daftar Rekeningmember
   public function listRekMember()
   {
     try {
@@ -1307,12 +1307,12 @@ class MemberController extends ApiController
         ->where('username_member', auth('api')->user()->username)
         ->get();
 
-      return $this->successResponse($rekMember, 'List Rekening ', 200);
+      return $this->successResponse($rekMember, 'Daftar Rekening ', 200);
     } catch (\Exception $e) {
       return $this->errorResponse('Internal Server Error', 500);
     }
   }
-    // New list rekening member
+    // New Daftar Rekeningmember
     public function listRekAgent()
     {
         try {
@@ -1456,7 +1456,7 @@ class MemberController extends ApiController
 
             $listRek = array_merge($bankAgent, $nonBankAgent);
             
-            return $this->successResponse($listRek, 'List Rekening Agent', 200);
+            return $this->successResponse($listRek, 'Daftar Rekening Agent', 200);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
@@ -1476,7 +1476,7 @@ class MemberController extends ApiController
         ->where('is_wd', 1)
         ->get();
 
-      return $this->successResponse($rekMember, 'List Rekening ', 200);
+      return $this->successResponse($rekMember, 'Daftar Rekening', 200);
     } catch (\Exception $e) {
       return $this->errorResponse('Internal Server Error', 500);
     }
@@ -1817,7 +1817,7 @@ class MemberController extends ApiController
 
             return $this->successResponse(null, 'CASHBACK 10%', 200);
           } else {
-            return $this->successResponse(null, 'No CASHBACK 123', 200);
+            return $this->successResponse(null, 'Tidak ada CASHBACK 123', 200);
           }
         } else {
           return $this->successResponse(null, 'Tidak ada bonus cashback slot yang di peroleh', 200);
@@ -1834,7 +1834,7 @@ class MemberController extends ApiController
     try {
       $bonus = ConstantProviderTogelModel::select('name', 'value')->where('status', true)->get();
       if ($bonus->count() < 1) {
-        return $this->successResponse(null, 'Data not exist', 200);
+        return $this->successResponse(null, 'Tidak ada data', 200);
       } else {
         return $this->successResponse($bonus, 'Bonus referal', 200);
       }

@@ -30,10 +30,10 @@ class BetsTogelController extends ApiController
     $pasaran = ConstantProviderTogelModel::where('name', $request->provider)->first();
     $game    = TogelGame::select(['id','name'])->where('name', $request->type)->first();
     if(is_null($pasaran)){
-      return $this->errorResponse('Provider name does not match', 400);
+      return $this->errorResponse('Nama pasaran tidak ditemukan', 400);
     }
     if(is_null($game)){
-      return $this->errorResponse('Type game name does not match', 400);
+      return $this->errorResponse('Jenis game tidak ditemukan', 400);
     }
     // First For All Take The Type Of Game 
     $togelGames = TogelGame::query()->get()->pluck(['id'], 'name');
