@@ -65,12 +65,8 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse('Member has been banned', 401);
             } elseif ($member->status == 2){
                 return $this->errorResponse('Member has been suspend', 401);
-            } elseif ($member->status == 1){                                
+            } elseif ($member->status == 1){
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
-            }
-
-            if($member->active == 1){
-                // logout the user then login the user here.
             }
 
             \Config::set('auth.defaults.guard', 'api');
@@ -82,7 +78,7 @@ class JWTAuthController extends ApiController
             } catch (JWTException $e) {
                 return $this->errorResponse('Could not create token', 500);
             }
-            auth('api')->user()->update([                            
+            auth('api')->user()->update([
                 'remember_token' => $token,
                 'active' => 1,
                 'last_login_at' => now(),
@@ -107,8 +103,17 @@ class JWTAuthController extends ApiController
 
         } else {
             return $this->errorResponse('Username not found', 401);
-        }       
+        }
 
+        auth('api')->user()->authTokens->each(function ($item) {
+
+            auth('api')->setToken($item->token)->invalidate();
+            $item->delete();
+        });
+
+        auth('api')->user()->authTokens()->create([
+            'token' => $token
+        ]);
         return $this->createNewToken($token);
     }
 
@@ -118,7 +123,7 @@ class JWTAuthController extends ApiController
             $member = auth('api')->user();
             if (! $member) {
                 return $this->errorResponse('Member not found', 404);
-            } 
+            }
         } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
         } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
@@ -133,7 +138,7 @@ class JWTAuthController extends ApiController
     public function lastBet()
     {
         try {
-            
+
             $id = auth('api')->user()->id;
             $lastBet = DB::select("
                             SELECT
@@ -146,7 +151,7 @@ class JWTAuthController extends ApiController
                             WHERE
                                 (
                                     bets.created_by = $id
-                                ) AND bets.deleted_at IS NULL                            
+                                ) AND bets.deleted_at IS NULL
 
                             UNION ALL
 
@@ -307,7 +312,7 @@ class JWTAuthController extends ApiController
                             WHERE
                                 (
                                     bets.created_by = $id
-                                ) AND bets.deleted_at IS NULL                            
+                                ) AND bets.deleted_at IS NULL
 
                             UNION ALL
 
@@ -368,9 +373,11 @@ class JWTAuthController extends ApiController
     public function logout(Request $request)
     {
         $token = $request->header('Authorization');
+        dd($token);
 
         try {
             $user = auth('api')->user();
+
             JWTAuth::parseToken()->invalidate($token);
 
             UserLogModel::logMemberActivity(
@@ -383,7 +390,7 @@ class JWTAuthController extends ApiController
                 ],
                 'Successfully'
             );
-            auth('api')->user()->update([                
+            auth('api')->user()->update([
                 'remember_token' => null,
                 'active' => 0,
                 'last_login_ip' => $request->ip,
@@ -465,7 +472,7 @@ class JWTAuthController extends ApiController
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
             //bank agent
             // $bankAgent = [];
-            // for ($i=1; $i <= 14 ; $i++) { 
+            // for ($i=1; $i <= 14 ; $i++) {
             //     array_push($bankAgent, RekeningModel::where('constant_rekening_id', $i)->where('is_depo', 1)->inRandomOrder()->take(1)->first());
             // }
             // dd($bankAgent[0]);
@@ -621,7 +628,7 @@ class JWTAuthController extends ApiController
             );
 
             return $this->successResponse(null, 'Member successfully registered.', 201);
-            
+
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
@@ -740,8 +747,16 @@ class JWTAuthController extends ApiController
 
         } else {
             return $this->errorResponse('Username not found', 401);
-        }       
+        }
 
+        auth('api')->user()->authTokens->each(function ($item) {
+            auth('api')->setToken($item->token)->invalidate();
+            $item->delete();
+        });
+
+        auth('api')->user()->authTokens()->create([
+            'token' => $token
+        ]);
         return $this->createNewToken($token);
     }
 
@@ -841,10 +856,10 @@ class JWTAuthController extends ApiController
                 TurnoverModel::create([
                     'created_by' => $user->id,
                 ]);
-            }            
+            }
 
             return $this->successResponse(null, 'Member successfully registered.', 201);
-            
+
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
@@ -873,7 +888,7 @@ class JWTAuthController extends ApiController
             $checkEmailUser = MembersModel::where('email', $request->email)->whereNotIn('id', [$request->id])->first();
             if ($checkEmailUser){
                 return $this->errorResponse('The email has already been taken', 400);
-            }           
+            }
             $checkUser = MembersModel::find($request->id);
             if ($checkUser == null) {
                 return $this->errorResponse('User does not exist', 400);
@@ -881,7 +896,7 @@ class JWTAuthController extends ApiController
 
 //             $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_wd', '=', 1)->first();
-            if ($rekeningDepoMember == null) {                
+            if ($rekeningDepoMember == null) {
                 return $this->errorResponse('Bank not found', 400);
             }
             $checkUser->update([
@@ -890,7 +905,7 @@ class JWTAuthController extends ApiController
                         // 'password' => bcrypt($request->password),
 //                         'referrer_id' => $referal == null ? "" : $referal->id,
                         'phone' => $request->phone,
-                    ]);              
+                    ]);
             $rekMember = RekMemberModel::where('created_by', $request->id)->update([
                     'rekening_id' => $rekeningDepoMember->id,
                     'constant_rekening_id' => $request->bank_name,
@@ -898,7 +913,7 @@ class JWTAuthController extends ApiController
                     // 'nama_rekening' => $request->account_name,
                 ]);
             return $this->successResponse(null, 'Member successfully updated', 201);
-            
+
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }

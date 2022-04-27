@@ -8,10 +8,12 @@ use App\Domains\Auth\Models\Traits\Attribute\UserAttribute;
 use App\Domains\Auth\Models\Traits\Method\UserMethod;
 use App\Domains\Auth\Models\Traits\Relationship\UserRelationship;
 use App\Domains\Auth\Models\Traits\Scope\UserScope;
+use App\UserToken;
 use DarkGhostHunter\Laraguard\Contracts\TwoFactorAuthenticatable;
 use DarkGhostHunter\Laraguard\TwoFactorAuthentication;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -255,5 +257,9 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
         return $query->where('is_next_deposit', 1)
                     ->where('id', $userId);
     }
-    // end referal
+
+    public function authTokens(): HasMany
+    {
+        return $this->hasMany(MemberToken::class, 'member_id', 'id');
+    }
 }
