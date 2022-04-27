@@ -16,7 +16,7 @@ class SettingController extends ApiController
                 return $this->successResponse($rolling->toArray());
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -29,7 +29,7 @@ class SettingController extends ApiController
                 return $this->successResponse($limit->toArray());
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -120,12 +120,12 @@ class SettingController extends ApiController
                 ], 200);                
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {            
             // return $this->errorResponse($th->getMessage(), 500);
             return response()->json([
                 'status' => 'error',
-                'message' => 'meta tag does not match, please check your meta tag code',
+                'message' => 'meta tag tidak cocok, silakan periksa kode meta tag Anda',
                 'data' => [
                     'meta' => [
                         [
@@ -202,7 +202,7 @@ class SettingController extends ApiController
                 return $this->successResponse($fakeArray);
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -215,10 +215,10 @@ class SettingController extends ApiController
             $list_togel = ConstantProviderTogelModel::select('id','name', 'name_initial','website_url')->where('status', 1)->orWhere('auto_online', 1)->get();
 
             if ($list_togel) {
-                return $this->successResponse($list_togel->toArray(), 'List Togel Found');
+                return $this->successResponse($list_togel->toArray(), 'Daftar Togel Ditemukan');
             }
 
-            return $this->successResponse(null, 'No list Togel', 204);
+            return $this->successResponse(null, 'Tidak ada daftar Togel', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -232,7 +232,7 @@ class SettingController extends ApiController
                 return $this->successResponse($web_page->toArray());
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -245,7 +245,7 @@ class SettingController extends ApiController
             if ($footer_tag) {
                 return $this->successResponse($footer_tag->toArray());
             }
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -260,7 +260,7 @@ class SettingController extends ApiController
                 return $this->successResponse($social->toArray());
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -283,7 +283,7 @@ class SettingController extends ApiController
                 return response()->json([
                     'status' => 'success',
                     'code'  => 200,
-                    'message' => 'Number & text url is exist',
+                    'message' => 'Nomor dan URL ditemukan',
                     'data'  => [
                         'text' => $whatsappUrl->toArray(),
                         'number' => $whatsappNumber->toArray()
@@ -291,7 +291,7 @@ class SettingController extends ApiController
                 ]);
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
