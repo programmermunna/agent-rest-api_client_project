@@ -25,7 +25,7 @@ class LanlanController extends ApiController
                 return $this->successResponse($broadcasts->pluck('message'));
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -37,7 +37,7 @@ class LanlanController extends ApiController
     //         if ($broadcasts) {
     //             return $this->successResponse($broadcasts->pluck('message'));
     //         }else{
-    //             return $this->successResponse(null, 'No content', 204);
+    //             return $this->successResponse(null, 'Tidak ada konten', 204);
     //         }
     //     } catch (\Throwable $th) {
     //         return $this->errorResponse('Internal Server Error', 500);
@@ -52,7 +52,7 @@ class LanlanController extends ApiController
                 return $this->successResponse($apk);
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -71,7 +71,7 @@ class LanlanController extends ApiController
                 ]);
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -90,7 +90,7 @@ class LanlanController extends ApiController
                 ]);
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -107,7 +107,7 @@ class LanlanController extends ApiController
                 return $this->successResponse($medias);
             }
 
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -128,10 +128,10 @@ class LanlanController extends ApiController
                     $response['description'] = AppSetting::where('name', 'main_maintenance_description')->where('type', 'maintenance')->value('value');
 
                     //if value on database 200 == website is no maintenance
-                    return $this->errorResponse('Maintenance Mode', 200, $response);
+                    return $this->errorResponse('Mode Pemeliharaan', 200, $response);
                 }
             }
-            return $this->successResponse(null, 'No content', 204);
+            return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -158,7 +158,7 @@ class LanlanController extends ApiController
                         'updated_at' => Carbon::now(),
                     ]
                 );
-                return $this->errorResponse('Maintenance Mode', 503, $response);
+                return $this->errorResponse('Mode Pemeliharaan', 503, $response);
             } elseif ($maintenance->value == 200) {
                 $maintenance->update(
                     [
@@ -168,7 +168,7 @@ class LanlanController extends ApiController
                         'updated_at' => Carbon::now(),
                     ]
                 );
-                return $this->successResponse('No Maintenance', 200);
+                return $this->successResponse('Tidak ada Pemeliharaan', 200);
             }
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);

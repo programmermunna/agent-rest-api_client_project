@@ -37,7 +37,7 @@ class DepositController extends ApiController
                 ->where('approval_status',0)
                 ->first();
             if ($cek_status_depo || $cek_status_wd){
-                return $this->errorResponse("Maaf Anda masih ada transaksi yang belum selsai.", 400);
+                return $this->errorResponse("Maaf Anda masih ada transaksi yang belum selesai.", 400);
             }
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id],['is_depo', 1]])->first();
 
@@ -86,7 +86,7 @@ class DepositController extends ApiController
                 'last_login_ip' => $request->ip,
             ]);
 
-            return $this->successResponse(null, 'Successful create deposit');
+            return $this->successResponse(null, 'Deposit berhasil');
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }

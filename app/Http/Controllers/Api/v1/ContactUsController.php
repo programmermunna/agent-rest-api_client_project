@@ -24,7 +24,7 @@ class ContactUsController extends ApiController
             }
             ContactUs::create($request->all());
 
-            return $this->successResponse(null, 'Contact Create successfully.', 201);
+            return $this->successResponse(null, 'Membuat kontak berhasil.', 201);
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }

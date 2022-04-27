@@ -28,7 +28,7 @@ class WithdrawController extends ApiController
                 ->where('approval_status',0)
                 ->first();
             if ($cek_status_depo || $cek_status_wd){
-                return $this->errorResponse("Maaf Anda masih ada transaksi yang belum selsai.", 400);
+                return $this->errorResponse("Maaf Anda masih ada transaksi yang belum selesai.", 400);
             }
             $memberId = auth('api')->user()->id; // atau bisa juga Auth::user()->id,
             $jumlah = str_replace(',', '', $request->jumlah);
@@ -85,7 +85,7 @@ class WithdrawController extends ApiController
                     'last_login_ip' => $request->ip,
                 ]);
 
-                return $this->successResponse(null, 'Successful request withdraw');
+                return $this->successResponse(null, 'Berhasil request withdraw');
             }
 
             return $this->errorResponse('Bank Tujuan Untuk Withdraw Sedang Offline, Silahkan Hubungi Customer service', 400);

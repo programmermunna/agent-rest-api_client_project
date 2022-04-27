@@ -37,7 +37,7 @@ class MemoController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+            return $this->errorResponse('Kesalahan Validasi', 422, $validator->errors()->first());
         }
         try {
             $memo = MemoModel::create([
@@ -65,7 +65,7 @@ class MemoController extends ApiController
             ]);
 
             // MemoModel::insert($create);
-            return $this->successResponse(null, 'Successful create Memo', 200);
+            return $this->successResponse(null, 'Berhasil membuat memo', 200);
         } catch (\Exception $e) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -127,7 +127,7 @@ class MemoController extends ApiController
             ]);
 
             if ($validator->fails()) {
-                return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+                return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
             }
 
             return $this->successResponse($request->id);
@@ -146,7 +146,7 @@ class MemoController extends ApiController
         ]);
 
         if ($validator->fails()) {
-            return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
+            return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
         }
         try {
             $memo = MemoModel::create([
@@ -178,7 +178,7 @@ class MemoController extends ApiController
                 'last_login_ip' => $request->ip,
             ]);
             // MemoModel::insert($create);
-            return $this->successResponse(null, 'Successful reply Memo', 200);
+            return $this->successResponse(null, 'Berhasil membalas memo', 200);
         } catch (\Exception $e) {
             return $this->errorResponse('Internal Server Error', 500);
         }

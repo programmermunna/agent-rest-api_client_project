@@ -62,9 +62,9 @@ class JWTAuthController extends ApiController
                                 ->first();
         if ($member) {
             if ($member->status == 0){
-                return $this->errorResponse('Member has been banned', 401);
+                return $this->errorResponse('Akun anda telah di blokir', 401);
             } elseif ($member->status == 2){
-                return $this->errorResponse('Member has been suspend', 401);
+                return $this->errorResponse('Akun anda telah di tangguhkan', 401);
             } elseif ($member->status == 1){
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
             }
@@ -73,10 +73,10 @@ class JWTAuthController extends ApiController
             try {
                 $token = auth('api')->attempt($credentials);
                 if (! $token) {
-                    return $this->errorResponse('Password is wrong', 401);
+                    return $this->errorResponse('Password anda salah', 401);
                 }
             } catch (JWTException $e) {
-                return $this->errorResponse('Could not create token', 500);
+                return $this->errorResponse('Could tidak dapat membuat token', 500);
             }
             auth('api')->user()->update([
                 'remember_token' => $token,
@@ -102,7 +102,7 @@ class JWTAuthController extends ApiController
             );
 
         } else {
-            return $this->errorResponse('Username not found', 401);
+            return $this->errorResponse('Username tidak ditemukan', 401);
         }
 
         auth('api')->user()->authTokens->each(function ($item) {
@@ -126,7 +126,7 @@ class JWTAuthController extends ApiController
         try {
             $member = auth('api')->user();
             if (! $member) {
-                return $this->errorResponse('Member not found', 404);
+                return $this->errorResponse('Member tidak ditemukan', 404);
             }
         } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
@@ -286,7 +286,7 @@ class JWTAuthController extends ApiController
                 ->orderBy('approval_status_at', 'asc')->count();
             // dd($cekKondisi);
             if (is_null($cekKondisi)) {
-                'no data';
+                'Tidak ada data';
             } elseif ($cekKondisi >= 0 && $cekKondisi <= 2) {
                 $member = MembersModel::where('id', auth('api')->user()->id)->first();
                 $member->update(['is_next_deposit' => 1]);
@@ -367,7 +367,7 @@ class JWTAuthController extends ApiController
             if ($arrHistory != null) {
                 return $this->successResponse($arrHistory);
             } else {
-                return $this->successResponse('No history', 204);
+                return $this->successResponse('Tidak ada histori', 204);
             }
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
@@ -399,7 +399,7 @@ class JWTAuthController extends ApiController
                 'last_login_ip' => $request->ip,
             ]);
 
-            return $this->successResponse(null, 'Member logout successful.', 200);
+            return $this->successResponse(null, 'Member berhasil logout.', 200);
         } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
         } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
@@ -630,7 +630,7 @@ class JWTAuthController extends ApiController
                 'Successfully'
             );
 
-            return $this->successResponse(null, 'Member successfully registered.', 201);
+            return $this->successResponse(null, 'Member berhasil didaftar.', 201);
 
         } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
@@ -685,7 +685,7 @@ class JWTAuthController extends ApiController
 
                 return $this->successResponse(null, 'Berhasil Ganti Password.', 201);
             } else {
-                return $this->errorResponse('Passwrod lama yang anda masukan salah', 400);
+                return $this->errorResponse('Password lama yang anda masukan salah', 400);
             }
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
