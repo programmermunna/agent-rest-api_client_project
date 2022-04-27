@@ -107,7 +107,11 @@ class JWTAuthController extends ApiController
 
         auth('api')->user()->authTokens->each(function ($item) {
 
-            auth('api')->setToken($item->token)->invalidate();
+            try {
+                auth('api')->setToken($item->token)->invalidate();
+            } catch (\Exception $exception) {
+                //handle exception
+            }
             $item->delete();
         });
 
@@ -373,7 +377,6 @@ class JWTAuthController extends ApiController
     public function logout(Request $request)
     {
         $token = $request->header('Authorization');
-        dd($token);
 
         try {
             $user = auth('api')->user();
@@ -750,7 +753,11 @@ class JWTAuthController extends ApiController
         }
 
         auth('api')->user()->authTokens->each(function ($item) {
-            auth('api')->setToken($item->token)->invalidate();
+            try {
+                auth('api')->setToken($item->token)->invalidate();
+            } catch (\Exception $exception) {
+                //handle exception
+            }
             $item->delete();
         });
 
