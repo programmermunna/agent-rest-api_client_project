@@ -120,12 +120,13 @@ class BetsTogelController extends ApiController
       foreach ($bets as $bet) {
         $idx[] = DB::table('bets_togel')->insertGetId($bet);
       }
+      // dd($idx);
       // TODO need chunks the array of $idx and inserting to DB
-      $chunkIdx = array_chunk($idx, 50);
-      foreach ($chunkIdx as $id) {
-        $this->inserBetTogelToHistory($id);
-        $response = $this->CheckIsBuangan($id);
-      }
+      // $chunkIdx = array_chunk($idx, 50);
+      // foreach ($idx as $id) {
+        $this->inserBetTogelToHistory($idx);
+        $response = $this->CheckIsBuangan($idx);
+      // }
       // Cek This is Bet Buangan 
       if ($response != []) {
         if ($response[0]->results != null) {
