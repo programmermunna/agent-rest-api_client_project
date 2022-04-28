@@ -61,9 +61,10 @@ class BetsTogelController extends ApiController
 
     $bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
 
+    // dd($this->checkBlokednumber($request, $provider));
     // Loop the validated data and take key data and remapping the key
     foreach ($this->checkBlokednumber($request, $provider) as $togel) {
-
+      // $togel = json_decode($togels, true);     
       // definition of bonus referal
       $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
       // $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
@@ -110,27 +111,32 @@ class BetsTogelController extends ApiController
       array_push($total_bets_after_disc, floatval($togel['pay_amount']));
     }
     try {
-      if (empty($bets)) {
+      if (empty($bets)) {        
         return response()->json(['message' => 'success', 'code' => 200], 200);
       }
-      DB::beginTransaction();
+      // DB::beginTransaction();
 
       $idx = [];
 
       foreach ($bets as $bet) {
+        DB::beginTransaction();
         $idx[] = DB::table('bets_togel')->insertGetId($bet);
+        DB::commit();
       }
       // dd($idx);
       // TODO need chunks the array of $idx and inserting to DB
       // $chunkIdx = array_chunk($idx, 50);
       // foreach ($idx as $id) {
+        DB::beginTransaction();
         $this->inserBetTogelToHistory($idx);
         $response = $this->CheckIsBuangan($idx);
+        DB::commit();
       // }
       // Cek This is Bet Buangan 
       if ($response != []) {
         if ($response[0]->results != null) {
           foreach (json_decode($response[0]->results) as $bet) {
+            DB::beginTransaction();
             BetsTogel::query()
               ->where('id', $bet->bet_id)
               ->where('constant_provider_togel_id', $bet->constant_provider_togel_id)
@@ -138,6 +144,7 @@ class BetsTogelController extends ApiController
                 'is_bets_buangan' => $bet->is_bets_buangan,
                 'buangan_before_submit' => $bet->buangan_before_submit,
               ]);
+            DB::commit();
           }
         }
       }
@@ -148,7 +155,7 @@ class BetsTogelController extends ApiController
       //   ->where('id', '=', $provider)
       //   ->update(['period' => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1]);
 
-      DB::commit();
+      // DB::commit();
 
 
       return response()->json(['message' => 'success', 'code' => 200], 200);
