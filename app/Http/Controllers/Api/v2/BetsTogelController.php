@@ -130,11 +130,11 @@ class BetsTogelController extends ApiController
 
       // dd($idx);
       // TODO need chunks the array of $idx and inserting to DB
-      // $chunkIdx = array_chunk($idx, 50);
+      $chunkIdx = array_chunk($idx, 50);
+      return response()->json(['message' => "Total data : ".$chunkIdx, 'code' => 200], 200);
+      dd();
       // foreach ($idx as $id) {
       
-      return response()->json(['message' => "Total data : ".count($this->inserBetTogelToHistory($idx)), 'code' => 200], 200);
-      dd();
       DB::beginTransaction();
       $this->inserBetTogelToHistory($idx);
       $response = $this->CheckIsBuangan($idx);
@@ -245,7 +245,6 @@ class BetsTogelController extends ApiController
    */
   protected function updateCredit($totalBets)
   {
-    dd(array_sum($totalBets));
     if (auth('api')->user()->credit === 0) {
       return response()->json([
         'code' => 422,
