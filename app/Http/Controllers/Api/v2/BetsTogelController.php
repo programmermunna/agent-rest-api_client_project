@@ -127,18 +127,15 @@ class BetsTogelController extends ApiController
         
         DB::commit();
       }      
-
-      // dd($idx);
+      return response()->json(['message' => $idx, 'code' => 200], 200);
+      dd($idx);
       // TODO need chunks the array of $idx and inserting to DB
-      $chunkIdx = array_chunk($idx, 50);
-      return response()->json(['message' => "Total data : ".$chunkIdx, 'code' => 200], 200);
-      dd();
-      // foreach ($idx as $id) {
-      
-      DB::beginTransaction();
-      $this->inserBetTogelToHistory($idx);
-      $response = $this->CheckIsBuangan($idx);
-      DB::commit();
+      // $chunkIdx = array_chunk($idx, 50);
+      // foreach ($idx as $id) {      
+        DB::beginTransaction();
+        $this->inserBetTogelToHistory($idx);
+        $response = $this->CheckIsBuangan($idx);
+        DB::commit();
       // }
       // Cek This is Bet Buangan 
       if ($response != []) {
