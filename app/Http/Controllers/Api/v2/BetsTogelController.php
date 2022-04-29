@@ -61,61 +61,63 @@ class BetsTogelController extends ApiController
 
     $bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
 
-    // dd($this->checkBlokednumber($request, $provider));
+    // dd(json_encode($this->checkBlokednumber($request, $provider)));
     // Loop the validated data and take key data and remapping the key
-    foreach ($this->checkBlokednumber($request, $provider) as $togel) {
-      // $togel = json_decode($togels, true);     
-      // definition of bonus referal
-      $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
-      // $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
+    try {
+      foreach ($this->checkBlokednumber($request, $provider) as $togel) {
+        // dd($togels);
+        // $togel = json_decode($togels, true);     
+        // definition of bonus referal
+        $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
+        // $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
 
-      array_push($bets, array_merge($togel, [
-        // 'period'      => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
-        'period'      => $periodProvider->period,
-        'bonus_daily_referal' => $calculateReferal,
-        "togel_game_id" => $gameType,
-        "constant_provider_togel_id" => $provider,
-        'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
-        'created_by' => auth('api')->user()->id, // Laravel Can Handler which user has login please cek config.auth folder
-        'created_at' => now()
-      ]));
+        array_push($bets, array_merge($togel, [
+          // 'period'      => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
+          'period'      => $periodProvider->period,
+          'bonus_daily_referal' => $calculateReferal,
+          "togel_game_id" => $gameType,
+          "constant_provider_togel_id" => $provider,
+          'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
+          'created_by' => auth('api')->user()->id, // Laravel Can Handler which user has login please cek config.auth folder
+          'created_at' => now()
+        ]));
 
-      // get member bet
-      $member =  MembersModel::where('id', auth('api')->user()->id)->first();
-      DB::beginTransaction();
-      $member->update([
-        'update_at' => Carbon::now(),
-        'bonus_referal' => $member->bonus_referal + $calculateReferal,
-        // 'bonus_referal' => $provider === 1 ? $member->bonus_referal + ($bonus['HKD'] * $togel['pay_amount']) : ($provider === 2 ? $member->bonus_referal + ($bonus['NZB'] * $togel['pay_amount']) : ($provider === 3 ? $member->bonus_referal + ($bonus['SY'] * $togel['pay_amount']) : ($provider === 4 ? $member->bonus_referal + ($bonus['HAI'] * $togel['pay_amount']) : ($provider === 5 ? $member->bonus_referal + ($bonus['SG'] * $togel['pay_amount']) : ($provider === 6 ? $member->bonus_referal + ($bonus['JINAN'] * $togel['pay_amount']) : ($provider === 7 ? $member->bonus_referal + ($bonus['QTR'] * $togel['pay_amount']) : ($provider === 8 ? $member->bonus_referal + ($bonus['BGP'] * $togel['pay_amount']) : ($provider === 9 ? $member->bonus_referal + ($bonus['HK'] * $togel['pay_amount']) : ($provider === 10 ? $member->bonus_referal + ($bonus['SGP45'] * $togel['pay_amount']) : ''))))))))),
-      ]);
-      DB::commit();
-
-      // check if any referrer
-      if ($member->referrer_id) {
-        // calculate bonus have referrer
-        $referal =  MembersModel::where('id', $member->referrer_id)->first();
+        // get member bet
+        $member =  MembersModel::where('id', auth('api')->user()->id)->first();
         DB::beginTransaction();
-        $referal->update([
+        $member->update([
           'update_at' => Carbon::now(),
-          'credit' => $referal->credit + $calculateReferal,
-          // 'credit' => $provider === 1 ? $referal->credit + ($bonus['HKD'] * $togel['pay_amount']) : ($provider === 2 ? $referal->credit + ($bonus['NZB'] * $togel['pay_amount']) : ($provider === 3 ? $referal->credit + ($bonus['SY'] * $togel['pay_amount']) : ($provider === 4 ? $referal->credit + ($bonus['HAI'] * $togel['pay_amount']) : ($provider === 5 ? $referal->credit + ($bonus['SG'] * $togel['pay_amount']) : ($provider === 6 ? $referal->credit + ($bonus['JINAN'] * $togel['pay_amount']) : ($provider === 7 ? $referal->credit + ($bonus['QTR'] * $togel['pay_amount']) : ($provider === 8 ? $referal->credit + ($bonus['BGP'] * $togel['pay_amount']) : ($provider === 9 ? $referal->credit + ($bonus['HK'] * $togel['pay_amount']) : ($provider === 10 ? $referal->credit + ($bonus['SGP45'] * $togel['pay_amount']) : ''))))))))),
-        ]);
-
-        // create bonus history
-        BonusHistoryModel::create([
-          'constant_bonus_id' => 3,
-          'created_by' => $member->referrer_id,
-          'created_at' => Carbon::now(),
-          'jumlah' => $calculateReferal,
+          'bonus_referal' => $member->bonus_referal + $calculateReferal,
+          // 'bonus_referal' => $provider === 1 ? $member->bonus_referal + ($bonus['HKD'] * $togel['pay_amount']) : ($provider === 2 ? $member->bonus_referal + ($bonus['NZB'] * $togel['pay_amount']) : ($provider === 3 ? $member->bonus_referal + ($bonus['SY'] * $togel['pay_amount']) : ($provider === 4 ? $member->bonus_referal + ($bonus['HAI'] * $togel['pay_amount']) : ($provider === 5 ? $member->bonus_referal + ($bonus['SG'] * $togel['pay_amount']) : ($provider === 6 ? $member->bonus_referal + ($bonus['JINAN'] * $togel['pay_amount']) : ($provider === 7 ? $member->bonus_referal + ($bonus['QTR'] * $togel['pay_amount']) : ($provider === 8 ? $member->bonus_referal + ($bonus['BGP'] * $togel['pay_amount']) : ($provider === 9 ? $member->bonus_referal + ($bonus['HK'] * $togel['pay_amount']) : ($provider === 10 ? $member->bonus_referal + ($bonus['SGP45'] * $togel['pay_amount']) : ''))))))))),
         ]);
         DB::commit();
+
+        // check if any referrer
+        if ($member->referrer_id) {
+          // calculate bonus have referrer
+          $referal =  MembersModel::where('id', $member->referrer_id)->first();
+          DB::beginTransaction();
+          $referal->update([
+            'update_at' => Carbon::now(),
+            'credit' => $referal->credit + $calculateReferal,
+            // 'credit' => $provider === 1 ? $referal->credit + ($bonus['HKD'] * $togel['pay_amount']) : ($provider === 2 ? $referal->credit + ($bonus['NZB'] * $togel['pay_amount']) : ($provider === 3 ? $referal->credit + ($bonus['SY'] * $togel['pay_amount']) : ($provider === 4 ? $referal->credit + ($bonus['HAI'] * $togel['pay_amount']) : ($provider === 5 ? $referal->credit + ($bonus['SG'] * $togel['pay_amount']) : ($provider === 6 ? $referal->credit + ($bonus['JINAN'] * $togel['pay_amount']) : ($provider === 7 ? $referal->credit + ($bonus['QTR'] * $togel['pay_amount']) : ($provider === 8 ? $referal->credit + ($bonus['BGP'] * $togel['pay_amount']) : ($provider === 9 ? $referal->credit + ($bonus['HK'] * $togel['pay_amount']) : ($provider === 10 ? $referal->credit + ($bonus['SGP45'] * $togel['pay_amount']) : ''))))))))),
+          ]);
+
+          // create bonus history
+          BonusHistoryModel::create([
+            'constant_bonus_id' => 3,
+            'created_by' => $member->referrer_id,
+            'created_at' => Carbon::now(),
+            'jumlah' => $calculateReferal,
+          ]);
+          DB::commit();
+        }
+
+        // Sum pay_amount
+        array_push($total_bets_after_disc, floatval($togel['pay_amount']));
       }
 
-      // Sum pay_amount
-      array_push($total_bets_after_disc, floatval($togel['pay_amount']));
-    }
-
-    try {
+    
       // if (empty($bets)) {        
       //   return response()->json(['message' => 'success', 'code' => 200], 200);
       // }
