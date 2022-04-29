@@ -712,7 +712,7 @@ class MemberController extends ApiController
             'betsGameId' => null,
             'betsDeskripsi' => null,
             'betsCredit' => null,
-            'created_at' => $value['id'],
+            'created_at' => $value['created_at'],
             'betsProviderName' => null,
             'betsTogelHistoryId' => $value['id'],
             'betsTogelHistoryPasaran' => $value['Pasaran'], 
@@ -3149,6 +3149,12 @@ class MemberController extends ApiController
   //         return 'sukses changed';
   //     }
   // }
+
+  public function sortDate($element1, $element2){
+    $datetime1 = strtotime($element1['created_at']);
+    $datetime2 = strtotime($element2['created_at']);
+    return $datetime1 - $datetime2;
+  }
 
   // pagination
   public function paginate($items, $perPage, $page = null, $options = [])
