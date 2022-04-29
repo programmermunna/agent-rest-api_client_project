@@ -83,8 +83,6 @@ class BetsTogelController extends ApiController
           'created_by' => auth('api')->user()->id, // Laravel Can Handler which user has login please cek config.auth folder
           'created_at' => now()
         ]));
-
-        
         DB::beginTransaction();
         $member->update([
           'update_at' => Carbon::now(),
@@ -128,6 +126,11 @@ class BetsTogelController extends ApiController
       foreach ($bets as $bet) {
         DB::beginTransaction();
         $idx[] = DB::table('bets_togel')->insertGetId($bet);
+        $member =  MembersModel::where('id', auth('api')->user()->id)->first();
+        $amountCredit = $member->credit - $bet['pay_amount'];
+        $member->update([
+          'credit' => $amountCredit
+        ]);
         
         DB::commit();
       }
