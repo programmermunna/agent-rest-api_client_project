@@ -157,6 +157,9 @@ class BetsTogelController extends ApiController
           }
         }
       }
+
+      return response()->json(['message' => "Total betingan : ".$total_bets_after_disc, 'code' => 200], 200);
+      die;
       
       $this->updateCredit($total_bets_after_disc);
 
@@ -246,7 +249,7 @@ class BetsTogelController extends ApiController
    */
   protected function updateCredit($totalBets)
   {
-
+    dd(array_sum($totalBets));
     if (auth('api')->user()->credit === 0) {
       return response()->json([
         'code' => 422,
