@@ -134,10 +134,8 @@ class BetsTogelController extends ApiController
       $this->inserBetTogelToHistory($idx);
       $response = $this->CheckIsBuangan($idx);
       DB::commit();
-
-      return response()->json(['message' => $this->inserBetTogelToHistory($idx), 'code' => 200], 200);
-      dd($this->inserBetTogelToHistory($idx));
       // }
+
       // Cek This is Bet Buangan 
       if ($response != []) {
         if ($response[0]->results != null) {
@@ -261,6 +259,10 @@ class BetsTogelController extends ApiController
   protected function inserBetTogelToHistory(array $betsId)
   {
     /// will be convert to 1,2,3,4,5
+    
+
+    return response()->json(['message' => $betsId, 'code' => 200], 200);
+    dd($betsId);
     $bets_id  = implode(",", $betsId);
     DB::select("CALL TriggerInsertAfterBetsTogel('" . $bets_id . "')"); // will be return empty
   }
