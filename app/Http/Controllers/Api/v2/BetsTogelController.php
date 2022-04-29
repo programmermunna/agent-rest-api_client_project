@@ -113,7 +113,6 @@ class BetsTogelController extends ApiController
 
       // Sum pay_amount
       array_push($total_bets_after_disc, floatval($togel['pay_amount']));
-      $this->updateCredit($total_bets_after_disc);
     }
 
     try {
@@ -156,6 +155,8 @@ class BetsTogelController extends ApiController
           }
         }
       }
+      
+      $this->updateCredit($total_bets_after_disc);
 
       
 
