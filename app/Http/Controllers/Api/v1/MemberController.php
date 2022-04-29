@@ -2734,6 +2734,7 @@ class MemberController extends ApiController
                             'rekening.nomor_rekening',
                             'constant_rekening.name',
                         ])
+                        ->where('rekening.is_depo', 1)
                         ->whereNull('rekening.deleted_by')
                         ->whereNull('rekening.deleted_at')
                         ->where('rek_member.created_by', auth('api')->user()->id)
@@ -3149,12 +3150,6 @@ class MemberController extends ApiController
   //         return 'sukses changed';
   //     }
   // }
-
-  public function sortDate($element1, $element2){
-    $datetime1 = strtotime($element1['created_at']);
-    $datetime2 = strtotime($element2['created_at']);
-    return $datetime1 - $datetime2;
-  }
 
   // pagination
   public function paginate($items, $perPage, $page = null, $options = [])
