@@ -116,8 +116,6 @@ class BetsTogelController extends ApiController
         // Sum pay_amount
         array_push($total_bets_after_disc, floatval($togel['pay_amount']));
       }
-      return response()->json(['message' => "Total betingan : ".array_sum($total_bets_after_disc), 'code' => 200], 200);
-      dd();
     
       // if (empty($bets)) {        
       //   return response()->json(['message' => 'success', 'code' => 200], 200);
@@ -132,6 +130,9 @@ class BetsTogelController extends ApiController
         
         DB::commit();
       }
+      
+      return response()->json(['message' => "Total data : ".count($idx), 'code' => 200], 200);
+      dd();
 
       // dd($idx);
       // TODO need chunks the array of $idx and inserting to DB
