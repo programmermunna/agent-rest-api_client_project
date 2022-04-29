@@ -40,7 +40,7 @@ class BetsTogelController extends ApiController
     $providerGame = ConstantProviderTogelModel::query()->get()->pluck(['id'], 'name');
 
     // Cek From Request or Body Has Value Type Of Games
-    $this->checkType();
+    // $this->checkType();
     // take type of game and provider
     $gameType = $togelGames[$request->type];
     $provider = $providerGame[$request->provider];
@@ -82,16 +82,19 @@ class BetsTogelController extends ApiController
 
       // get member bet
       $member =  MembersModel::where('id', auth('api')->user()->id)->first();
+      DB::beginTransaction();
       $member->update([
         'update_at' => Carbon::now(),
         'bonus_referal' => $member->bonus_referal + $calculateReferal,
         // 'bonus_referal' => $provider === 1 ? $member->bonus_referal + ($bonus['HKD'] * $togel['pay_amount']) : ($provider === 2 ? $member->bonus_referal + ($bonus['NZB'] * $togel['pay_amount']) : ($provider === 3 ? $member->bonus_referal + ($bonus['SY'] * $togel['pay_amount']) : ($provider === 4 ? $member->bonus_referal + ($bonus['HAI'] * $togel['pay_amount']) : ($provider === 5 ? $member->bonus_referal + ($bonus['SG'] * $togel['pay_amount']) : ($provider === 6 ? $member->bonus_referal + ($bonus['JINAN'] * $togel['pay_amount']) : ($provider === 7 ? $member->bonus_referal + ($bonus['QTR'] * $togel['pay_amount']) : ($provider === 8 ? $member->bonus_referal + ($bonus['BGP'] * $togel['pay_amount']) : ($provider === 9 ? $member->bonus_referal + ($bonus['HK'] * $togel['pay_amount']) : ($provider === 10 ? $member->bonus_referal + ($bonus['SGP45'] * $togel['pay_amount']) : ''))))))))),
       ]);
+      DB::commit();
 
       // check if any referrer
       if ($member->referrer_id) {
         // calculate bonus have referrer
         $referal =  MembersModel::where('id', $member->referrer_id)->first();
+        DB::beginTransaction();
         $referal->update([
           'update_at' => Carbon::now(),
           'credit' => $referal->credit + $calculateReferal,
@@ -105,24 +108,29 @@ class BetsTogelController extends ApiController
           'created_at' => Carbon::now(),
           'jumlah' => $calculateReferal,
         ]);
+        DB::commit();
       }
 
       // Sum pay_amount
       array_push($total_bets_after_disc, floatval($togel['pay_amount']));
+      $this->updateCredit($total_bets_after_disc);
     }
-    try {
-      if (empty($bets)) {        
-        return response()->json(['message' => 'success', 'code' => 200], 200);
-      }
-      // DB::beginTransaction();
 
+    try {
+      // if (empty($bets)) {        
+      //   return response()->json(['message' => 'success', 'code' => 200], 200);
+      // }
+      // DB::beginTransaction();
+      
       $idx = [];
 
       foreach ($bets as $bet) {
         DB::beginTransaction();
         $idx[] = DB::table('bets_togel')->insertGetId($bet);
+        
         DB::commit();
       }
+
       // dd($idx);
       // TODO need chunks the array of $idx and inserting to DB
       // $chunkIdx = array_chunk($idx, 50);
@@ -149,7 +157,7 @@ class BetsTogelController extends ApiController
         }
       }
 
-      $this->updateCredit($total_bets_after_disc);
+      
 
       // ConstantProviderTogelModel::query()
       //   ->where('id', '=', $provider)
