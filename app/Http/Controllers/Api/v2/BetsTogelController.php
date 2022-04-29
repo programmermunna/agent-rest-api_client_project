@@ -126,16 +126,17 @@ class BetsTogelController extends ApiController
         $idx[] = DB::table('bets_togel')->insertGetId($bet);
         
         DB::commit();
-      }      
-      return response()->json(['message' => $idx, 'code' => 200], 200);
-      dd($idx);
+      }
       // TODO need chunks the array of $idx and inserting to DB
       // $chunkIdx = array_chunk($idx, 50);
       // foreach ($idx as $id) {      
-        DB::beginTransaction();
-        $this->inserBetTogelToHistory($idx);
-        $response = $this->CheckIsBuangan($idx);
-        DB::commit();
+      DB::beginTransaction();
+      $this->inserBetTogelToHistory($idx);
+      $response = $this->CheckIsBuangan($idx);
+      DB::commit();
+
+      return response()->json(['message' => $this->inserBetTogelToHistory($idx), 'code' => 200], 200);
+      dd($this->inserBetTogelToHistory($idx));
       // }
       // Cek This is Bet Buangan 
       if ($response != []) {
