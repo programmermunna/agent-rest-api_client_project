@@ -19,7 +19,8 @@ class BetsTogel extends Model
     protected $dates = ['deleted_at'];
 
     protected $fillable = [
-         'togel_game_id'
+        'balance'
+        , 'togel_game_id'
         , 'constant_provider_togel_id'
         , 'bonus_daily_referal'
         , 'platform'

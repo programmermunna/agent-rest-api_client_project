@@ -63,12 +63,17 @@ class BetsTogelController extends ApiController
 
     // Loop the validated data and take key data and remapping the key
     try {
+      $payBetTogel = 0;
       foreach ($this->checkBlokednumber($request, $provider) as $togel) {    
         // definition of bonus referal
         $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
         // $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
-
+        
+        // get member bet
+        $member =  MembersModel::where('id', auth('api')->user()->id)->first();
+        $payBetTogel+=$togel['pay_amount'];
         array_push($bets, array_merge($togel, [
+          'balance' => $member->credit - $payBetTogel,
           // 'period'      => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
           'period'      => $periodProvider->period,
           'bonus_daily_referal' => $calculateReferal,
@@ -79,8 +84,7 @@ class BetsTogelController extends ApiController
           'created_at' => now()
         ]));
 
-        // get member bet
-        $member =  MembersModel::where('id', auth('api')->user()->id)->first();
+        
         DB::beginTransaction();
         $member->update([
           'update_at' => Carbon::now(),
@@ -118,9 +122,9 @@ class BetsTogelController extends ApiController
       //   return response()->json(['message' => 'success', 'code' => 200], 200);
       // }
       // DB::beginTransaction();
-      
-      $idx = [];
 
+      $idx = [];
+      
       foreach ($bets as $bet) {
         DB::beginTransaction();
         $idx[] = DB::table('bets_togel')->insertGetId($bet);
