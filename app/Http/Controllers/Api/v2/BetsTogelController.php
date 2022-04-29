@@ -61,12 +61,9 @@ class BetsTogelController extends ApiController
 
     $bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
 
-    // dd(json_encode($this->checkBlokednumber($request, $provider)));
     // Loop the validated data and take key data and remapping the key
     try {
-      foreach ($this->checkBlokednumber($request, $provider) as $togel) {
-        // dd($togels);
-        // $togel = json_decode($togels, true);     
+      foreach ($this->checkBlokednumber($request, $provider) as $togel) {    
         // definition of bonus referal
         $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
         // $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
@@ -129,19 +126,19 @@ class BetsTogelController extends ApiController
         $idx[] = DB::table('bets_togel')->insertGetId($bet);
         
         DB::commit();
-      }
-      
-      return response()->json(['message' => "Total data : ".count($idx), 'code' => 200], 200);
-      dd();
+      }      
 
       // dd($idx);
       // TODO need chunks the array of $idx and inserting to DB
       // $chunkIdx = array_chunk($idx, 50);
       // foreach ($idx as $id) {
-        DB::beginTransaction();
-        $this->inserBetTogelToHistory($idx);
-        $response = $this->CheckIsBuangan($idx);
-        DB::commit();
+      
+      return response()->json(['message' => "Total data : ".count($this->inserBetTogelToHistory($idx)), 'code' => 200], 200);
+      dd();
+      DB::beginTransaction();
+      $this->inserBetTogelToHistory($idx);
+      $response = $this->CheckIsBuangan($idx);
+      DB::commit();
       // }
       // Cek This is Bet Buangan 
       if ($response != []) {
@@ -158,9 +155,7 @@ class BetsTogelController extends ApiController
             DB::commit();
           }
         }
-      }
-
-      
+      }      
       
       $this->updateCredit($total_bets_after_disc);
 
