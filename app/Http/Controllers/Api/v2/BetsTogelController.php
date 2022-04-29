@@ -258,11 +258,7 @@ class BetsTogelController extends ApiController
    */
   protected function inserBetTogelToHistory(array $betsId)
   {
-    /// will be convert to 1,2,3,4,5
-    
-
-    return response()->json(['message' => $betsId, 'code' => 200], 200);
-    dd($betsId);
+    /// will be convert to 1,2,3,4,5    
     $bets_id  = implode(",", $betsId);
     DB::select("CALL TriggerInsertAfterBetsTogel('" . $bets_id . "')"); // will be return empty
   }
