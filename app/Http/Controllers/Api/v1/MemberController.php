@@ -2412,7 +2412,7 @@ class MemberController extends ApiController
                 , bets_togel.bet_amount as 'Bet'
                 , bets_togel.pay_amount as 'Bayar'
                 , bets_togel.win_nominal as 'winTogel'
-                , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'disc/kei'
+                , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'discKey'
 
                 
                 , if (
