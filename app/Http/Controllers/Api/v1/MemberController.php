@@ -643,7 +643,8 @@ class MemberController extends ApiController
                             FROM
                                 activity_log
                             WHERE
-                                log_name = 'Member Login' OR log_name ='Member Log Out'");
+                                log_name = 'Member Login' OR log_name ='Member Log Out'
+                            ORDER BY created_at DESC");
         $properties = [];
         foreach ($activity_members as $activity) {
           $array = json_decode($activity->properties, true);
@@ -740,10 +741,10 @@ class MemberController extends ApiController
           $betTogelHistories[] = $betTogelHis;          
         }
 
-        $alldata1 = array_merge($allProBet, $activitys);
+        $alldata1 = array_merge($activitys, $allProBet);
         $alldata2 = array_merge($alldata1, $betTogelHistories);
-        $date = array_column($alldata2, 'created_at');
-        array_multisort($date, SORT_DESC, $alldata2);
+        $date = array_column($alldata1, 'created_at');
+        array_multisort($date, SORT_DESC, $alldata1);
         $this->allProviderBet = $alldata2;
         // var_dump($this->allProviderBet);
         $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
