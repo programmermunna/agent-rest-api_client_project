@@ -740,7 +740,7 @@ class MemberController extends ApiController
             'bonusHistoryCreatedBy' => null,
             'activityDeskripsi' => null, 
             'activityName' => null,
-            'detail' => $this->detailDataTogel($value['created_at'])
+            'detail' => '/endpoint/getDetailTransaksiTogel/'.$value['id']
           ];
           $betTogelHistories[] = $betTogelHis;          
         }
@@ -2086,8 +2086,9 @@ class MemberController extends ApiController
     return $result;          
   }
 
-  protected function detailDataTogel($date)
+  protected function detailDataTogel($id)
   {
+    $date = BetsTogel::find($id);
     $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
             ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
             ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
@@ -2701,9 +2702,9 @@ class MemberController extends ApiController
                     )
                 ) as 'Status'
             ")
-            ->where('bets_togel.created_at', $date)
+            ->where('bets_togel.created_at', $date->created_at)
             ->where('bets_togel.updated_at', null)
-            ->where('bets_togel.created_by', '=', auth('api')->user()->id)->orderBy('bets_togel.id', 'DESC')->get()->toArray();
+            ->where('bets_togel.created_by', $date->created_by)->orderBy('bets_togel.id', 'DESC')->get()->toArray();
     return $result;          
   }
 
