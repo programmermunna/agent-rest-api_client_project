@@ -2705,7 +2705,7 @@ class MemberController extends ApiController
             ")
             ->where(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"), Carbon::parse($date->created_at)->format('Y-m-d H:i'))
             ->where('bets_togel.updated_at', null)
-            ->where('bets_togel.created_by', $date->created_by)->orderBy('bets_togel.id', 'DESC')->get()->toArray();
+            ->where('bets_togel.created_by', $date->created_by)->get()->toArray();
     return $result;          
   }
 
