@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\v2\BetsTogelController;
 use App\Http\Controllers\Api\v2\OutResult;
+use App\Http\Controllers\Api\v1\MemberController;
 use App\Http\Controllers\ProviderService\GameHallController;
 use App\Http\Controllers\ProviderService\IONXController;
 use App\Http\Controllers\ProviderService\QueenmakerController;
@@ -196,6 +197,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 	Route::get('globalSetting' , [TogelSettingGameController::class , 'getGlobalSettingGame']);
 	Route::get('rules' , [TogelPeraturanGame::class , 'getPeraturanGame']);
 	Route::get('getDetailTransaksi' , [OutResult::class , 'getDetailTransaksi']);
+	Route::get('getDetailTransaksiTogel/{id}' , [MemberController::class , 'detailDataTogel']);
 	# Togel Must Secure when betting
 	Route::middleware(['jwt.verify'])->group(function () {
 		Route::post('storeTogel', [BetsTogelController::class, 'store']);
