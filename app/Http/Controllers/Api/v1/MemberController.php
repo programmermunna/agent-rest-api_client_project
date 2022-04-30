@@ -2099,7 +2099,7 @@ class MemberController extends ApiController
                 bets_togel.id,
                 bets_togel.balance,
                 constant_provider_togel.id as constant_provider_togel_id,
-                DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')
+                bets_togel.created_at
                 
                 , members.last_login_ip as 'IP'
                 , members.username as 'Username'
