@@ -2081,7 +2081,8 @@ class MemberController extends ApiController
         ->where('bets_togel.updated_at', null)
         ->where('bets_togel.created_by', '=', auth('api')->user()->id)
         ->orderBy('bets_togel.id', 'DESC')
-        ->groupBy('bets_togel.created_at')
+        ->groupBy('bets_togel.togel_game_id')
+        ->groupBy(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"))
         ->get();
     return $result;          
   }
@@ -2702,7 +2703,7 @@ class MemberController extends ApiController
                     )
                 ) as 'Status'
             ")
-            ->where('bets_togel.created_at', $date->created_at)
+            ->where(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"), Carbon::parse($date->created_at)->format('Y-m-d H:i'))
             ->where('bets_togel.updated_at', null)
             ->where('bets_togel.created_by', $date->created_by)->orderBy('bets_togel.id', 'DESC')->get()->toArray();
     return $result;          
