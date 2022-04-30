@@ -609,7 +609,7 @@ class MemberController extends ApiController
                   NULL as betsGameId,
                   NULL as betsDeskripsi,
                   NULL as betsCredit,
-                  a.id as created_at,
+                  a.created_at as created_at,
                   NULL as betsProviderName,
                   NULL as betsTogelHistoryId,
                   NULL as betsTogelHistoryPasaran,
@@ -646,8 +646,7 @@ class MemberController extends ApiController
                             FROM
                                 activity_log
                             WHERE
-                                log_name = 'Member Login' OR log_name ='Member Log Out'
-                            ORDER BY created_at DESC");
+                                log_name = 'Member Login' OR log_name ='Member Log Out'");
         $properties = [];
         foreach ($activity_members as $activity) {
           $array = json_decode($activity->properties, true);
@@ -746,11 +745,12 @@ class MemberController extends ApiController
           $betTogelHistories[] = $betTogelHis;          
         }
 
-        $alldata1 = array_merge($activitys, $allProBet);
+        $alldata1 = array_merge($allProBet, $activitys);
         $alldata2 = array_merge($alldata1, $betTogelHistories);
-        $date = array_column($alldata1, 'created_at');
-        array_multisort($date, SORT_DESC, $alldata1);
+        $date = array_column($alldata2, 'created_at');
+        array_multisort($date, SORT_DESC, $alldata2);
         $this->allProviderBet = $alldata2;
+        // dd($alldata2);
         // var_dump($this->allProviderBet);
         $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
         return  [
@@ -3360,7 +3360,6 @@ class MemberController extends ApiController
                             'rekening.nomor_rekening',
                             'constant_rekening.name',
                         ])
-                        ->where('rekening.is_depo', 1)
                         ->whereNull('rekening.deleted_by')
                         ->whereNull('rekening.deleted_at')
                         ->where('rek_member.created_by', auth('api')->user()->id)
