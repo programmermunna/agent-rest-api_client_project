@@ -475,7 +475,7 @@ class ProviderController extends Controller
     $amountbet = $data->amount;
     $creditMember = $member->credit;
     $amount = $creditMember - $amountbet;
-    // dd($amount);
+    dd($data);
     $bonus = AppSetting::where('type', 'game')->pluck('value', 'id');
     if ($amount < 0) {
       $res = [
@@ -499,7 +499,7 @@ class ProviderController extends Controller
           // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
         ]);
         $bet = [
-          'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
+          'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : '')))))),
           'bet_id' => $data->code,
           'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
           'round_id' => $data->roundId,
