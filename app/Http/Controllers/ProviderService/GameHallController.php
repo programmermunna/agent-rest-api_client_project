@@ -167,7 +167,7 @@ class GameHallController extends Controller
               'bet' => $amountbet,
               'credit' => $amount,
               'created_at' => $tokenRaw->betTime,
-              'constant_provider_id' => 7,
+              'constant_provider_id' => 11,
               'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
             ]);
 
@@ -218,7 +218,7 @@ class GameHallController extends Controller
                 'bet' => $amountbet,
                 'credit' => $amount,
                 'created_at' => $tokenRaw->betTime,
-                'constant_provider_id' => 7,
+                'constant_provider_id' => 11,
                 'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
               ]);
 
@@ -272,7 +272,7 @@ class GameHallController extends Controller
                 'bet' => $amountbet,
                 'credit' => $amount,
                 'created_at' => $tokenRaw->betTime,
-                'constant_provider_id' => 7,
+                'constant_provider_id' => 11,
                 'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
               ]);
 
@@ -369,7 +369,7 @@ class GameHallController extends Controller
             'type' => 'Cancel',
             'bet' => 0,
             'created_at' => Carbon::now()->format("Y-m-d\TH:i:s.vP"),
-            'constant_provider_id' => 7,
+            'constant_provider_id' => 11,
             'deskripsi' => 'Cancel bet befor place bet' ,
           ]);
           $data = [
@@ -734,7 +734,7 @@ class GameHallController extends Controller
           'credit' => $amount,
           'bonus_daily_referal' => $bonusAmount,
           'created_at' => now(),
-          'constant_provider_id' => 7,
+          'constant_provider_id' => 11,
           'deskripsi' => 'Give' . ' : ' . $bonusAmount,
         ]);
 
@@ -803,7 +803,7 @@ class GameHallController extends Controller
             'game' => $tokenRaw->gameName,
             'bet' => $tipAmount,
             'created_at' => now(),
-            'constant_provider_id' => 7,
+            'constant_provider_id' => 11,
             'deskripsi' => 'Game Tip' . ' : ' . $tipAmount,
           ]);
 
@@ -894,7 +894,7 @@ class GameHallController extends Controller
               'game' => $tokenRaw->gameName,
               'bet' => 0,
               'created_at' => now(),
-              'constant_provider_id' => 7,
+              'constant_provider_id' => 11,
               'deskripsi' => 'Cancel tip before place bet',
             ]);
             $data = [

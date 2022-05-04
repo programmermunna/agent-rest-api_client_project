@@ -24,11 +24,8 @@ class WithdrawController extends ApiController
             $cek_status_wd  = WithdrawModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status',0)
                 ->first();
-            $cek_status_depo = DepositModel::where('members_id', auth('api')->user()->id)
-                ->where('approval_status',0)
-                ->first();
-            if ($cek_status_depo || $cek_status_wd){
-                return $this->errorResponse("Maaf Anda masih ada transaksi yang belum selesai.", 400);
+            if ($cek_status_wd){
+                return $this->errorResponse("Maaf Anda masih ada transaksi withdraw yang belum selesai.", 400);
             }
             $memberId = auth('api')->user()->id; // atau bisa juga Auth::user()->id,
             $jumlah = str_replace(',', '', $request->jumlah);
@@ -70,6 +67,13 @@ class WithdrawController extends ApiController
             ];
                 $withdrawal = WithdrawModel::create($payload);
 
+                # update balance member
+                $member = MembersModel::find(auth('api')->user()->id);
+                $member->update([
+                    'credit' => $member->credit - $jumlah
+                ]);                                
+
+                # activity Log
                 $user = auth('api')->user();
                 UserLogModel::logMemberActivity(
                     'Withdrawal Created',

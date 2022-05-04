@@ -30,14 +30,11 @@ class DepositController extends ApiController
             if($validator->fails()){
                 return $this->errorResponse($validator->errors()->first(), 422);
             }
-            $cek_status_wd  = WithdrawModel::where('members_id', auth('api')->user()->id)
-                ->where('approval_status',0)
-                ->first();
             $cek_status_depo = DepositModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status',0)
                 ->first();
-            if ($cek_status_depo || $cek_status_wd){
-                return $this->errorResponse("Maaf Anda masih ada transaksi yang belum selesai.", 400);
+            if ($cek_status_depo){
+                return $this->errorResponse("Maaf Anda masih ada transaksi Deposit yang belum selesai.", 400);
             }
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id],['is_depo', 1]])->first();
 
