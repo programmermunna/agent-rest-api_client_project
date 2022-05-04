@@ -47,7 +47,7 @@ class QueenmakerController extends Controller
 						'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 560 ? 'Cancel' : 'End_round')))))),
 						'created_at' => $tokenRaw->timestamp,
 						'created_by' => $tokenRaw->userid,
-						'constant_provider_id' => 9,
+						'constant_provider_id' => $tokenRaw->gpcode === 'OG' ? 9 : 12,
 					]);
 					// update credit 
 					$member->update([
@@ -183,7 +183,7 @@ class QueenmakerController extends Controller
 			'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 560 ? 'Cancel' : 'End_round')))))),
 			'created_at' => $tokenRaw->timestamp,
 			'created_by' => $tokenRaw->userid,
-			'constant_provider_id' => 9,
+			'constant_provider_id' => $tokenRaw->gpcode === 'OG' ? 9 : 12,
 		]);
 		array_push($this->data, [
 			'txid' => $betCreate->id,
