@@ -475,7 +475,7 @@ class ProviderController extends Controller
     $amountbet = $data->amount;
     $creditMember = $member->credit;
     $amount = $creditMember - $amountbet;
-    dd($data);
+    // dd($data);
     $bonus = AppSetting::where('type', 'game')->pluck('value', 'id');
     if ($amount < 0) {
       $res = [
