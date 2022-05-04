@@ -970,7 +970,7 @@ class GameHallController extends Controller
             'bet' => $amountbet,
             'win' => $tokenRaw->winAmount * 1000,
             'created_at' => $tokenRaw->betTime,
-            'constant_provider_id' => 7,
+            'constant_provider_id' => $tokenRaw->gameType == 'SLOT' ? 7 : 15,
             'deskripsi' => $tokenRaw->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $tokenRaw->winAmount : 'Game Win' . ' : ' . $tokenRaw->winAmount,
           ]);
 
@@ -1042,7 +1042,7 @@ class GameHallController extends Controller
         'bet' => $tokenRaw->betAmount * $this->ratio,
         'created_at' => now(),
         'updated_at' => $tokenRaw->updateTime,
-        'constant_provider_id' => 7,
+        'constant_provider_id' => $tokenRaw->gameType == 'SLOT' ? 7 : 15,
       ]);
 
       if ($bets->win == 0) {
