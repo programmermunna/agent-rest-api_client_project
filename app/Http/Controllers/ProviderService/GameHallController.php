@@ -152,7 +152,8 @@ class GameHallController extends Controller
             // update credit to table member
             $member->update([
               'credit' => $amount,
-              'updated_at' => $tokenRaw->betTime,
+              'updated_at' => Carbon::now(),
+              // 'updated_at' => $tokenRaw->betTime,
             ]);
 
             $bets = BetModel::create([
@@ -166,7 +167,8 @@ class GameHallController extends Controller
               'game' => $tokenRaw->gameName,
               'bet' => $amountbet,
               'credit' => $amount,
-              'created_at' => $tokenRaw->betTime,
+              'created_at' => Carbon::now(),
+              // 'created_at' => $tokenRaw->betTime,
               'constant_provider_id' => 11,
               'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
             ]);
@@ -203,7 +205,8 @@ class GameHallController extends Controller
               // update credit to table member
               $member->update([
                 'credit' => $amount,
-                'updated_at' => $tokenRaw->betTime,
+                'updated_at' => Carbon::now(),
+                // 'updated_at' => $tokenRaw->betTime,
               ]);
 
               $bets = BetModel::create([
@@ -217,7 +220,8 @@ class GameHallController extends Controller
                 'game' => $tokenRaw->gameName,
                 'bet' => $amountbet,
                 'credit' => $amount,
-                'created_at' => $tokenRaw->betTime,
+                'created_at' => Carbon::now(),
+                // 'created_at' => $tokenRaw->betTime,
                 'constant_provider_id' => 11,
                 'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
               ]);
@@ -257,7 +261,8 @@ class GameHallController extends Controller
               // update credit to table member
               $member->update([
                 'credit' => $amount,
-                'updated_at' => $tokenRaw->betTime,
+                'updated_at' => Carbon::now(),
+                // 'updated_at' => $tokenRaw->betTime,
               ]);
 
               $bets = BetModel::create([
@@ -271,7 +276,8 @@ class GameHallController extends Controller
                 'game' => $tokenRaw->gameName,
                 'bet' => $amountbet,
                 'credit' => $amount,
-                'created_at' => $tokenRaw->betTime,
+                'created_at' => Carbon::now(),
+                // 'created_at' => $tokenRaw->betTime,
                 'constant_provider_id' => 11,
                 'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
               ]);
@@ -413,7 +419,8 @@ class GameHallController extends Controller
           'type' => 'Void',
           'bet' => $amountbet,
           'credit' => $creditMember,
-          'updated_at' => $tokenRaw->updateTime,
+          'updated_at' => Carbon::now(),
+          // 'updated_at' => $tokenRaw->updateTime,
         ]);
         $member->update([
           'credit' => $creditMember
@@ -449,7 +456,8 @@ class GameHallController extends Controller
 
           'bet' => $amountbet,
 
-          'updated_at' => $tokenRaw->updateTime,
+          'updated_at' => Carbon::now(),
+          // 'updated_at' => $tokenRaw->updateTime,
         ]);
       }
     }
@@ -479,7 +487,8 @@ class GameHallController extends Controller
       } else {
         $bets->update([
           'type' => 'Bet',
-          'updated_at' => $tokenRaw->updateTime,
+          'updated_at' => Carbon::now(),
+          // 'updated_at' => $tokenRaw->updateTime,
         ]);
 
         $member->update([
@@ -526,8 +535,10 @@ class GameHallController extends Controller
 
         $bets->update([
           'type' => 'Refund',
-          'created_at' => $tokenRaw->betTime,
-          'updated_at' => $tokenRaw->updateTime,
+          'created_at' => Carbon::now(),
+          'updated_at' => Carbon::now(),
+          // 'created_at' => $tokenRaw->betTime,
+          // 'updated_at' => $tokenRaw->updateTime,
           'deskripsi' => 'Game Refund',
         ]);
       }
@@ -565,7 +576,8 @@ class GameHallController extends Controller
         // update credit to table member
         $member->update([
           'credit' => $amount,
-          'updated_at' => $tokenRaw->betTime,
+          'updated_at' => Carbon::now(),
+          // 'updated_at' => $tokenRaw->betTime,
         ]);
 
         // check win / lose (settle)
@@ -574,8 +586,10 @@ class GameHallController extends Controller
             'type' => 'Settle',
             'deskripsi' => 'Game Lose' . ' : ' . $tokenRaw->betAmount,
             'updated_by' => $member->id,
-            'updated_at' => $tokenRaw->updateTime,
-            'created_at' => $tokenRaw->betTime,
+            'updated_at' => Carbon::now(),
+            'created_at' => Carbon::now(),
+            // 'updated_at' => $tokenRaw->updateTime,
+            // 'created_at' => $tokenRaw->betTime,
             'credit' => $amount
           ]);
         } else {
@@ -584,8 +598,10 @@ class GameHallController extends Controller
             'win' => $amountWin,
             'deskripsi' => 'Game win' . ' : ' . $amountWin,
             'updated_by' => $member->id,
-            'updated_at' => $tokenRaw->updateTime,
-            'created_at' => $tokenRaw->betTime,
+            'updated_at' => Carbon::now(),
+            'created_at' => Carbon::now(),
+            // 'updated_at' => $tokenRaw->updateTime,
+            // 'created_at' => $tokenRaw->betTime,
             'credit' => $amount
           ]);
         }
@@ -624,7 +640,8 @@ class GameHallController extends Controller
         $bets->update([
           'type' => 'Bet',
           'bet' => $amountbet * $tokenRaw->gameInfo->odds,
-          'updated_at' => $tokenRaw->updateTime,
+          'updated_at' => Carbon::now(),
+          // 'updated_at' => $tokenRaw->updateTime,
           'credit' => $member->credit,
         ]);
 
@@ -658,7 +675,8 @@ class GameHallController extends Controller
         $bets->update([
           'type' => 'Void',
           'bet' => $amountbet,
-          'updated_at' => $tokenRaw->updateTime,
+          'updated_at' => Carbon::now(),
+          // 'updated_at' => $tokenRaw->updateTime,
         ]);
         $creditAfterVoid = $memeberCredit - $bets->win + $amountbet;
         $member->update([
@@ -690,7 +708,8 @@ class GameHallController extends Controller
       } else {
         $bets->update([
           'type' => 'Settle',
-          'updated_at' => $tokenRaw->updateTime,
+          'updated_at' => Carbon::now(),
+          // 'updated_at' => $tokenRaw->updateTime,
         ]);
         $creditAfterVoid = $memeberCredit + $bets->win - $amountbet;
         $member->update([
@@ -733,7 +752,7 @@ class GameHallController extends Controller
           'type' => 'Give',
           'credit' => $amount,
           'bonus_daily_referal' => $bonusAmount,
-          'created_at' => now(),
+          'created_at' => Carbon::now(),
           'constant_provider_id' => 11,
           'deskripsi' => 'Give' . ' : ' . $bonusAmount,
         ]);
@@ -802,7 +821,7 @@ class GameHallController extends Controller
             'type' => 'Tip',
             'game' => $tokenRaw->gameName,
             'bet' => $tipAmount,
-            'created_at' => now(),
+            'created_at' => Carbon::now(),
             'constant_provider_id' => 11,
             'deskripsi' => 'Game Tip' . ' : ' . $tipAmount,
           ]);
@@ -893,7 +912,7 @@ class GameHallController extends Controller
               'type' => 'Cancel_tip',
               'game' => $tokenRaw->gameName,
               'bet' => 0,
-              'created_at' => now(),
+              'created_at' => Carbon::now(),
               'constant_provider_id' => 11,
               'deskripsi' => 'Cancel tip before place bet',
             ]);
@@ -953,8 +972,10 @@ class GameHallController extends Controller
           // update credit to table member
           $member->update([
             'credit' => $amount,
-            'created_at' => $tokenRaw->betTime,
-            'updated_at' => $tokenRaw->updateTime,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+            // 'created_at' => $tokenRaw->betTime,
+            // 'updated_at' => $tokenRaw->updateTime,
           ]);
 
           $bets = BetModel::create([
@@ -969,7 +990,8 @@ class GameHallController extends Controller
             'game' => $tokenRaw->gameName,
             'bet' => $amountbet,
             'win' => $tokenRaw->winAmount * 1000,
-            'created_at' => $tokenRaw->betTime,
+            'created_at' => Carbon::now(),
+            // 'created_at' => $tokenRaw->betTime,
             'constant_provider_id' => $tokenRaw->gameType == 'SLOT' ? 7 : 15,
             'deskripsi' => $tokenRaw->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $tokenRaw->winAmount : 'Game Win' . ' : ' . $tokenRaw->winAmount,
           ]);
@@ -1040,8 +1062,8 @@ class GameHallController extends Controller
         'type' => 'Cancel',
         'game' => $tokenRaw->gameName,
         'bet' => $tokenRaw->betAmount * $this->ratio,
-        'created_at' => now(),
-        'updated_at' => $tokenRaw->updateTime,
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
         'constant_provider_id' => $tokenRaw->gameType == 'SLOT' ? 7 : 15,
       ]);
 
@@ -1057,8 +1079,10 @@ class GameHallController extends Controller
 
       $member->update([
         'credit' => $amount,
-        'created_at' => $tokenRaw->updateTime,
-        'updated_at' => $tokenRaw->updateTime,
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+        // 'created_at' => $tokenRaw->updateTime,
+        // 'updated_at' => $tokenRaw->updateTime,
       ]);
     }
     return [
@@ -1090,13 +1114,15 @@ class GameHallController extends Controller
         // update credit to table member
         $member->update([
           'credit' => $amount,
-          'updated_at' => $tokenRaw->updateTime,
+          'updated_at' => Carbon::now(),
+          // 'updated_at' => $tokenRaw->updateTime,
         ]);
 
         // get free spin
         $bets->update([
           'win' => $freeSpin,
-          'updated_at' => $tokenRaw->updateTime,
+          'updated_at' => Carbon::now(),
+          // 'updated_at' => $tokenRaw->updateTime,
           'deskripsi' => 'Free Spin' . ' : ' . $freeSpin,
         ]);
       }
