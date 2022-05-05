@@ -127,10 +127,6 @@ class MemberController extends ApiController
         ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id');
 
       $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
-        ->where([
-          ['bonus_history.created_by', '=', auth('api')->user()->id],
-          ['bonus_history.jumlah', '>', 0]
-        ])
         ->select([
           'bonus_history.id',
           'constant_bonus.nama_bonus',
@@ -138,8 +134,10 @@ class MemberController extends ApiController
           'bonus_history.jumlah',
           'bonus_history.hadiah',
           'bonus_history.created_at',
-          'bonus_history.created_by',
-        ]);
+          'bonus_history.member_id',
+        ])
+        ->where('bonus_history.member_id', '=', auth('api')->user()->id)
+        ->where('bonus_history.jumlah', '>', 0);
 
 
 
