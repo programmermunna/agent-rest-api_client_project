@@ -48,14 +48,16 @@ class IONXController extends Controller
                 'game_info' => 'live_casino',
                 'seq_no' => $this->token->SeqNo,
                 'guid' => $this->token->Guid,
-                'created_at' => $this->token->Timestamp,
+                'created_at' => Carbon::now(),
+                // 'created_at' => $this->token->Timestamp,
                 'constant_provider_id' => 8,
                 'created_by' => $this->memberId
             ]);
 
             $member->update([
                 'credit' => $balance,
-                'updated_at' => $this->token->Timestamp,
+                'updated_at' => Carbon::now(),
+                // 'updated_at' => $this->token->Timestamp,
             ]);
         }
 
@@ -116,7 +118,8 @@ class IONXController extends Controller
                     'game_id' => $this->token->GameId,
                     'game' => $this->token->ProductType,
                     'round_id' => $this->token->OrderId,
-                    'created_at' => $this->token->Timestamp,
+                    'created_at' => Carbon::now(),
+                    // 'created_at' => $this->token->Timestamp,
                     'constant_provider_id' => 8,
                     'type' => 'Bet',
                     'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
@@ -132,7 +135,8 @@ class IONXController extends Controller
                     'game_id' => $this->token->GameId,
                     'game' => $this->token->ProductType,
                     'round_id' => $this->token->OrderId,
-                    'created_at' => $this->token->Timestamp,
+                    'created_at' => Carbon::now(),
+                    // 'created_at' => $this->token->Timestamp,
                     'constant_provider_id' => 8,
                     'type' => 'Bet',
                     'deskripsi' => 'Game Bet' . ' : ' . $this->token->Stake,
@@ -180,7 +184,8 @@ class IONXController extends Controller
 					'constant_provider_id' => 8,
 					'type' => 'VOID', 
 					'deskripsi' => "Refund Balance " . $refundBet, 
-					'created_at' => $this->token->SettleTime,
+					'created_at' => Carbon::now(),
+					// 'created_at' => $this->token->SettleTime,
 					'created_by' => $this->memberId,
 					'guid' => $this->token->Guid
 				]);
@@ -204,7 +209,8 @@ class IONXController extends Controller
                 'game_info' => 'live_casino',
                 'type' => $this->token->SettlementStatus === "WON" ? "Win" : ($this->token->SettlementStatus === "LOSE"  ? "Lose" : "Cancel"),
                 'deskripsi' => $this->token->SettlementStatus === "WON" ? "Game Win " . " : " . $this->token->PlayerWinLoss : ($this->token->SettlementStatus === "LOSE"  ? "Game Lose " . " : " . $this->token->Stake : "Game Cancel " . ":" . $this->token->PlayerWinLoss),
-                'created_at' => $this->token->SettleTime,
+                'created_at' => Carbon::now(),
+                // 'created_at' => $this->token->SettleTime,
                 'created_by' => $this->memberId,
                 'guid' => $this->token->Guid
             ]);
