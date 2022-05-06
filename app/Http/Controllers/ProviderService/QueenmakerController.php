@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MembersModel;
 use App\Models\BetModel;
 use Firebase\JWT\JWT;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -45,7 +46,8 @@ class QueenmakerController extends Controller
 						'type' => $tokenRaw->txtype === 500 ? 'Bet' : ($tokenRaw->txtype === 510  ? 'Win' : ($tokenRaw->txtype === 511  ? 'Jackpot' : ($tokenRaw->txtype === 520 ? 'Lose' : ($tokenRaw->txtype === 530 ? 'Freebet' : ($tokenRaw->txtype === 540 ? 'Tie' : ($tokenRaw->txtype === 560 ? 'Cancel' : 'End_round')))))),
 						'round_id' => $tokenRaw->roundid,
 						'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 560 ? 'Cancel' : 'End_round')))))),
-						'created_at' => $tokenRaw->timestamp,
+						'created_at' => Carbon::now(),
+						// 'created_at' => $tokenRaw->timestamp,
 						'created_by' => $tokenRaw->userid,
 						'constant_provider_id' => $tokenRaw->gpcode === 'OG' ? 9 : 12,
 					]);
@@ -181,7 +183,8 @@ class QueenmakerController extends Controller
 			'type' => $tokenRaw->txtype === 500 ? 'Bet' : ($tokenRaw->txtype === 510  ? 'Win' : ($tokenRaw->txtype === 511  ? 'Jackpot' : ($tokenRaw->txtype === 520 ? 'Lose' : ($tokenRaw->txtype === 530 ? 'Freebet' : ($tokenRaw->txtype === 540 ? 'Tie' : ($tokenRaw->txtype === 560 ? 'Cancel' : 'End_round')))))),
 			'round_id' => $tokenRaw->roundid,
 			'deskripsi' => $tokenRaw->txtype === 500 ? 'Game Bet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 510  ? 'Game Win' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 511  ? 'Game Jackpot' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 520 ? 'Game Lose' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 530 ? 'Game Freebet' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 540 ? 'Game Tie' . ' : ' . $tokenRaw->amt : ($tokenRaw->txtype === 560 ? 'Cancel' : 'End_round')))))),
-			'created_at' => $tokenRaw->timestamp,
+			'created_at' => Carbon::now(),
+			// 'created_at' => $tokenRaw->timestamp,
 			'created_by' => $tokenRaw->userid,
 			'constant_provider_id' => $tokenRaw->gpcode === 'OG' ? 9 : 12,
 		]);
