@@ -557,7 +557,7 @@ class ProviderController extends Controller
         'credit' => $amount
       ]);
       $win = [
-        'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Joker Gaming' && $data->type === 'fish' ? 13 : '')))))),
+        'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Joker Gaming' && $data->type === 'fish' ? 13 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : ''))))))),
         'bet_id' => $data->code,
         'round_id' => $data->roundId,
         'deskripsi' => 'Game Win' . ' : ' . $data->amount,
