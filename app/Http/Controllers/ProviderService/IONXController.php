@@ -103,6 +103,8 @@ class IONXController extends Controller
         $this->checkTokenIsValid();
         $member = MembersModel::find($this->memberId);
         // calculate balance
+            # xxx = stake + balance
+            # deduct balance = balance - (xxx)
         $xxx = $this->token->Stake + $member->credit;
         $deductBalance = $member->credit - $xxx;
         $balance = $member->credit - ($deductBalance * -1);
