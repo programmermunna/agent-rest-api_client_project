@@ -49,6 +49,8 @@ class IONXController extends Controller
                 'seq_no' => $this->token->SeqNo,
                 'guid' => $this->token->Guid,
                 'created_at' => Carbon::now(),
+                'credit' => $balance,
+                'deskripsi' => 'Deduct player balance',
                 // 'created_at' => $this->token->Timestamp,
                 'constant_provider_id' => 8,
                 'created_by' => $this->memberId
@@ -119,6 +121,7 @@ class IONXController extends Controller
                     'game' => $this->token->ProductType,
                     'round_id' => $this->token->OrderId,
                     'created_at' => Carbon::now(),
+                    'credit' => $balance,
                     // 'created_at' => $this->token->Timestamp,
                     'constant_provider_id' => 8,
                     'type' => 'Bet',
@@ -136,6 +139,7 @@ class IONXController extends Controller
                     'game' => $this->token->ProductType,
                     'round_id' => $this->token->OrderId,
                     'created_at' => Carbon::now(),
+                    'credit' => $balance,
                     // 'created_at' => $this->token->Timestamp,
                     'constant_provider_id' => 8,
                     'type' => 'Bet',
@@ -185,6 +189,7 @@ class IONXController extends Controller
 					'type' => 'VOID', 
 					'deskripsi' => "Refund Balance " . $refundBet, 
 					'created_at' => Carbon::now(),
+                    'credit' => $refundBalance,
 					// 'created_at' => $this->token->SettleTime,
 					'created_by' => $this->memberId,
 					'guid' => $this->token->Guid
@@ -210,6 +215,7 @@ class IONXController extends Controller
                 'type' => $this->token->SettlementStatus === "WON" ? "Win" : ($this->token->SettlementStatus === "LOSE"  ? "Lose" : "Cancel"),
                 'deskripsi' => $this->token->SettlementStatus === "WON" ? "Game Win " . " : " . $this->token->PlayerWinLoss : ($this->token->SettlementStatus === "LOSE"  ? "Game Lose " . " : " . $this->token->Stake : "Game Cancel " . ":" . $this->token->PlayerWinLoss),
                 'created_at' => Carbon::now(),
+                'credit' => $balance,
                 // 'created_at' => $this->token->SettleTime,
                 'created_by' => $this->memberId,
                 'guid' => $this->token->Guid
