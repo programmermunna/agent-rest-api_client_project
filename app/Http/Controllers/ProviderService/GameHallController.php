@@ -372,6 +372,7 @@ class GameHallController extends Controller
             'game_info' => 'live_casino',
             'game_id' => $tokenRaw->gameCode,
             'round_id' => $tokenRaw->roundId,
+            'credit' => $creditMember + $betAfterCancel->bet,
             'type' => 'Cancel',
             'bet' => 0,
             'created_at' => Carbon::now()->format("Y-m-d\TH:i:s.vP"),
@@ -486,6 +487,7 @@ class GameHallController extends Controller
         ];
       } else {
         $bets->update([
+          'credit' => $creditMember,
           'type' => 'Bet',
           'updated_at' => Carbon::now(),
           // 'updated_at' => $tokenRaw->updateTime,
@@ -534,6 +536,7 @@ class GameHallController extends Controller
         ]);
 
         $bets->update([
+          'credit' => $amount,
           'type' => 'Refund',
           'created_at' => Carbon::now(),
           'updated_at' => Carbon::now(),
@@ -642,7 +645,7 @@ class GameHallController extends Controller
           'bet' => $amountbet * $tokenRaw->gameInfo->odds,
           'updated_at' => Carbon::now(),
           // 'updated_at' => $tokenRaw->updateTime,
-          'credit' => $member->credit,
+          'credit' => $member->credit - $bets->win,
         ]);
 
         return [
@@ -673,6 +676,7 @@ class GameHallController extends Controller
         ];
       } else {
         $bets->update([
+          'amount' => $memeberCredit - $bets->win + $amountbet,
           'type' => 'Void',
           'bet' => $amountbet,
           'updated_at' => Carbon::now(),
@@ -707,6 +711,7 @@ class GameHallController extends Controller
         ];
       } else {
         $bets->update([
+          'credit' => $memeberCredit + $bets->win - $amountbet,
           'type' => 'Settle',
           'updated_at' => Carbon::now(),
           // 'updated_at' => $tokenRaw->updateTime,
@@ -821,6 +826,7 @@ class GameHallController extends Controller
             'type' => 'Tip',
             'game' => $tokenRaw->gameName,
             'bet' => $tipAmount,
+            'credit' => $amount,
             'created_at' => Carbon::now(),
             'constant_provider_id' => 11,
             'deskripsi' => 'Game Tip' . ' : ' . $tipAmount,
@@ -894,6 +900,9 @@ class GameHallController extends Controller
                 'credit' => $creditMember + $tipAfterCancel->bet
             ]);
             $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $tipAfterCancel->update([
+              'credit' => $balanceUpdate->credit
+            ]);
             $data = [
               "status" => '0000',
               "desc"  => 'Success',
@@ -986,6 +995,7 @@ class GameHallController extends Controller
             'game_info' => $tokenRaw->gameType == 'SLOT' ? 'slot' : 'fish',
             'game_id' => $tokenRaw->gameCode,
             'round_id' => $tokenRaw->roundId,
+            'credit' => $amount,
             'type' => 'Settle',
             'game' => $tokenRaw->gameName,
             'bet' => $amountbet,
@@ -1051,6 +1061,16 @@ class GameHallController extends Controller
         ];
       }
 
+      if ($bets->win == 0) {
+        $amountbet = $tokenRaw->betAmount;
+        $creditMember = $member->credit;
+        $amount = $creditMember + ($amountbet * $this->ratio);
+      } else {
+        $amountbet = $tokenRaw->betAmount - ($bets->win / $this->ratio);
+        $creditMember = $member->credit;
+        $amount = $creditMember + ($amountbet * $this->ratio);
+      }
+
       BetModel::create([
         'platform'  => $tokenRaw->platform,
         'created_by' => $tokenRaw->userId,
@@ -1062,20 +1082,11 @@ class GameHallController extends Controller
         'type' => 'Cancel',
         'game' => $tokenRaw->gameName,
         'bet' => $tokenRaw->betAmount * $this->ratio,
+        'credit' => $amount,
         'created_at' => Carbon::now(),
         'updated_at' => Carbon::now(),
         'constant_provider_id' => $tokenRaw->gameType == 'SLOT' ? 7 : 15,
-      ]);
-
-      if ($bets->win == 0) {
-        $amountbet = $tokenRaw->betAmount;
-        $creditMember = $member->credit;
-        $amount = $creditMember + ($amountbet * $this->ratio);
-      } else {
-        $amountbet = $tokenRaw->betAmount - ($bets->win / $this->ratio);
-        $creditMember = $member->credit;
-        $amount = $creditMember + ($amountbet * $this->ratio);
-      }
+      ]);      
 
       $member->update([
         'credit' => $amount,
@@ -1120,6 +1131,7 @@ class GameHallController extends Controller
 
         // get free spin
         $bets->update([
+          'credit' => $amount,
           'win' => $freeSpin,
           'updated_at' => Carbon::now(),
           // 'updated_at' => $tokenRaw->updateTime,
