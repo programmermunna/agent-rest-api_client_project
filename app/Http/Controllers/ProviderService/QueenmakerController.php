@@ -39,6 +39,7 @@ class QueenmakerController extends Controller
 						'bet_id' => $tokenRaw->ptxid,
 						'refptxid' => $tokenRaw->refptxid,
 						'bet' => $tokenRaw->amt,
+						'credit' => $balance,
 						'platform' => $tokenRaw->gpcode,
 						'game_id' => $tokenRaw->gamecode,
 						'game' => $tokenRaw->gamename,
@@ -129,6 +130,9 @@ class QueenmakerController extends Controller
 			]);
 			return;
 		}
+		$bet->update([
+			'credit' => $memberCredit
+		]);
 		$memberCredit = $member->credit + $tokenRaw->amt;
 		$member->update([
 			'credit' => $memberCredit
@@ -176,6 +180,7 @@ class QueenmakerController extends Controller
 			'bet_id' => $tokenRaw->ptxid,
 			'refptxid' => $tokenRaw->refptxid,
 			'win' => $tokenRaw->amt,
+			'credit' => $memberCredit,
 			'platform' => $tokenRaw->gpcode,
 			'game_id' => $tokenRaw->gamecode,
 			'game' => $tokenRaw->gamename,
