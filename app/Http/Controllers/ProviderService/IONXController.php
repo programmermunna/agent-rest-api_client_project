@@ -45,7 +45,6 @@ class IONXController extends Controller
             $bet = BetModel::create([
                 'bet_id' => $this->token->RefNo,
                 'bet' => $this->token->Stake,
-                'credit' => $balance,
                 'game_info' => 'live_casino',
                 'seq_no' => $this->token->SeqNo,
                 'guid' => $this->token->Guid,
@@ -180,7 +179,6 @@ class IONXController extends Controller
 				BetModel::create([
 					'bet_id' => $this->token->RefNo,
 					'win' => $this->token->PlayerWinLoss,
-                    'credit' => $refundBalance,
 					// 'bet' => $this->token->Stake,
 					'player_wl' => $this->token->WinningStake,
                     'game_info' => 'live_casino',
@@ -207,7 +205,6 @@ class IONXController extends Controller
             BetModel::create([
                 'bet_id' => $this->token->RefNo,
                 'win' => $this->token->PlayerWinLoss,
-                'credit' => $balance,
                 // 'bet' => $this->token->Stake,
                 'player_wl' => $this->token->WinningStake,
                 'bet_option' => $this->token->BetOptions,
