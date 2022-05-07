@@ -130,10 +130,10 @@ class QueenmakerController extends Controller
 			]);
 			return;
 		}
+		$memberCredit = $member->credit + $tokenRaw->amt;
 		$bet->update([
 			'credit' => $memberCredit
 		]);
-		$memberCredit = $member->credit + $tokenRaw->amt;
 		$member->update([
 			'credit' => $memberCredit
 		]);
