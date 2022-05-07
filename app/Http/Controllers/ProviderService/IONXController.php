@@ -103,10 +103,16 @@ class IONXController extends Controller
         $this->checkTokenIsValid();
         $member = MembersModel::find($this->memberId);
         // calculate balance
-        $balance = $member->credit - $this->token->Stake;
-        if ($balance < 0) {
+        $xxx = $this->token->Stake + $member->credit;
+        $deductBalance = $member->credit - $xxx;
+        $balance = $member->credit - ($deductBalance * -1);
+        // dd($member->credit, $this->token->Stake, $deductBalance, $balance);
+        // $balance = $member->credit - $this->token->Stake;
+        if ($member->credit < 0) {
             return response()->json([
-                "Result" => "GENERAL_ERROR"
+                // "Result" => "GENERAL_ERROR"
+                "Result" => "INSUFFICIENT_BALANCE",
+                "Description" => "Insufficient balance for deduction"
             ]);
         }else{
             $bet = BetModel::where('bet_id', '=', $this->token->RefNo)
