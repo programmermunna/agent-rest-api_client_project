@@ -807,7 +807,7 @@ class ProviderController extends Controller
     $bet = [
       'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
       'bet_id'     => $data->code,
-      'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $betAmount : 'Game Bet/Win' . ' : ' . $data->winAmount * 1000,
+      'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $betAmount * 1000 : 'Game Bet/Win' . ' : ' . $data->winAmount * 1000,
       'round_id'   => $data->roundId,
       'type'       => $data->winAmount == 0 ? 'Lose' : "Win",
       'game_id'    => $data->gameId,
