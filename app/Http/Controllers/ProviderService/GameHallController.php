@@ -365,6 +365,8 @@ class GameHallController extends Controller
           ];
           $datas = $data;
         } else {
+          $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                        ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
           $bets = BetModel::create([
             'platform'  => $tokenRaw->platform,
             'created_by' => $tokenRaw->userId,
