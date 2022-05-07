@@ -121,7 +121,6 @@ class IONXController extends Controller
                     'game' => $this->token->ProductType,
                     'round_id' => $this->token->OrderId,
                     'created_at' => Carbon::now(),
-                    'credit' => $balance,
                     // 'created_at' => $this->token->Timestamp,
                     'constant_provider_id' => 8,
                     'type' => 'Bet',
