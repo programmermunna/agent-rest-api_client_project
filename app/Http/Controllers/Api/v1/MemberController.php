@@ -695,7 +695,7 @@ class MemberController extends ApiController
                   NULL as detail
               FROM
                   deposit as a
-              INNER JOIN members as b ON b.id = a.created_by
+              LEFT JOIN members as b ON b.id = a.created_by
               
               WHERE
                   (a.created_by = $id AND a.deleted_at IS NULL) OR a.deleted_at IS NOT NULL AND a.created_by = $id
@@ -748,7 +748,7 @@ class MemberController extends ApiController
                   NULL as detail
               FROM
                   withdraw as a
-              INNER JOIN members as b ON b.id = a.created_by              
+              LEFT JOIN members as b ON b.id = a.created_by              
               WHERE
                 (a.created_by = $id AND a.deleted_at IS NULL) OR a.deleted_at IS NOT NULL AND a.created_by = $id
               UNION ALL
@@ -788,7 +788,7 @@ class MemberController extends ApiController
                   NULL as detail
               FROM
                   bonus_history as a
-              INNER JOIN constant_bonus as b ON b.id = a.constant_bonus_id              
+              LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id              
               WHERE a.created_by = $id AND a.jumlah > 0 AND a.deleted_at IS NULL
               ORDER BY created_at DESC"));
 
