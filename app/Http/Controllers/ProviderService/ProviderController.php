@@ -782,7 +782,7 @@ class ProviderController extends Controller
         "message" => "duplicate transaction id",
         "amount"  => $member->credit
       ], 200);
-    } elseif ($member->credit < $betAmount) {     // Check member balance
+    } elseif ($member->credit <= $betAmount ) {     // Check member balance
       return response()->json([
         "data"=> null,
         "error"=> [
@@ -807,12 +807,12 @@ class ProviderController extends Controller
     $bet = [
       'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
       'bet_id'     => $data->code,
-      'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $creditMember : 'Game Bet/Win' . ' : ' . $creditMember,
+      'deskripsi'  => $data->winAmount == 0 ? 'Game Bet/Lose' . ' : ' . $betAmount : 'Game Bet/Win' . ' : ' . $data->winAmount * 1000,
       'round_id'   => $data->roundId,
       'type'       => $data->winAmount == 0 ? 'Lose' : "Win",
       'game_id'    => $data->gameId,
-      'bet'        => $data->betAmount ?? 0,
-      'win'        => $data->winAmount,
+      'bet'        => $data->betAmount * 1000,
+      'win'        => $data->winAmount * 1000,
       'game_info'  => $data->type,
       'created_at' => Carbon::now(),
       'credit'     => $member->credit,
