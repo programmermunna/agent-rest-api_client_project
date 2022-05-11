@@ -1568,7 +1568,7 @@ class MemberController extends ApiController
                       )
                   ) as 'Status'
               ")
-              ->where('bets_togel.updated_at', null)
+              // ->where('bets_togel.updated_at', null)
               ->where('bets_togel.created_by', '=', auth('api')->user()->id)->orderBy('bets_togel.id', 'DESC')->get();
     
     return $this->togel = collect($result)->map(function ($value) {
@@ -2230,7 +2230,7 @@ class MemberController extends ApiController
                 )
             ) as 'Status'
         ")
-        ->where('bets_togel.updated_at', null)
+        // ->where('bets_togel.updated_at', null)
         ->where('bets_togel.created_by', '=', auth('api')->user()->id)
         ->orderBy('bets_togel.id', 'DESC')
         ->groupBy('bets_togel.togel_game_id')
@@ -2856,13 +2856,10 @@ class MemberController extends ApiController
                 ) as 'Status'
             ")
             ->where(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"), Carbon::parse($date->created_at)->format('Y-m-d H:i'))
-            ->where('bets_togel.updated_at', null)
+            // ->where('bets_togel.updated_at', null)
             ->where('bets_togel.created_by', $date->created_by)->get()->toArray();
     return $result;          
   }
-
-
-
 
   public function __construct()
   {
@@ -3206,6 +3203,7 @@ class MemberController extends ApiController
       return $this->errorResponse('Internal Server Error', 500);
     } 
   }
+  
   public function statementWdDepo()
   {
     try {
