@@ -158,6 +158,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
     // api for integration
 Route::group(['prefix' => 'endpoint'], function () {
     Route::post('bet',  [ProviderController::class, 'bet']);
+    Route::post('betSpade',  [ProviderController::class, 'betSpade']);
     Route::post('cancel-bet',  [ProviderController::class, 'cancelBet']);
     Route::post('get_history_pragmatic',  [ProviderController::class, 'gameHistoryPragmatic']);
     Route::post('round',  [ProviderController::class, 'getGameRound']);
@@ -166,6 +167,7 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result_pragmatic',  [ProviderController::class, 'resultPragmatic']);
     Route::post('balance', [ProviderController::class, 'balance']);
     Route::post('result', [ProviderController::class, 'result']);
+    Route::post('resultSpade', [ProviderController::class, 'resultSpade']);
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
 
