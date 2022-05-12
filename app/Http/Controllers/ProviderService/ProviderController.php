@@ -782,7 +782,7 @@ class ProviderController extends Controller
         "message" => "duplicate transaction id",
         "amount"  => $member->credit
       ], 200);
-    } elseif ($member->credit <= $betAmount ) {     // Check member balance
+    } elseif ($member->credit < $betAmount ) {     // Check member balance
       return response()->json([
         "data"=> null,
         "error"=> [
