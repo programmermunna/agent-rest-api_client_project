@@ -49,7 +49,7 @@ class ProviderController extends Controller
       $bets = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
-        'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+        'deskripsi' => 'Game '. $status  . ' : ' . $amountbet,
         'round_id' => $data->roundId,
         'type' => $status,
         'game_info' => $data->type,
@@ -88,7 +88,7 @@ class ProviderController extends Controller
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
         'round_id' => $data->roundId,
-        'deskripsi' => 'Game Win' . ' : ' . $data->amount,
+        'deskripsi' => 'Game '. $status  . ' : ' . $data->amount,
         'game_id' => $data->gameId,
         'type' => $status,
         'game_info' => $data->type,
