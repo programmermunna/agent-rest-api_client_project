@@ -19,6 +19,96 @@ class ProviderController extends Controller
 {
   private $token;
 
+  public function betSpade(Request $request)
+  {
+    $this->token = $request->token;
+    $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+    $user_id = $data->userId;
+    $member =  MembersModel::where('id', $user_id)->first();
+    $amountbet = $data->amount;
+    $amount = $member->credit - $data->amount;
+    $bonus = AppSetting::where('type', 'game')->pluck('value', 'id');
+    // bonus referral
+    if ($amount < 0) {
+      $res = [
+        "success" => false,
+        "amount"  => $member->credit
+      ];
+      return Response::json($res);
+    } else {
+      $member->update([
+        'credit' => $amount,
+        'created_at' => Carbon::now(),
+      ]);
+      $success = [
+        "success" =>  true,
+        "amount" => $amount
+      ];
+      // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
+      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
+      $bets = [
+        'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
+        'bet_id' => $data->code,
+        'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+        'round_id' => $data->roundId,
+        'type' => $status,
+        'game_info' => $data->type,
+        'game_id' => $data->gameId,
+        'bet' => $amountbet,
+        'created_at' => Carbon::now(),
+        'credit' => $amount,
+        'created_by' => $member->id
+      ];
+      $this->insertBet($bets);
+      return Response::json($success);
+    }
+  }
+  public function resultSpade(Request $request)
+  {
+    $this->token = $request->token;
+    $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+
+    $user_id = $data->userId;
+    $member =  MembersModel::where('id', $user_id)->first();
+    $amount = $member->credit + $data->amount;
+
+    $member->update([
+      'credit' => $amount
+    ]);
+    if ($data->amount <= 1) {
+      $res = [
+        "success" => true,
+        "amount"  => $member->credit
+      ];
+      return Response::json($res);
+    } else {
+      // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
+      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
+      $win = [
+        'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
+        'bet_id' => $data->code,
+        'round_id' => $data->roundId,
+        'deskripsi' => 'Game Win' . ' : ' . $data->amount,
+        'game_id' => $data->gameId,
+        'type' => $status,
+        'game_info' => $data->type,
+        'win' =>  $data->amount,
+        'bet' => 0,
+        'player_wl' => 0,
+        'created_at' => Carbon::now(),
+        'credit' => $amount,
+        'created_by' => $member->id
+      ];
+      $this->insertWin($win);
+      $res = [
+        "success" => true,
+        "amount"  => $amount
+      ];
+      return Response::json($res);
+    }
+
+  }
+
   public function bet(Request $request)
   {
     $this->token = $request->token;
