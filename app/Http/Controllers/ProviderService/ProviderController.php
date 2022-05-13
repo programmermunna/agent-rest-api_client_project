@@ -294,6 +294,123 @@ class ProviderController extends Controller
     }
   }
 
+  // for joker gaming
+  public function transaction(Request $request)
+  {
+    $this->token = $request->token;
+    $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+    $user_id = $data->userId;
+    $member =  MembersModel::where('id', $user_id)->first();
+    $amount = $member->credit + $data->amount;
+
+    if ($data->amount <= 1) {
+      $res = [
+        "success" => true,
+        "amount"  => $member->credit
+      ];
+      return Response::json($res);
+    } else {
+      $win = [
+        'constant_provider_id' => 13,
+        'bet_id' => $data->code,
+        'round_id' => $data->roundId,
+        'deskripsi' => 'Game Lose/Win' . ' : '. $data->startbalance. ' / '. $data->endbalance,
+        'game_id' => $data->gameId,
+        'type' => 'Settle',
+        'game_info' => $data->type,
+        'win' =>  $data->endbalance,
+        'bet' => $data->startbalance,
+        'player_wl' => 0,
+        'created_at' => Carbon::now(),
+        'credit' => $amount,
+        'created_by' => $member->id
+      ];
+      $this->insertWin($win);
+      $res = [
+        "success" => true,
+        "amount"  => $amount
+      ];
+      return Response::json($res);
+    }
+
+  }
+
+  public function withdraw(Request $request)
+  {
+    $this->token = $request->token;
+    $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+    $user_id = $data->userId;
+    $member =  MembersModel::where('id', $user_id)->first();
+    $amountbet = $data->amount;
+    $creditMember = $member->credit;
+    $amount = $creditMember - $amountbet;
+    $bonus = AppSetting::where('type', 'game')->pluck('value', 'id');
+    if ($amount < 0) {
+      $res = [
+        "success" => false,
+        "amount"  => $creditMember
+      ];
+      return Response::json($res);
+    } else {
+      $condition = CancelBetModel::where('bet_id', $data->code)->first();
+      if ($condition) {
+        $successCon = [
+          "success" =>  true,
+          "amount" => $creditMember * 1
+        ];
+        return Response::json($successCon);
+      }
+      $bets = BetModel::where('bet_id', $data->code)->first();
+      if ($bets) {
+        $success = [
+          "id"    => $bets->id,
+          "success" =>  true,
+          "amount" => $creditMember
+        ];
+      } else {
+        $member->update([
+          'credit' => $amount,
+          'created_at' => Carbon::now(),
+        ]);
+        $success = [
+          "amount" => $amount,
+          "success" =>  true,
+        ];
+      }
+      return Response::json($success);
+    }
+  }
+
+  public function deposit(Request $request)
+  {
+    $this->token = $request->token;
+    $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+    $user_id = $data->userId;
+    $member =  MembersModel::where('id', $user_id)->first();
+    $creditMember = $member->credit;
+    $amount = $member->credit + $data->amount;
+
+
+    $result = BetModel::where('bet_id', $data->code)->first();
+    if ($result) {
+      $res = [
+        "success" =>  true,
+        "amount" => $creditMember
+      ];
+    } else {
+      $member->update([
+        'credit' => $amount
+      ]);
+      $res = [
+        "success" => true,
+        "amount"  => $amount
+      ];
+    }
+    return Response::json($res);
+  }
+
+  
+
   public function result(Request $request)
   {
     $this->token = $request->token;
