@@ -49,7 +49,7 @@ class ProviderController extends Controller
       $bets = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
-        'deskripsi' => 'Game '. $status  . ' : ' . $amountbet,
+        'deskripsi' => 'Game '. $status  . ' : ' . $amountbet. ' roundId '. $data->roundId,
         'round_id' => $data->roundId,
         'type' => $status,
         'game_info' => $data->type,
@@ -84,10 +84,6 @@ class ProviderController extends Controller
     } else {
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
-      $ticketId = BetModel::where('bet_id', $data->referenceId)->first();
-      $ticketId->update([
-        'round_id' => $data->roundId
-      ]);
       $win = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
