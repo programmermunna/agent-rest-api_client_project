@@ -46,20 +46,29 @@ class ProviderController extends Controller
       ];
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
-      $bets = [
-        'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
-        'bet_id' => $data->code,
-        'deskripsi' => 'Game '. $status  . ' : ' . $amountbet,
-        'round_id' => $data->roundId,
-        'type' => $status,
-        'game_info' => $data->type,
-        'game_id' => $data->gameId,
-        'bet' => $amountbet,
-        'created_at' => Carbon::now(),
-        'credit' => $amount,
-        'created_by' => $member->id
-      ];
-      $this->insertBet($bets);
+      $transferId = BetModel::where('bet_id', $data->referenceId)->first();
+      if ($transferId) {
+        $transferId->update([
+          'round_id' => $data->roundId,
+          'deskripsi' => 'Game '. $status  . ' : ' . $amountbet . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
+          'type' => 'Lose',
+        ]);
+      }else{
+        $bets = [
+          'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
+          'bet_id' => $data->code,
+          'deskripsi' => 'Game '. $status  . ' : ' . $amountbet . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
+          'round_id' => $data->roundId,
+          'type' => 'Bet',
+          'game_info' => $data->type,
+          'game_id' => $data->gameId,
+          'bet' => $amountbet,
+          'created_at' => Carbon::now(),
+          'credit' => $amount,
+          'created_by' => $member->id
+        ];
+        $this->insertBet($bets);
+      }
       return Response::json($success);
     }
   }
@@ -82,24 +91,33 @@ class ProviderController extends Controller
       ];
       return Response::json($res);
     } else {
+      $transferId = BetModel::where('bet_id', $data->referenceId)->first();
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
-      $win = [
-        'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
-        'bet_id' => $data->code,
-        'round_id' => $data->roundId,
-        'deskripsi' => 'Game '. $status  . ' : ' . $data->amount,
-        'game_id' => $data->gameId,
-        'type' => $status,
-        'game_info' => $data->type,
-        'win' =>  $data->amount,
-        'bet' => 0,
-        'player_wl' => 0,
-        'created_at' => Carbon::now(),
-        'credit' => $amount,
-        'created_by' => $member->id
-      ];
-      $this->insertWin($win);
+      if ($transferId) {
+        $transferId->update([
+          'round_id' => $data->roundId,
+          'deskripsi' => 'Game '. $status  . ' : ' . $data->amount . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
+          'type' => 'Lose',
+        ]);
+      }else{
+        $win = [
+          'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
+          'bet_id' => $data->code,
+          'round_id' => $data->roundId,
+          'deskripsi' => 'Game '. $status  . ' : ' . $data->amount . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
+          'game_id' => $data->gameId,
+          'type' => 'Win',
+          'game_info' => $data->type,
+          'win' =>  $data->amount,
+          'bet' => 0,
+          'player_wl' => 0,
+          'created_at' => Carbon::now(),
+          'credit' => $amount,
+          'created_by' => $member->id
+        ];
+        $this->insertWin($win);
+      }
       $res = [
         "success" => true,
         "amount"  => $amount
