@@ -108,6 +108,7 @@ class ProviderController extends Controller
           'created_by' => $member->id
         ];
         $this->insertWin($win);
+      }
       $res = [
         "success" => true,
         "amount"  => $amount
