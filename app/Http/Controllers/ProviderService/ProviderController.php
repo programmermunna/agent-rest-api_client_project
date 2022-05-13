@@ -46,10 +46,12 @@ class ProviderController extends Controller
       ];
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
+      $refticketId = $data->refTicketIds ? $data->refTicketIds : 'tes1';
+      $referenceId = $data->referenceId ? $data->referenceId : 'tes2';
       $bets = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
-        'deskripsi' => 'Game '. $status  . ' : ' . $amountbet . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
+        'deskripsi' => 'Game '. $status  . ' : ' . $amountbet . ' refTicketIds => ' . $refticketId. ' referenceId => ' . $referenceId,
         'round_id' => $data->roundId,
         'type' => 'Bet',
         'game_info' => $data->type,
@@ -82,13 +84,15 @@ class ProviderController extends Controller
       ];
       return Response::json($res);
     } else {
-      $transferId = BetModel::where('bet_id', $data->referenceId)->first();
+      $referenceId = $data->referenceId ? $data->referenceId : 'tes2';
+      $transferId = BetModel::where('bet_id', $referenceId)->first();
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
+      $refticketId = $data->refTicketIds ? $data->refTicketIds : 'tes1';
       if ($transferId) {
         $transferId->update([
           'round_id' => $data->roundId,
-          'deskripsi' => 'Game '. $status  . ' : ' . $data->amount . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
+          'deskripsi' => 'Game '. $status  . ' : ' . $data->amount . ' refTicketIds => ' . $refticketId. ' referenceId => ' . $referenceId,
           'type' => 'Lose',
         ]);
       }else{
@@ -96,7 +100,7 @@ class ProviderController extends Controller
           'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
           'bet_id' => $data->code,
           'round_id' => $data->roundId,
-          'deskripsi' => 'Game '. $status  . ' : ' . $data->amount . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
+          'deskripsi' => 'Game '. $status  . ' : ' . $data->amount . ' refTicketIds => ' . $refticketId. ' referenceId => ' . $referenceId,
           'game_id' => $data->gameId,
           'type' => 'Win',
           'game_info' => $data->type,
