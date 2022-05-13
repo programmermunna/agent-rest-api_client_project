@@ -167,6 +167,9 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post('result_pragmatic',  [ProviderController::class, 'resultPragmatic']);
     Route::post('balance', [ProviderController::class, 'balance']);
     Route::post('result', [ProviderController::class, 'result']);
+    Route::post('transaction_joker', [ProviderController::class, 'transaction']);
+    Route::post('withdraw_joker', [ProviderController::class, 'withdraw']);
+    Route::post('deposit_joker', [ProviderController::class, 'deposit']);
     Route::post('resultSpade', [ProviderController::class, 'resultSpade']);
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
