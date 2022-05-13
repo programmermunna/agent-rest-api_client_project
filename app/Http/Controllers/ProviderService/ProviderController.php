@@ -103,8 +103,8 @@ class ProviderController extends Controller
         ];
         $this->insertWin($win);
       }else{
-        $transferId = BetModel::where('bet_id', $data->referenceId)->first();
-        $transferId->update([
+        $transferId1 = BetModel::where('bet_id', $data->referenceId)->first();
+        $transferId1->update([
           'round_id' => $data->roundId,
           'deskripsi' => 'Game '. $status  . ' : ' . $data->amount . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
           'type' => 'Lose',
