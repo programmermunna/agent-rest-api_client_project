@@ -46,29 +46,20 @@ class ProviderController extends Controller
       ];
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
-      $transferId = BetModel::where('bet_id', $data->referenceId)->first();
-      if ($transferId) {
-        $transferId->update([
-          'round_id' => $data->roundId,
-          'deskripsi' => 'Game '. $status  . ' : ' . $amountbet . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
-          'type' => 'Lose',
-        ]);
-      }else{
-        $bets = [
-          'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
-          'bet_id' => $data->code,
-          'deskripsi' => 'Game '. $status  . ' : ' . $amountbet . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
-          'round_id' => $data->roundId,
-          'type' => 'Bet',
-          'game_info' => $data->type,
-          'game_id' => $data->gameId,
-          'bet' => $amountbet,
-          'created_at' => Carbon::now(),
-          'credit' => $amount,
-          'created_by' => $member->id
-        ];
-        $this->insertBet($bets);
-      }
+      $bets = [
+        'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
+        'bet_id' => $data->code,
+        'deskripsi' => 'Game '. $status  . ' : ' . $amountbet . ' refTicketIds => ' . $data->refTicketIds. ' referenceId => ' . $data->referenceId,
+        'round_id' => $data->roundId,
+        'type' => 'Bet',
+        'game_info' => $data->type,
+        'game_id' => $data->gameId,
+        'bet' => $amountbet,
+        'created_at' => Carbon::now(),
+        'credit' => $amount,
+        'created_by' => $member->id
+      ];
+      $this->insertBet($bets);
       return Response::json($success);
     }
   }
