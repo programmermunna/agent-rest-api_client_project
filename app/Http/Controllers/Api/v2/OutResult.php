@@ -6,6 +6,7 @@ use App\Helpers\History;
 use App\Http\Controllers\ApiController;
 use App\Http\Resources\Api\v2\OutResultResource;
 use App\Http\Resources\Api\v2\PaitoResource;
+use App\Http\Resources\Api\v2\PaitoResourceDekstop;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\TogelResultNumberModel;
 use App\Traits\CustomPaginate;
@@ -105,8 +106,8 @@ class OutResult extends ApiController
 				'constant_provider_togel.period as periode',
 				'constant_provider_togel.status as is_active',
 			])
-			->where('status' , true)
-			->orWhere('auto_online', 1)
+			// ->where('status' , true)
+			// ->orWhere('auto_online', 1)
 			->with('resultNumber')
 			->get();
 
@@ -135,6 +136,26 @@ class OutResult extends ApiController
 			
 		return PaitoResource::collection($paito);
 		
+	}
+	public function paitoDekstop()
+	{
+		$paito = ConstantProviderTogelModel::query()
+			->select([
+				'constant_provider_togel.id',
+				'constant_provider_togel.name_initial as nama_id',
+				'constant_provider_togel.name as pasaran',
+				'constant_provider_togel.website_url as web',
+				'constant_provider_togel.hari_diundi as hari_undi',
+				'constant_provider_togel.libur as libur',
+				'constant_provider_togel.tutup as tutup',
+				'constant_provider_togel.jadwal as jadwal',
+				'constant_provider_togel.period as periode',
+				'constant_provider_togel.status as is_active',
+			])
+			->with('resultNumber')
+			->get();
+			
+		return PaitoResourceDekstop::collection($paito);		
 	}
 
 	public function getShioTables() 
