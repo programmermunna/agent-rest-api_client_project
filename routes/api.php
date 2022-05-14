@@ -193,7 +193,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 	Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
 	Route::match(['get', 'post'],"sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
 	Route::get('provider', [OutResult::class, 'getResultByProvider']);
-	Route::get('paito', [OutResult::class, 'paito']);
+	Route::get('paitoMobile', [OutResult::class, 'paitoMobile']);
 	Route::get('shio' , [OutResult::class , 'getShioTables']);
 	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
 	Route::get('pasaran', [OutResult::class, 'getPasaran']);

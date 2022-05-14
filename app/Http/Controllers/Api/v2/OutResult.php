@@ -113,7 +113,7 @@ class OutResult extends ApiController
 		return OutResultResource::collection($provider);
 	}
 
-	public function paito()
+	public function paitoMobile()
 	{
 		$paito = ConstantProviderTogelModel::query()
 			->select([
