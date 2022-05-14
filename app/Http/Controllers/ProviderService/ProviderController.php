@@ -985,16 +985,11 @@ class ProviderController extends Controller
     if ($bets) {      
       return response()->json([
         "data" => [
-          // "trace_id" => generateGuid(),
           "currency_code" => "IDR",
-          "balance_amount" => $member->credit / 1000,
-          "updated_time" => $data->updatedTime,
+          "balance_amount" => round($member->credit / 1000, 2, PHP_ROUND_HALF_DOWN),
+          "updated_time" => (float) $data->updatedTime,
         ],
         "error" => null,
-        // "success" => true,
-        // "id"  => $bets->id,
-        // "message" => "duplicate transaction id",
-        // "amount"  => $member->credit
       ], 200);
     } elseif ($member->credit < $betAmount ) {     // Check member balance
       return response()->json([
@@ -1037,15 +1032,11 @@ class ProviderController extends Controller
       $this->insertBet($bet);
       return response()->json([
         "data" => [
-          // "trace_id" => generateGuid(),
           "currency_code" => "IDR",
-          "balance_amount" => $member->credit / 1000,
-          "updated_time" => $data->updatedTime,
+          "balance_amount" => round($member->credit / 1000, 2, PHP_ROUND_HALF_DOWN),
+          "updated_time" => (float) $data->updatedTime,
         ],
         "error" => null,
-        // "success" => true,
-        // "message" => "transaction is success",
-        // "amount"  => $member->credit
       ], 200);
     } catch (\Throwable $th) {
       return response()->json(['status' => false, "message" => $th->getMessage()], 500);
