@@ -13,6 +13,7 @@ use App\Traits\CustomPaginate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 /**
  * @author Hanan Asyrawi Rivai 
@@ -118,44 +119,54 @@ class OutResult extends ApiController
 	{
 		$paito = ConstantProviderTogelModel::query()
 			->select([
-				'constant_provider_togel.id',
-				'constant_provider_togel.name_initial as nama_id',
-				'constant_provider_togel.name as pasaran',
-				'constant_provider_togel.website_url as web',
-				'constant_provider_togel.hari_diundi as hari_undi',
-				'constant_provider_togel.libur as libur',
-				'constant_provider_togel.tutup as tutup',
-				'constant_provider_togel.jadwal as jadwal',
-				'constant_provider_togel.period as periode',
-				'constant_provider_togel.status as is_active',
+				'id',
+				'name_initial as nama_id',
+				'name as pasaran',
+				'website_url as web',
+				'hari_diundi as hari_undi',
+				'libur as libur',
+				'tutup as tutup',
+				'jadwal as jadwal',
+				'period as periode',
+				'status as is_active',
 			])
-			// ->where('status' , true)
-			// ->orWhere('auto_online', 1)
 			->with('resultNumber')
 			->get();
 			
 		return PaitoResource::collection($paito);
 		
 	}
-	public function paitoAll()
+
+	public function paitoAll(Request $request)
 	{
-		$paito = ConstantProviderTogelModel::query()
-			->select([
-				'constant_provider_togel.id',
-				'constant_provider_togel.name_initial as nama_id',
-				'constant_provider_togel.name as pasaran',
-				'constant_provider_togel.website_url as web',
-				'constant_provider_togel.hari_diundi as hari_undi',
-				'constant_provider_togel.libur as libur',
-				'constant_provider_togel.tutup as tutup',
-				'constant_provider_togel.jadwal as jadwal',
-				'constant_provider_togel.period as periode',
-				'constant_provider_togel.status as is_active',
-			])
-			->with('resultNumber')
-			->get();
-			
-		return PaitoResourceDekstop::collection($paito);		
+		try {
+			$paito = ConstantProviderTogelModel::query()
+							->select([
+								'id',
+								'name_initial as nama_id',
+								'name as pasaran',
+								'website_url as web',
+								'hari_diundi as hari_undi',
+								'libur as libur',
+								'tutup as tutup',
+								'jadwal as jadwal',
+								'period as periode',
+								'status as is_active',
+							])
+							->with('resultNumber');
+
+			$checkPasaran = ConstantProviderTogelModel::find($request->pasaran);
+			if ($checkPasaran) {
+				$data = new PaitoResourceDekstop($paito->find($request->pasaran));
+				return $this->successResponse($data, null, 200);
+			} else {
+				$data = new PaitoResourceDekstop($paito->first());
+				$message = $request->pasaran == null ? null : 'Pasaran Not Found';
+				return $this->successResponse($data, $message, 200);
+			}
+		} catch (\Throwable $th) {
+			return $this->errorResponse("Server Internal Error", 500);
+		}				
 	}
 
 	public function getShioTables() 

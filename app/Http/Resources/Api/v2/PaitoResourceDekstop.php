@@ -14,7 +14,7 @@ class PaitoResourceDekstop extends JsonResource
      */
     public function toArray($request)
     {
-        return [
+      return [
 				'id'      		=> $this->id,
 				'pasaran' 		=> $this->pasaran,
 				'initial' 		=> $this->nama_id,
@@ -25,7 +25,7 @@ class PaitoResourceDekstop extends JsonResource
 				'jadwal'  		=> $this->jadwal,
 				'periode' 		=> $this->periode,
 				'is_active'   => $this->is_active,
-				'result'  		=> $this->resultNumber()->orderByDesc('result_date')->get(),
+				'result'  		=> $this->resultNumber()->orderByDesc('result_date')->paginate(10),
 			];
     }
 }
