@@ -114,7 +114,7 @@ class OutResult extends ApiController
 		return OutResultResource::collection($provider);
 	}
 
-	public function paitoMobile()
+	public function paitoEight()
 	{
 		$paito = ConstantProviderTogelModel::query()
 			->select([
@@ -137,7 +137,7 @@ class OutResult extends ApiController
 		return PaitoResource::collection($paito);
 		
 	}
-	public function paitoDekstop()
+	public function paitoAll()
 	{
 		$paito = ConstantProviderTogelModel::query()
 			->select([
