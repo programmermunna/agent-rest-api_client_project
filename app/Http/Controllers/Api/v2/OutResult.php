@@ -106,8 +106,8 @@ class OutResult extends ApiController
 				'constant_provider_togel.period as periode',
 				'constant_provider_togel.status as is_active',
 			])
-			// ->where('status' , true)
-			// ->orWhere('auto_online', 1)
+			->where('status' , true)
+			->orWhere('auto_online', 1)
 			->with('resultNumber')
 			->get();
 
@@ -129,8 +129,8 @@ class OutResult extends ApiController
 				'constant_provider_togel.period as periode',
 				'constant_provider_togel.status as is_active',
 			])
-			->where('status' , true)
-			->orWhere('auto_online', 1)
+			// ->where('status' , true)
+			// ->orWhere('auto_online', 1)
 			->with('resultNumber')
 			->get();
 			
