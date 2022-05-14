@@ -984,10 +984,17 @@ class ProviderController extends Controller
     // Check transaction id duplicate
     if ($bets) {      
       return response()->json([
-        "success" => true,
-        "id"  => $bets->id,
-        "message" => "duplicate transaction id",
-        "amount"  => $member->credit
+        "data" => [
+          // "trace_id" => generateGuid(),
+          "currency_code" => "IDR",
+          "balance_amount" => $member->credit / 1000,
+          "updated_time" => $data->updatedTime,
+        ],
+        "error" => null,
+        // "success" => true,
+        // "id"  => $bets->id,
+        // "message" => "duplicate transaction id",
+        // "amount"  => $member->credit
       ], 200);
     } elseif ($member->credit < $betAmount ) {     // Check member balance
       return response()->json([
@@ -1029,9 +1036,16 @@ class ProviderController extends Controller
     try {
       $this->insertBet($bet);
       return response()->json([
-        "success" => true,
-        "message" => "transaction is success",
-        "amount"  => $member->credit
+        "data" => [
+          // "trace_id" => generateGuid(),
+          "currency_code" => "IDR",
+          "balance_amount" => $member->credit / 1000,
+          "updated_time" => $data->updatedTime,
+        ],
+        "error" => null,
+        // "success" => true,
+        // "message" => "transaction is success",
+        // "amount"  => $member->credit
       ], 200);
     } catch (\Throwable $th) {
       return response()->json(['status' => false, "message" => $th->getMessage()], 500);
