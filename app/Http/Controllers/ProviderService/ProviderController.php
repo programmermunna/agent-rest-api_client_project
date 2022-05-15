@@ -45,7 +45,7 @@ class ProviderController extends Controller
         "amount" => $amount
       ];
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
-      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
+      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Win' : 'Bonus' ));
       $bets = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
@@ -83,7 +83,7 @@ class ProviderController extends Controller
       return Response::json($res);
     } else {
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
-      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
+      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Win' : 'Bonus' ));
       $win = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
