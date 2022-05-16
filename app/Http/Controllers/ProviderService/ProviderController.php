@@ -45,7 +45,7 @@ class ProviderController extends Controller
         "amount" => $amount
       ];
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
-      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
+      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Win' : 'Bonus' ));
       $bets = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
@@ -83,7 +83,7 @@ class ProviderController extends Controller
       return Response::json($res);
     } else {
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
-      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Payout' : 'Bonus' ));
+      $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Win' : 'Bonus' ));
       $win = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
@@ -984,10 +984,12 @@ class ProviderController extends Controller
     // Check transaction id duplicate
     if ($bets) {      
       return response()->json([
-        "success" => true,
-        "id"  => $bets->id,
-        "message" => "duplicate transaction id",
-        "amount"  => $member->credit
+        "data" => [
+          "currency_code" => "IDR",
+          "balance_amount" => round($member->credit / 1000, 2, PHP_ROUND_HALF_DOWN),
+          "updated_time" => (float) $data->updatedTime,
+        ],
+        "error" => null,
       ], 200);
     } elseif ($member->credit < $betAmount ) {     // Check member balance
       return response()->json([
@@ -1029,9 +1031,12 @@ class ProviderController extends Controller
     try {
       $this->insertBet($bet);
       return response()->json([
-        "success" => true,
-        "message" => "transaction is success",
-        "amount"  => $member->credit
+        "data" => [
+          "currency_code" => "IDR",
+          "balance_amount" => round($member->credit / 1000, 2, PHP_ROUND_HALF_DOWN),
+          "updated_time" => (float) $data->updatedTime,
+        ],
+        "error" => null,
       ], 200);
     } catch (\Throwable $th) {
       return response()->json(['status' => false, "message" => $th->getMessage()], 500);
