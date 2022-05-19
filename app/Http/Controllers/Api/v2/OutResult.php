@@ -198,7 +198,8 @@ class OutResult extends ApiController
 					'result'  		=> $result->paginate(10)
 				];
 				return $this->successResponse($data, null, 200);
-			} else {
+			} else {								
+				$result = $resultNumber->where('togel_results_number.constant_provider_togel_id', $paito->id);
 				$data = [
 					'id'      		=> $paito->id,
 					'pasaran' 		=> $paito->pasaran,
@@ -210,7 +211,7 @@ class OutResult extends ApiController
 					'jadwal'  		=> $paito->jadwal,
 					'periode' 		=> $paito->periode,
 					'is_active'   => $paito->is_active,
-					'result'  		=> $resultNumber->paginate(10)
+					'result'  		=> $result->paginate(10)
 				];
 				$message = $request->pasaran == null ? null : 'Pasaran Not Found';
 				return $this->successResponse($data, $message, 200);
