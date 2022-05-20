@@ -72,9 +72,6 @@ class ProviderController extends Controller
     $member =  MembersModel::where('id', $user_id)->first();
     $amount = $member->credit + $data->amount;
 
-    $member->update([
-      'credit' => $amount
-    ]);
     if ($data->amount <= 1) {
       $res = [
         "success" => true,
@@ -88,9 +85,12 @@ class ProviderController extends Controller
         $nameProvider->update([
           'round_id' => 0,
           'credit' => $member->credit,
-          'deskripsi' => 'Game Deposit'  . ' : ' . $data->amount,
+          'deskripsi' => 'Game Deposit'  . ' : ' . $member->credit,
         ]);
       }
+      $member->update([
+        'credit' => $amount
+      ]);
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Win' : 'Bonus' ));
       $deskripsi = $data->status == 1 ? 'Deposit' : ($data->status == 2 ? 'Withdraw (Auto)' : ($data->status == 4 ? 'Withdraw' : 'Bonus' ));
