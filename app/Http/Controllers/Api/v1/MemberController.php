@@ -132,7 +132,10 @@ class MemberController extends ApiController
                 FROM
                     activity_log
                 WHERE
-                    log_name = 'Member Login' OR log_name ='Member Log Out'");
+                    log_name = 'Member Login' OR log_name ='Member Log Out'
+                ORDER BY
+                      created_at
+                DESC");
         $properties = [];
         foreach ($activity_members as $activity) {
             $array = json_decode($activity->properties, true);
