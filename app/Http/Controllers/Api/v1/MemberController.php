@@ -60,6 +60,8 @@ class MemberController extends ApiController
   public $allProviderBet = [];
   public $pageAll = 10;
   public $togel = [];
+  public $loginLout = [];
+  public $togelReferal = [];
 
   // history by type
   public function historyAll(Request $request)
@@ -68,8 +70,8 @@ class MemberController extends ApiController
       $id = auth('api')->user()->id;
       $deposit = DB::select(\DB::raw("
                   SELECT
-                      credit,
                       jumlah,
+                      credit,
                       approval_status,
                       created_at,
                       created_by,
@@ -93,11 +95,12 @@ class MemberController extends ApiController
                   ORDER BY
                       created_at
                   DESC"));
-      
+
+
       $withdraw = DB::select(\DB::raw("
                   SELECT
-                      credit,
                       jumlah,
+                      credit,
                       approval_status,
                       created_at,
                       created_by,
@@ -121,6 +124,36 @@ class MemberController extends ApiController
                   ORDER BY
                       created_at
                   DESC"));
+
+        # Login / Logout Filter
+        $activity_members = DB::select("SELECT
+                    properties,
+                    created_at
+                FROM
+                    activity_log
+                WHERE
+                    log_name = 'Member Login' OR log_name ='Member Log Out'");
+        $properties = [];
+        foreach ($activity_members as $activity) {
+            $array = json_decode($activity->properties, true);
+            if(array_push($array) == 3){
+                $device = Arr::add($array, 'device', null);
+                $properties [] = Arr::add($device, 'created_at', $activity->created_at);
+            } else {
+                $properties [] = Arr::add($array, 'created_at', $activity->created_at);
+            }
+        }
+
+        $member = MembersModel::where('id', $id)->first();
+        $activity = [];
+        foreach ($properties as $index => $json) {
+            if ($json['target'] == $member->username) {
+                $activity[] = $json;
+            }
+        }
+
+        # Referral filter
+        $referalMembers = MembersModel::where('id',$id)->with('referrals')->first();
 
 
       $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
@@ -150,10 +183,24 @@ class MemberController extends ApiController
         $wd = $this->paginate($this->withdraw, $this->perPageWd);
 
         return [
-          'status' => 'success',  
+          'status' => 'success',
           'deposit' => $depo,
           'withdraw' => $wd,
         ];
+      } elseif ($request->type == 'loginLogout') {
+          $this->loginLout = $activity;
+          $loginLout = $this->paginate($this->loginLout, 10);
+          return [
+              'status' => 'success',
+              'loginLogout' => $loginLout,
+          ];
+      } elseif ($request->type == 'togelReferal') {
+          $this->togelReferal = $referalMembers['referrals'];
+          $togelReferal = $this->paginate($this->togelReferal, 10);
+          return [
+              'status' => 'success',
+              'togelReferal' => $togelReferal,
+          ];
       } elseif ($request->type == 'pragmaticSlot') {
         $pragmaticSlot = $query->select(
           'bets.bet',
@@ -522,7 +569,6 @@ class MemberController extends ApiController
           'BonusPromo' => $bonusArr,
         ];
       } elseif ($request->type == 'togel') {
-
         $togel = $this->paginate($this->getTogel(), $this->perPage);
 
         return [
@@ -568,9 +614,9 @@ class MemberController extends ApiController
         //     $result->push($value);
         //   }
         // }
-        // return $this->paginate($result, $this->pageAll);      
+        // return $this->paginate($result, $this->pageAll);
 
-        $allProBet = DB::select(\DB::raw("SELECT 
+        $allProBet = DB::select(\DB::raw("SELECT
                   'Bets' AS Tables,
                   a.bet as betsBet,
                   a.win as betsWin,
@@ -600,13 +646,13 @@ class MemberController extends ApiController
                   NULL as bonusHistoryType,
                   NULL as bonusHistoryJumlah,
                   NULL as bonusHistoryHadiah,
-                  NULL as bonusHistoryCreatedBy, 
-                  NULL as activityDeskripsi, 
+                  NULL as bonusHistoryCreatedBy,
+                  NULL as activityDeskripsi,
                   NULL as activityName,
-                  NULL as detail 
+                  NULL as detail
               FROM bets as a
               LEFT JOIN members as b ON a.created_by = b.id
-              LEFT JOIN constant_provider as c ON a.constant_provider_id = c.id              
+              LEFT JOIN constant_provider as c ON a.constant_provider_id = c.id
               WHERE a.created_by = $id
               -- UNION ALL
               -- SELECT
@@ -619,7 +665,7 @@ class MemberController extends ApiController
               --     NULL as betsDeskripsi,
               --     NULL as betsCredit,
               --     a.created_at as created_at,
-              --     NULL as betsProviderName,                  
+              --     NULL as betsProviderName,
               --     a.bets_togel_id as betsTogelHistoryId,
               --     CONCAT(c.name_initial, '-', b.period) as betsTogelHistoryPasaran,
               --     a.description as betsTogelHistorDeskripsi,
@@ -696,7 +742,7 @@ class MemberController extends ApiController
               FROM
                   deposit as a
               LEFT JOIN members as b ON b.id = a.created_by
-              
+
               WHERE
                   (a.created_by = $id AND a.deleted_at IS NULL) OR a.deleted_at IS NOT NULL AND a.created_by = $id
               UNION ALL
@@ -748,7 +794,7 @@ class MemberController extends ApiController
                   NULL as detail
               FROM
                   withdraw as a
-              LEFT JOIN members as b ON b.id = a.created_by              
+              LEFT JOIN members as b ON b.id = a.created_by
               WHERE
                 (a.created_by = $id AND a.deleted_at IS NULL) OR a.deleted_at IS NOT NULL AND a.created_by = $id
               UNION ALL
@@ -788,7 +834,7 @@ class MemberController extends ApiController
                   NULL as detail
               FROM
                   bonus_history as a
-              LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id              
+              LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id
               WHERE a.created_by = $id AND a.jumlah > 0 AND a.deleted_at IS NULL
               ORDER BY created_at DESC"));
 
@@ -807,9 +853,9 @@ class MemberController extends ApiController
             $properties [] = Arr::add($device, 'created_at', $activity->created_at);
           } else {
             $properties [] = Arr::add($array, 'created_at', $activity->created_at);
-          }            
+          }
         };
-        
+
         $member = MembersModel::where('id', auth('api')->user()->id)->first();
         $activity = [];
         foreach ($properties as $index => $json) {
@@ -832,7 +878,7 @@ class MemberController extends ApiController
             'created_at' => $value['created_at'],
             'betsProviderName' => null,
             'betsTogelHistoryId' => null,
-            'betsTogelHistoryPasaran' => null, 
+            'betsTogelHistoryPasaran' => null,
             'betsTogelHistorDeskripsi' => null,
             'betsTogelHistoryDebit' => null,
             'betsTogelHistoryKredit' => null,
@@ -851,14 +897,14 @@ class MemberController extends ApiController
             'bonusHistoryJumlah' => null,
             'bonusHistoryHadiah' => null,
             'bonusHistoryCreatedBy' => null,
-            'activityDeskripsi' => $value['device'] != null ? $value['activity']." : ".$value['device'] : $value['activity'], 
+            'activityDeskripsi' => $value['device'] != null ? $value['activity']." : ".$value['device'] : $value['activity'],
             'activityName' => $value['device'] != null ? $value['activity']." - ".$value['device'] : $value['activity'],
             'detail' => null
           ];
-          $activitys[] = $activity;          
-        };                
+          $activitys[] = $activity;
+        };
         $betTogelHistories = [];
-        foreach ($this->dataTogel() as $key => $value) {        
+        foreach ($this->dataTogel() as $key => $value) {
           $betTogelHis = [
             'Tables' => 'Bets Togel History',
             'betsBet' => null,
@@ -871,7 +917,7 @@ class MemberController extends ApiController
             'created_at' => $value['created_at'],
             'betsProviderName' => null,
             'betsTogelHistoryId' => $value['id'],
-            'betsTogelHistoryPasaran' => $value['Pasaran'], 
+            'betsTogelHistoryPasaran' => $value['Pasaran'],
             'betsTogelHistorDeskripsi' => 'Bet : ('.$value['Game']. ' => '. $value['Nomor'].')',
             'betsTogelHistoryDebit' => $value['Bet'],
             'betsTogelHistoryKredit' => $value['winTogel'],
@@ -890,11 +936,11 @@ class MemberController extends ApiController
             'bonusHistoryJumlah' => null,
             'bonusHistoryHadiah' => null,
             'bonusHistoryCreatedBy' => null,
-            'activityDeskripsi' => null, 
+            'activityDeskripsi' => null,
             'activityName' => null,
             'detail' => '/endpoint/getDetailTransaksiTogel/'.$value['id']
           ];
-          $betTogelHistories[] = $betTogelHis;          
+          $betTogelHistories[] = $betTogelHis;
         }
 
         $alldata1 = array_merge($allProBet, $activitys);
@@ -909,7 +955,7 @@ class MemberController extends ApiController
           'status' => 'success',
           'allProviderBet' => $allProviderBet,
         ];
-                          
+
       }
     } catch (\Throwable $th) {
       return $this->errorResponse($th->getMessage(), 500);
@@ -955,8 +1001,8 @@ class MemberController extends ApiController
 
   public function getTogel()
   {
-    $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
-              ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
+    $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')
+              ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')
               ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
               ->leftJoin('togel_shio_name', 'bets_togel.tebak_shio', '=', 'togel_shio_name.id')
               ->join('togel_setting_game', 'bets_togel.togel_setting_game_id', '=', 'togel_setting_game.id')
@@ -965,7 +1011,7 @@ class MemberController extends ApiController
                   bets_togel.balance,
                   constant_provider_togel.id as constant_provider_togel_id,
                   bets_togel.created_at
-                  
+
                   , members.last_login_ip as 'IP'
                   , members.username as 'Username'
                   , concat(constant_provider_togel.name_initial, '-', bets_togel.period) as 'Pasaran'
@@ -973,7 +1019,7 @@ class MemberController extends ApiController
                       bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
                       , '4D'
                       , if (
-                          bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1 
+                          bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
                           , '3D'
                           , if (
                               bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
@@ -1280,7 +1326,7 @@ class MemberController extends ApiController
                   , bets_togel.win_nominal as 'winTogel'
                   , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'disc/kei'
 
-                  
+
                   , if (
                       bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
                       , concat(floor(togel_setting_game.win_4d_x), 'x')
@@ -1570,7 +1616,7 @@ class MemberController extends ApiController
               ")
               // ->where('bets_togel.updated_at', null)
               ->where('bets_togel.created_by', '=', auth('api')->user()->id)->orderBy('bets_togel.id', 'DESC')->get();
-    
+
     return $this->togel = collect($result)->map(function ($value) {
       return [
         'created_at'    => $value->created_at,
@@ -1616,8 +1662,8 @@ class MemberController extends ApiController
 
   protected function dataTogel()
   {
-    $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
-        ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
+    $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')
+        ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')
         ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
         ->leftJoin('togel_shio_name', 'bets_togel.tebak_shio', '=', 'togel_shio_name.id')
         ->join('togel_setting_game', 'bets_togel.togel_setting_game_id', '=', 'togel_setting_game.id')
@@ -1627,7 +1673,7 @@ class MemberController extends ApiController
             min(bets_togel.balance) as balance,
             constant_provider_togel.id as constant_provider_togel_id,
             bets_togel.created_at
-            
+
             , members.last_login_ip as 'IP'
             , members.username as 'Username'
             , concat(constant_provider_togel.name_initial, '-', bets_togel.period) as 'Pasaran'
@@ -1635,7 +1681,7 @@ class MemberController extends ApiController
                 bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
                 , '4D'
                 , if (
-                    bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1 
+                    bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
                     , '3D'
                     , if (
                         bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
@@ -1942,7 +1988,7 @@ class MemberController extends ApiController
             , bets_togel.win_nominal as 'winTogel'
             , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'disc/kei'
 
-            
+
             , if (
                 bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
                 , concat(floor(togel_setting_game.win_4d_x), 'x')
@@ -2236,14 +2282,14 @@ class MemberController extends ApiController
         ->groupBy('bets_togel.togel_game_id')
         ->groupBy(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"))
         ->get();
-    return $result;          
+    return $result;
   }
 
   protected function detailDataTogel($id)
   {
     $date = BetsTogel::find($id);
-    $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
-            ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
+    $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')
+            ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')
             ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
             ->leftJoin('togel_shio_name', 'bets_togel.tebak_shio', '=', 'togel_shio_name.id')
             ->join('togel_setting_game', 'bets_togel.togel_setting_game_id', '=', 'togel_setting_game.id')
@@ -2252,7 +2298,7 @@ class MemberController extends ApiController
                 bets_togel.balance,
                 constant_provider_togel.id as constant_provider_togel_id,
                 bets_togel.created_at
-                
+
                 , members.last_login_ip as 'IP'
                 , members.username as 'Username'
                 , concat(constant_provider_togel.name_initial, '-', bets_togel.period) as 'Pasaran'
@@ -2260,7 +2306,7 @@ class MemberController extends ApiController
                     bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
                     , '4D'
                     , if (
-                        bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1 
+                        bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
                         , '3D'
                         , if (
                             bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
@@ -2567,7 +2613,7 @@ class MemberController extends ApiController
                 , bets_togel.win_nominal as 'winTogel'
                 , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'discKey'
 
-                
+
                 , if (
                     bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
                     , concat(floor(togel_setting_game.win_4d_x), 'x')
@@ -2858,7 +2904,7 @@ class MemberController extends ApiController
             ->where(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"), Carbon::parse($date->created_at)->format('Y-m-d H:i'))
             // ->where('bets_togel.updated_at', null)
             ->where('bets_togel.created_by', $date->created_by)->get()->toArray();
-    return $result;          
+    return $result;
   }
 
   public function __construct()
@@ -2899,7 +2945,7 @@ class MemberController extends ApiController
 
   public function depostiWithdrawStatus()
   {
-    try {   
+    try {
       #member
       // $deposit = DepositModel::leftJoin('members', 'members.id', 'deposit.members_id')
       //     ->leftJoin('constant_rekening as constRek', 'constRek.id', '=', 'members.constant_rekening_id')
@@ -3201,9 +3247,9 @@ class MemberController extends ApiController
       }
     } catch (\Throwable $th) {
       return $this->errorResponse('Internal Server Error', 500);
-    } 
+    }
   }
-  
+
   public function statementWdDepo()
   {
     try {
@@ -3273,7 +3319,7 @@ class MemberController extends ApiController
         ])
         ->where('rek_member.created_by', auth('api')->user()->id)
         ->where('rek_member.constant_rekening_id', $request->constant_rekening_id)->first();
-      
+
       // check no rekening
       $noRekArray = RekeningModel::pluck('nomor_rekening')->toArray();
       $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
@@ -3362,7 +3408,7 @@ class MemberController extends ApiController
       return $this->errorResponse('Hubungi CS kami untuk mengubah Rekening Withdraw', 500);
     }
   }
-  
+
   // Daftar Rekeningmember
   public function listRekMember()
   {
@@ -3501,7 +3547,7 @@ class MemberController extends ApiController
             // $bankName = ['bca', 'mandiri', 'bni', 'bri', 'cimb', 'danamond', 'telkomsel', 'axiata', 'ovo', 'gopay', 'dana', 'linkAja'];
             // $listRek = [];
 
-            // for ($i=0; $i < count($bankName); $i++) { 
+            // for ($i=0; $i < count($bankName); $i++) {
             //     array_push($listRek, ${$bankName[$i]."Agent"});
             // }
             $bankAgent = RekMemberModel::leftJoin('constant_rekening', 'constant_rekening.id', '=', 'rek_member.constant_rekening_id')
@@ -3528,7 +3574,7 @@ class MemberController extends ApiController
                             ->get()->toArray();
 
             $listRek = array_merge($bankAgent, $nonBankAgent);
-            
+
             return $this->successResponse($listRek, 'Daftar Rekening Agent', 200);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
