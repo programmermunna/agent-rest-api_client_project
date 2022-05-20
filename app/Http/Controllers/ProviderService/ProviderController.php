@@ -82,6 +82,13 @@ class ProviderController extends Controller
       ];
       return Response::json($res);
     } else {
+      #update if player only deposit not playing
+      if ($data->status == 2) {
+        $nameProvider = BetModel::where('bets.bet_id', $data->referenceId)->first();
+        $nameProvider->update([
+          'round_id' => 0
+        ]);
+      }
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Win' : 'Bonus' ));
       $deskripsi = $data->status == 1 ? 'Deposit' : ($data->status == 2 ? 'Withdraw (Auto)' : ($data->status == 4 ? 'Withdraw' : 'Bonus' ));
@@ -101,14 +108,6 @@ class ProviderController extends Controller
         'created_by' => $member->id
       ];
       $this->insertWin($win);
-
-      #update if player only deposit not playing
-      if ($data->status == 2) {
-        $nameProvider = BetModel::where('bets.bet_id', $data->referenceId)->first();
-        $nameProvider->update([
-          'round_id' => 0
-        ]);
-      }
 
       $res = [
         "success" => true,
