@@ -210,6 +210,8 @@ class IONXController extends Controller
 				]);
 			}
 
+            $playerWin = number_format($this->token->PlayerWinLoss,2, ',' , '.');
+            $playerLose = number_format($this->token->Stake,2, ',' , '.');
             BetModel::create([
                 'bet_id' => $this->token->RefNo,
                 'win' => $this->token->PlayerWinLoss,
@@ -220,7 +222,7 @@ class IONXController extends Controller
                 'constant_provider_id' => 8,
                 'game_info' => 'live_casino',
                 'type' => $this->token->SettlementStatus === "WON" ? "Win" : ($this->token->SettlementStatus === "LOSE"  ? "Lose" : "Cancel"),
-                'deskripsi' => $this->token->SettlementStatus === "WON" ? "Game Win " . " : " . $this->token->PlayerWinLoss : ($this->token->SettlementStatus === "LOSE"  ? "Game Lose " . " : " . $this->token->Stake : "Game Cancel " . ":" . $this->token->PlayerWinLoss),
+                'deskripsi' => $this->token->SettlementStatus === "WON" ? "Game Win " . " : " . $playerWin : ($this->token->SettlementStatus === "LOSE"  ? "Game Lose " . " : " . $playerLose : "Game Cancel " . ":" . $playerWin),
                 'created_at' => Carbon::now(),
                 'credit' => $balance,
                 // 'created_at' => $this->token->SettleTime,
