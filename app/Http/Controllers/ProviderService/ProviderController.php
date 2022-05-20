@@ -84,11 +84,12 @@ class ProviderController extends Controller
     } else {
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Win' : 'Bonus' ));
+      $deskripsi = $data->status == 1 ? 'Deposit' : ($data->status == 2 ? 'Withdraw (Auto)' : ($data->status == 4 ? 'Withdraw' : 'Bonus' ));
       $win = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
         'round_id' => $data->roundId,
-        'deskripsi' => 'Game '. $status  . ' : ' . $data->amount,
+        'deskripsi' => 'Game '. $deskripsi  . ' : ' . $data->amount,
         'game_id' => $data->gameId,
         'type' => $status,
         'game_info' => $data->type,
@@ -100,6 +101,15 @@ class ProviderController extends Controller
         'created_by' => $member->id
       ];
       $this->insertWin($win);
+
+      #update if player only deposit not playing
+      if ($data->status == 2) {
+        $nameProvider = BetModel::where('bets.bet_id', $data->referenceId)->first();
+        $nameProvider->update([
+          'round_id' => 0
+        ]);
+      }
+
       $res = [
         "success" => true,
         "amount"  => $amount
