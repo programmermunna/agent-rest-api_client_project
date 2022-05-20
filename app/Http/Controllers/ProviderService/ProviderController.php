@@ -86,7 +86,9 @@ class ProviderController extends Controller
       if ($data->status == 2) {
         $nameProvider = BetModel::where('bets.bet_id', $data->referenceId)->first();
         $nameProvider->update([
-          'round_id' => 0
+          'round_id' => 0,
+          'credit' => $member->credit,
+          'deskripsi' => 'Game Deposit'  . ' : ' . $data->amount,
         ]);
       }
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
