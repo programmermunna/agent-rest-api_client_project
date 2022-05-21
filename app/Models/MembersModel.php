@@ -223,7 +223,7 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
      */
     public function referrals()
     {
-        return $this->hasMany(MembersModel::class, 'referrer_id', 'id');
+        return $this->hasMany(MembersModel::class, 'referrer_id', 'id')->latest();
     }
 
     public function bets(): \Illuminate\Database\Eloquent\Relations\HasMany

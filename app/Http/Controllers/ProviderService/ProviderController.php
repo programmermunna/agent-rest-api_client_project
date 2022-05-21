@@ -72,9 +72,6 @@ class ProviderController extends Controller
     $member =  MembersModel::where('id', $user_id)->first();
     $amount = $member->credit + $data->amount;
 
-    $member->update([
-      'credit' => $amount
-    ]);
     if ($data->amount <= 1) {
       $res = [
         "success" => true,
@@ -82,13 +79,26 @@ class ProviderController extends Controller
       ];
       return Response::json($res);
     } else {
+      #update if player only deposit not playing
+      if ($data->status == 2) {
+        $nameProvider = BetModel::where('bets.bet_id', $data->referenceId)->first();
+        $nameProvider->update([
+          'round_id' => 0,
+          'credit' => $member->credit,
+          'deskripsi' => 'Game Deposit'  . ' : ' . $member->credit,
+        ]);
+      }
+      $member->update([
+        'credit' => $amount
+      ]);
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Win' : 'Bonus' ));
+      $deskripsi = $data->status == 1 ? 'Deposit' : ($data->status == 2 ? 'Withdraw (Auto)' : ($data->status == 4 ? 'Withdraw' : 'Bonus' ));
       $win = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
         'round_id' => $data->roundId,
-        'deskripsi' => 'Game '. $status  . ' : ' . $data->amount,
+        'deskripsi' => 'Game '. $deskripsi  . ' : ' . $data->amount,
         'game_id' => $data->gameId,
         'type' => $status,
         'game_info' => $data->type,
@@ -100,6 +110,7 @@ class ProviderController extends Controller
         'created_by' => $member->id
       ];
       $this->insertWin($win);
+
       $res = [
         "success" => true,
         "amount"  => $amount
