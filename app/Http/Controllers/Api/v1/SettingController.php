@@ -110,6 +110,7 @@ class SettingController extends ApiController
                                 'itemprop' => "image",
                                 'content' => $itempropImage
                             ],
+                            'googleSiteVerification' => $googleSiteVerificationArr
                         ],
                         'googleSiteVerification' => $googleSiteVerificationArr,    
                         'link' => [
@@ -148,6 +149,7 @@ class SettingController extends ApiController
                             'itemprop' => "image",
                             'content' => $itempropImage
                         ],
+                        'googleSiteVerification' => [] 
                     ],
                     'googleSiteVerification' => [],    
                     'link' => [
