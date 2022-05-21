@@ -68,6 +68,8 @@ class MemberController extends ApiController
   {
     try {
       $id = auth('api')->user()->id;
+
+      # History Deposit
       $deposit = DB::select(\DB::raw("
                   SELECT
                       jumlah,
@@ -95,8 +97,8 @@ class MemberController extends ApiController
                   ORDER BY
                       created_at
                   DESC"));
-
-
+      
+      # History Withdraw
       $withdraw = DB::select(\DB::raw("
                   SELECT
                       jumlah,
@@ -125,43 +127,60 @@ class MemberController extends ApiController
                       created_at
                   DESC"));
 
-        # Login / Logout Filter
-        $activity_members = DB::select("SELECT
-                    properties,
+      # Login / Logout Filter
+      $activity_members = DB::select("SELECT
+                  properties,
+                  created_at
+              FROM
+                  activity_log
+              WHERE
+                  log_name = 'Member Login' OR log_name ='Member Log Out'
+              ORDER BY
                     created_at
-                FROM
-                    activity_log
-                WHERE
-                    log_name = 'Member Login' OR log_name ='Member Log Out'
-                ORDER BY
-                      created_at
-                DESC");
-        $properties = [];
-        foreach ($activity_members as $activity) {
-            $array = json_decode($activity->properties, true);
-            if(array_push($array) == 3){
-                $device = Arr::add($array, 'device', null);
-                $properties [] = Arr::add($device, 'created_at', $activity->created_at);
-            } else {
-                $properties [] = Arr::add($array, 'created_at', $activity->created_at);
-            }
-        }
+              DESC");
 
-        $member = MembersModel::where('id', $id)->first();
-        $activity = [];
-        foreach ($properties as $index => $json) {
-            if ($json['target'] == $member->username) {
-                $activity[] = $json;
-            }
-        }
+      $properties = [];
+      foreach ($activity_members as $activity) {
+          $array = json_decode($activity->properties, true);
+          if(array_push($array) == 3){
+              $device = Arr::add($array, 'device', null);
+              $properties [] = Arr::add($device, 'created_at', $activity->created_at);
+          } else {
+              $properties [] = Arr::add($array, 'created_at', $activity->created_at);
+          }
+      }
 
-        # Referral filter
-        $referalMembers = MembersModel::where('id',$id)->with('referrals')->first();
+      $member = MembersModel::where('id', $id)->first();
+      $activity = [];
+      foreach ($properties as $index => $json) {
+          if ($json['target'] == $member->username) {
+            $data = [
+              "ip" => $json['ip'],
+              "target" => $json['target'],
+              "activity" => $json['device'] == null ? $json['activity'] : $json['activity'].' - '.$json['device'],
+              "created_at" => $json['created_at']
+            ];
+            $activity[] = $data;
+          }
+      }
+
+      # Referral filter
+      $referalMembers = MembersModel::where('id',$id)->with('referrals')->first();
+      $togelReferal = [];
+      foreach ($referalMembers['referrals'] as $key => $value) {
+        $data = [
+            'created_at' => Carbon::parse($value['created_at'])->format('Y-m-d H:i:s'),
+            'deskripsi' => 'Referral Togel dari : ('.$value['username'].' = '.$value['bonus_referal'].')',
+            'bonus' => $value['bonus_referal']
+        ];
+        $togelReferal[] = $data;
+      }
 
 
       $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
         ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id');
 
+      # Histori Bonus
       $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
         ->select([
           'bonus_history.id',
@@ -173,7 +192,7 @@ class MemberController extends ApiController
           'bonus_history.member_id',
         ])
         ->where('bonus_history.is_send', 1)
-        ->where('bonus_history.member_id', '=', auth('api')->user()->id)
+        ->where('bonus_history.member_id', auth('api')->user()->id)
         ->where('bonus_history.jumlah', '>', 0);
 
 
@@ -192,14 +211,14 @@ class MemberController extends ApiController
         ];
       } elseif ($request->type == 'loginLogout') {
           $this->loginLout = $activity;
-          $loginLout = $this->paginate($this->loginLout, 10);
+          $loginLout = $this->paginate($this->loginLout, $this->perPage);
           return [
               'status' => 'success',
               'loginLogout' => $loginLout,
           ];
       } elseif ($request->type == 'togelReferal') {
-          $this->togelReferal = $referalMembers['referrals'];
-          $togelReferal = $this->paginate($this->togelReferal, 10);
+          $this->togelReferal = $togelReferal;
+          $togelReferal = $this->paginate($this->togelReferal, $this->perPage);
           return [
               'status' => 'success',
               'togelReferal' => $togelReferal,
@@ -579,46 +598,7 @@ class MemberController extends ApiController
           'togel' => $togel,
         ];
       } else {
-        // $this->deposit = $deposit->get()->toArray();
-        // $depo = $this->paginate($this->deposit, $this->pageAll);
-
-        // $this->withdraw = $withdraw->get()->toArray();
-        // $wd = $this->paginate($this->withdraw, $this->pageAll);
-
-        //all provider bet
-        // $allProBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-        //   ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-        //   ->select(
-        //     'bets.bet',
-        //     'bets.win',
-        //     'bets.game_info',
-        //     'bets.bet_id',
-        //     'bets.game_id',
-        //     'bets.deskripsi',
-        //     'bets.credit',
-        //     'bets.created_at',
-        //     'constant_provider.constant_provider_name'
-        //   )->where('bets.created_by', auth('api')->user()->id)->get();
-
-        // $this->allProviderBet = $allProBet->toArray();
-
-        // $this->bonus = $bonus->get()->toArray();
-        // // all bonus here
-        // $bonusArr = $this->paginate($this->bonus, $this->pageAll);
-
-        // $togel = $this->paginate($this->togel, $this->perPage);
-
-        // $margeResult = array_merge([$this->deposit, $this->withdraw, $allProBet->toArray(), $this->bonus, $this->getTogel()]);
-
-        // $result = collect();
-
-        // foreach ($margeResult as  $row) {
-        //   foreach ($row as  $value) {
-        //     $result->push($value);
-        //   }
-        // }
-        // return $this->paginate($result, $this->pageAll);
-
+        # History bets, deposit, withdraw and bonus
         $allProBet = DB::select(\DB::raw("SELECT
                   'Bets' AS Tables,
                   a.bet as betsBet,
@@ -657,44 +637,6 @@ class MemberController extends ApiController
               LEFT JOIN members as b ON a.created_by = b.id
               LEFT JOIN constant_provider as c ON a.constant_provider_id = c.id
               WHERE a.created_by = $id
-              -- UNION ALL
-              -- SELECT
-              --     'Bets Togel History' as Tables,
-              --     NULL as betsBet,
-              --     NULL as betsWin,
-              --     NULL as betsGameInfo,
-              --     NULL as betsBetId,
-              --     NULL as betsGameId,
-              --     NULL as betsDeskripsi,
-              --     NULL as betsCredit,
-              --     a.created_at as created_at,
-              --     NULL as betsProviderName,
-              --     a.bets_togel_id as betsTogelHistoryId,
-              --     CONCAT(c.name_initial, '-', b.period) as betsTogelHistoryPasaran,
-              --     a.description as betsTogelHistorDeskripsi,
-              --     a.debit as betsTogelHistoryDebit,
-              --     a.kredit as betsTogelHistoryKredit,
-              --     a.balance as betsTogelHistoryBalance,
-              --     a.created_by as betsTogelHistoryCreatedBy,
-              --     NULL as depositCredit,
-              --     NULL as depositJumlah,
-              --     NULL as depositStatus,
-              --     NULL as depositDescription,
-              --     NULL as withdrawCredit,
-              --     NULL as withdrawJumlah,
-              --     NULL as withdrawStatus,
-              --     NULL as withdrawDescription,
-              --     NULL as bonusHistoryNamaBonus,
-              --     NULL as bonusHistoryType,
-              --     NULL as bonusHistoryJumlah,
-              --     NULL as bonusHistoryHadiah,
-              --     NULL as bonusHistoryCreatedBy,
-              --     NULL as activityDeskripsi,
-              --     NULL as activityName
-              -- FROM bets_togel_history_transaksi as a
-              -- LEFT JOIN bets_togel as b ON a.bets_togel_id = b.id
-              -- LEFT JOIN constant_provider_togel as c ON b.constant_provider_togel_id = c.id
-              -- WHERE a.created_by = $id
               UNION ALL
               SELECT
                   'Deposit' as Tables,
@@ -838,9 +780,10 @@ class MemberController extends ApiController
               FROM
                   bonus_history as a
               LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id
-              WHERE a.created_by = $id AND a.jumlah > 0 AND a.deleted_at IS NULL
+              WHERE a.member_id = $id AND is_send = 1 AND a.jumlah > 0 AND a.deleted_at IS NULL
               ORDER BY created_at DESC"));
 
+        # Histori Login/Logout
         $activity_members = DB::select("SELECT
                                 properties,
                                 created_at
@@ -906,6 +849,8 @@ class MemberController extends ApiController
           ];
           $activitys[] = $activity;
         };
+
+        #History Bets Togel
         $betTogelHistories = [];
         foreach ($this->dataTogel() as $key => $value) {
           $betTogelHis = [
@@ -946,11 +891,54 @@ class MemberController extends ApiController
           $betTogelHistories[] = $betTogelHis;
         }
 
+        # History Togel Referral
+        $togelReferals = [];
+        foreach ($referalMembers['referrals'] as $key => $value) {
+          $togelReferal = [
+            'Tables' => 'Referral Togel History',
+            'betsBet' => null,
+            'betsWin' => null,
+            'betsGameInfo' => null,
+            'betsBetId' => null,
+            'betsGameId' => null,
+            'betsDeskripsi' => null,
+            'betsCredit' => null,
+            'created_at' => Carbon::parse($value['created_at'])->format('Y-m-d H:i:s'),
+            'betsProviderName' => null,
+            'betsTogelHistoryId' => null,
+            'betsTogelHistoryPasaran' => null,
+            'betsTogelHistorDeskripsi' => 'Referral Togel dari : ('.$value['username'].' = '.$value['bonus_referal'].')',
+            'betsTogelHistoryDebit' => null,
+            'betsTogelHistoryKredit' => $value['bonus_referal'],
+            'betsTogelHistoryBalance' => null,
+            'betsTogelHistoryCreatedBy' => null,
+            'depositCredit' => null,
+            'depositJumlah' => null,
+            'depositStatus' => null,
+            'depositDescription' => null,
+            'withdrawCredit' => null,
+            'withdrawJumlah' => null,
+            'withdrawStatus' => null,
+            'withdrawDescription' => null,
+            'bonusHistoryNamaBonus' => null,
+            'bonusHistoryType' => null,
+            'bonusHistoryJumlah' => null,
+            'bonusHistoryHadiah' => null,
+            'bonusHistoryCreatedBy' => null,
+            'activityDeskripsi' => null,
+            'activityName' => null,
+            'detail' => null
+          ];
+          $togelReferals[] = $togelReferal;
+        }
+
+        # Combine all history
         $alldata1 = array_merge($allProBet, $activitys);
         $alldata2 = array_merge($alldata1, $betTogelHistories);
-        $date = array_column($alldata2, 'created_at');
-        array_multisort($date, SORT_DESC, $alldata2);
-        $this->allProviderBet = $alldata2;
+        $alldata3 = array_merge($alldata2, $togelReferals);
+        $date = array_column($alldata3, 'created_at');
+        array_multisort($date, SORT_DESC, $alldata3);
+        $this->allProviderBet = $alldata3;
         // dd($alldata2);
         // var_dump($this->allProviderBet);
         $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
