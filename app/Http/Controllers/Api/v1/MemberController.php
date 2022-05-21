@@ -780,7 +780,7 @@ class MemberController extends ApiController
               FROM
                   bonus_history as a
               LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id
-              WHERE a.member_id = $id AND a.jumlah > 0 AND a.deleted_at IS NULL
+              WHERE a.member_id = $id AND is_send = 1 AND a.jumlah > 0 AND a.deleted_at IS NULL
               ORDER BY created_at DESC"));
 
         # Histori Login/Logout
