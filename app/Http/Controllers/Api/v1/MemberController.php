@@ -219,12 +219,12 @@ class MemberController extends ApiController
               'status' => 'success',
               'loginLogout' => $loginLout,
           ];
-      } elseif ($request->type == 'togelReferal') {
+      } elseif ($request->type == 'referralTogel') {
           $this->togelReferal = $togelReferal;
           $togelReferal = $this->paginate($this->togelReferal, $this->perPage);
           return [
               'status' => 'success',
-              'togelReferal' => $togelReferal,
+              'referralTogel' => $togelReferal,
           ];
       } elseif ($request->type == 'pragmaticSlot') {
         $pragmaticSlot = $query->select(
