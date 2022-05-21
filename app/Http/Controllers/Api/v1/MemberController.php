@@ -193,7 +193,7 @@ class MemberController extends ApiController
               , bonus_history.updated_at
               , bonus_history.created_at
           ) as created_at,
-          bonus_history.member_id,
+          bonus_history.member_id
         ")
         ->where('bonus_history.is_send', 1)
         ->where('bonus_history.member_id', auth('api')->user()->id);
