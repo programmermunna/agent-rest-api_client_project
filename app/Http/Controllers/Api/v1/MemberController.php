@@ -182,18 +182,21 @@ class MemberController extends ApiController
 
       # Histori Bonus
       $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
-        ->select([
-          'bonus_history.id',
-          'constant_bonus.nama_bonus',
-          'bonus_history.type',
-          'bonus_history.jumlah',
-          'bonus_history.hadiah',
-          'bonus_history.created_at',
-          'bonus_history.member_id',
-        ])
+        ->selectRaw("
+          bonus_history.id,
+          constant_bonus.nama_bonus,
+          bonus_history.type,
+          bonus_history.jumlah,
+          bonus_history.hadiah,
+          if(
+            bonus_history.constant_bonus_id = 4
+              , bonus_history.updated_at
+              , bonus_history.created_at
+          ) as created_at,
+          bonus_history.member_id
+        ")
         ->where('bonus_history.is_send', 1)
-        ->where('bonus_history.member_id', auth('api')->user()->id)
-        ->where('bonus_history.jumlah', '>', 0);
+        ->where('bonus_history.member_id', auth('api')->user()->id);
 
 
 
@@ -216,12 +219,12 @@ class MemberController extends ApiController
               'status' => 'success',
               'loginLogout' => $loginLout,
           ];
-      } elseif ($request->type == 'togelReferal') {
+      } elseif ($request->type == 'referralTogel') {
           $this->togelReferal = $togelReferal;
           $togelReferal = $this->paginate($this->togelReferal, $this->perPage);
           return [
               'status' => 'success',
-              'togelReferal' => $togelReferal,
+              'referralTogel' => $togelReferal,
           ];
       } elseif ($request->type == 'pragmaticSlot') {
         $pragmaticSlot = $query->select(
@@ -752,7 +755,11 @@ class MemberController extends ApiController
                   NULL as betsGameId,
                   NULL as betsDeskripsi,
                   NULL as betsCredit,
-                  a.created_at as created_at,
+                  if(
+                        a.constant_bonus_id = 4
+                        , a.updated_at
+                        , a.created_at
+                  ) as created_at,
                   NULL as betsProviderName,
                   NULL as betsTogelHistoryId,
                   NULL as betsTogelHistoryPasaran,
@@ -780,7 +787,7 @@ class MemberController extends ApiController
               FROM
                   bonus_history as a
               LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id
-              WHERE a.member_id = $id AND is_send = 1 AND a.jumlah > 0 AND a.deleted_at IS NULL
+              WHERE a.member_id = $id AND is_send = 1 AND a.deleted_at IS NULL
               ORDER BY created_at DESC"));
 
         # Histori Login/Logout

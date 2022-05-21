@@ -85,32 +85,34 @@ class SettingController extends ApiController
             foreach ($datas as $data){
                 $googleSiteVerificationArr[] = ['name' => 'google-site-verification', 'content' => $data];
             }
+            $dataMeta = [
+                [
+                    'name' => "description",
+                    'content' => $description
+                ],
+                [
+                    'name' => "keywords",
+                    'content' => $keyword
+                ],                        
+                [
+                    'itemprop' => "name",
+                    'content' => $itempropName
+                ],                            
+                [
+                    'itemprop' => "description",
+                    'content' => $itempropDescription
+                ],                            
+                [
+                    'itemprop' => "image",
+                    'content' => $itempropImage
+                ]
+            ];
+            $meta = array_merge_recursive($dataMeta, $googleSiteVerificationArr);
             if ($title && $metaTag) {
                 return response()->json([
                     'status' => 'success',
                     'data' => [
-                        'meta' => [
-                            [
-                                'name' => "description",
-                                'content' => $description
-                            ],
-                            [
-                                'name' => "keywords",
-                                'content' => $keyword
-                            ],                        
-                            [
-                                'itemprop' => "name",
-                                'content' => $itempropName
-                            ],                            
-                            [
-                                'itemprop' => "description",
-                                'content' => $itempropDescription
-                            ],                            
-                            [
-                                'itemprop' => "image",
-                                'content' => $itempropImage
-                            ],
-                        ],
+                        'meta' => $meta,
                         'googleSiteVerification' => $googleSiteVerificationArr,    
                         'link' => [
                             'rel'  => 'canonical',
@@ -127,29 +129,7 @@ class SettingController extends ApiController
                 'status' => 'error',
                 'message' => 'meta tag tidak cocok, silakan periksa kode meta tag Anda',
                 'data' => [
-                    'meta' => [
-                        [
-                            'name' => "description",
-                            'content' => $description
-                        ],
-                        [
-                            'name' => "keywords",
-                            'content' => $keyword
-                        ],                        
-                        [
-                            'itemprop' => "name",
-                            'content' => $itempropName
-                        ],                            
-                        [
-                            'itemprop' => "description",
-                            'content' => $itempropDescription
-                        ],                            
-                        [
-                            'itemprop' => "image",
-                            'content' => $itempropImage
-                        ],
-                    ],
-                    'googleSiteVerification' => [],    
+                    'meta' => $meta,
                     'link' => [
                         'rel'  => 'canonical',
                         'href' => $linkcanonical,
