@@ -13,12 +13,18 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
+use Livewire\WithPagination;
 
 /**
  * @author Hanan Asyrawi Rivai 
  */
 class OutResult extends ApiController
 {
+
+	use WithPagination;
+  public $perPage = 10;
 	use CustomPaginate, History;
 
 	/**
@@ -153,7 +159,7 @@ class OutResult extends ApiController
 								'status as is_active',
 							]);
 			$paito = $paitos->first();
-			$checkPasaran = $paitos->where('id', $request->pasaran)->first();			
+			$checkPasaran = $paitos->where('id', $request->pasaran)->first();
 			$resultNumber = TogelResultNumberModel::leftJoin('constant_provider_togel as a', 'a.id', '=', 'togel_results_number.constant_provider_togel_id')
 											->selectRaw("
 												togel_results_number.id,
@@ -195,7 +201,7 @@ class OutResult extends ApiController
 					'jadwal'  		=> $checkPasaran->jadwal,
 					'periode' 		=> $checkPasaran->periode,
 					'is_active'   => $checkPasaran->is_active,
-					'result'  		=> $result->paginate(10)
+					'result'  		=> $this->paginate($result->get()->toArray(), $this->perPage)
 				];
 				return $this->successResponse($data, null, 200);
 			} else {								
@@ -211,7 +217,7 @@ class OutResult extends ApiController
 					'jadwal'  		=> $paito->jadwal,
 					'periode' 		=> $paito->periode,
 					'is_active'   => $paito->is_active,
-					'result'  		=> $result->paginate(10)
+					'result'  		=> $this->paginate($result->get()->toArray(), $this->perPage)
 				];
 				$message = $request->pasaran == null ? null : 'Pasaran Not Found';
 				return $this->successResponse($data, $message, 200);
@@ -249,5 +255,14 @@ class OutResult extends ApiController
 			->whereIn('bets_togel.id', $id)
 			->get();
 	}
+
+	// pagination
+  public function paginate($items, $perPage, $page = null, $options = [])
+  {
+    $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
+    $items = $items instanceof Collection ? $items : Collection::make($items);
+
+    return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
+  }
 
 }

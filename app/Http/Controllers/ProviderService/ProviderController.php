@@ -46,10 +46,11 @@ class ProviderController extends Controller
       ];
       // status 1 = place bet, 2 = cancel bet, 4= payout, 7 = Bonus
       $status = $data->status == 1 ? 'Bet' : ($data->status == 2 ? 'Cancel' : ($data->status == 4 ? 'Win' : 'Bonus' ));
+      $deskripsi = $data->status == 1 ? 'Deposit' : ($data->status == 2 ? 'Withdraw (Auto)' : ($data->status == 4 ? 'Withdraw' : 'Bonus' ));
       $bets = [
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
-        'deskripsi' => 'Game '. $status  . ' : ' . $amountbet,
+        'deskripsi' => 'Game '. $deskripsi  . ' : ' . number_format($amountbet,0, ',' , '.'),
         'round_id' => $data->roundId,
         'type' => $status,
         'game_info' => $data->type,
@@ -85,7 +86,6 @@ class ProviderController extends Controller
         $nameProvider->update([
           'round_id' => 0,
           'credit' => $member->credit,
-          'deskripsi' => 'Game Deposit'  . ' : ' . $member->credit,
         ]);
       }
       $member->update([
@@ -98,7 +98,7 @@ class ProviderController extends Controller
         'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' && $data->type === 'slot' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Spade Gaming' && $data->type === 'fish' ? 14 : '')))))),
         'bet_id' => $data->code,
         'round_id' => $data->roundId,
-        'deskripsi' => 'Game '. $deskripsi  . ' : ' . $data->amount,
+        'deskripsi' => 'Game '. $deskripsi  . ' : ' . number_format($data->amount,0, ',' , '.'),
         'game_id' => $data->gameId,
         'type' => $status,
         'game_info' => $data->type,
