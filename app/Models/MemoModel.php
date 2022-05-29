@@ -16,7 +16,7 @@ class MemoModel extends Model
         'member_id',
         'subject',
         'content',
-        // 'type',
+        'send_type',
         'is_sent',
         'is_reply',
         'is_read',
