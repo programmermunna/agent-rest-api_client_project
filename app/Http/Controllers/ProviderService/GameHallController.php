@@ -945,7 +945,7 @@ class GameHallController extends Controller
   // slot and fish
   public function BetNSettle()
   {
-    // try {      
+    try {      
       // call betInformation
       $token = $this->betInformation();
       foreach ($token->data->txns as $tokenRaw) {
@@ -957,12 +957,12 @@ class GameHallController extends Controller
         $this->betTime = $tokenRaw->betTime;
 
         if ($amount < 0) {
-
           return response()->json([
             "status" => '1018',
             "desc" => "Not Enough Balance"
           ]);
-        } else {
+        }
+        //  else {
           // check if bet already exist
           $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
 
@@ -980,7 +980,8 @@ class GameHallController extends Controller
               "balance" => $creditMember / $this->ratio,
               "balanceTs"   => $this->betTime
             ];
-          } else {
+          }
+          //  else {
             // update credit to table member
             $member->update([
               'credit' => $amount,
@@ -1027,21 +1028,21 @@ class GameHallController extends Controller
               "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
             );
 
-            BetModel::where('game_id', $tokenRaw->gameCode)->first();
-          }
-        }
+            // BetModel::where('game_id', $tokenRaw->gameCode)->first();
+          // }
+        // }
       }
       return [
         "status" => '0000',
         "balance" => $amount / $this->ratio,
         "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
       ];
-    // } catch (\Throwable $th) {
-    //   return response()->json([
-    //     "code" => 500,
-    //     "message" => "Internal Serve Error"
-    // ]);
-    // }
+    } catch (\Throwable $th) {
+      return response()->json([
+          "code" => 500,
+          "message" => "Internal Serve Error"
+      ]);
+    }
   }
   public function CancelBetNSettle()
   {
