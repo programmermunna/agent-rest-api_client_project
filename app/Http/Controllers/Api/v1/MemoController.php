@@ -43,6 +43,7 @@ class MemoController extends ApiController
             $memo = MemoModel::create([
                 'member_id' => auth('api')->user()->id,
                 'sender_id' => auth('api')->user()->id,
+                'send_type' => 'Member',
                 'subject' => $request->subject,
                 'is_sent' => 1,
                 'content' => $request->content,
@@ -154,6 +155,7 @@ class MemoController extends ApiController
                 'memo_id' => $request->memoId,
                 'is_sent' => 1,
                 'sender_id' => auth('api')->user()->id,
+                'send_type' => 'Member',
                 'subject' => $request->subject,
                 'content' => $request->content,
                 'created_at' => Carbon::now(),
