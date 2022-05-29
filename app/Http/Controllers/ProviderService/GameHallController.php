@@ -945,7 +945,7 @@ class GameHallController extends Controller
   // slot and fish
   public function BetNSettle()
   {
-    try {      
+    // try {      
       // call betInformation
       $token = $this->betInformation();
       foreach ($token->data->txns as $tokenRaw) {
@@ -1036,12 +1036,12 @@ class GameHallController extends Controller
         "balance" => $amount / $this->ratio,
         "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
       ];
-    } catch (\Throwable $th) {
-      return response()->json([
-        "code" => 500,
-        "message" => "Internal Serve Error"
-    ]);
-    }
+    // } catch (\Throwable $th) {
+    //   return response()->json([
+    //     "code" => 500,
+    //     "message" => "Internal Serve Error"
+    // ]);
+    // }
   }
   public function CancelBetNSettle()
   {
