@@ -971,13 +971,15 @@ class GameHallController extends Controller
             if ($bets->type === 'Cancel') {
               return [
                 "status" => '0000',
-                "balance" => (string)round($creditMember / $this->ratio, 3),
+                "balance" => (string)intval($creditMember / $this->ratio).'.'.substr(end(explode('.',$creditMember / $this->ratio)),0,3),
+                // "balance" => (string)round($creditMember / $this->ratio, 3),
                 "balanceTs"   => $this->betTime
               ];
             }
             return [
               "status" => '0000',
-              "balance" => (string)round($creditMember / $this->ratio, 3),
+              "balance" => (string)intval($creditMember / $this->ratio).'.'.substr(end(explode('.',$creditMember / $this->ratio)),0,3),
+              // "balance" => (string)round($creditMember / $this->ratio, 3),
               "balanceTs"   => $this->betTime
             ];
           } else {
@@ -1033,7 +1035,8 @@ class GameHallController extends Controller
       }
       return [
         "status" => '0000',
-        "balance" => (string)round($amount / $this->ratio, 3),
+        "balance" => (string)intval($creditMember / $this->ratio).'.'.substr(end(explode('.',$creditMember / $this->ratio)),0,3),
+        // "balance" => (string)round($amount / $this->ratio, 3),
         "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
       ];
     } catch (\Throwable $th) {
