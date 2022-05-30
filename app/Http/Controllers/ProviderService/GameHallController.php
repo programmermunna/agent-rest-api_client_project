@@ -961,8 +961,7 @@ class GameHallController extends Controller
             "status" => '1018',
             "desc" => "Not Enough Balance"
           ]);
-        }
-        //  else {
+        } else {
           // check if bet already exist
           $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)->first();
 
@@ -980,8 +979,7 @@ class GameHallController extends Controller
               "balance" => $creditMember / $this->ratio,
               "balanceTs"   => $this->betTime
             ];
-          }
-          //  else {
+          } else {
             // update credit to table member
             $member->update([
               'credit' => $amount,
@@ -1028,9 +1026,9 @@ class GameHallController extends Controller
               "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
             );
 
-            // BetModel::where('game_id', $tokenRaw->gameCode)->first();
-          // }
-        // }
+            BetModel::where('game_id', $tokenRaw->gameCode)->first();
+          }
+        }
       }
       return [
         "status" => '0000',
