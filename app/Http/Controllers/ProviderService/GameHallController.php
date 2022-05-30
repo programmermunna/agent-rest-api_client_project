@@ -73,9 +73,9 @@ class GameHallController extends Controller
         break;
 
         //this is duplicated
-//      case 'adjustBet':
-//        return $this->AdjustBet();
-//        break;
+      // case 'adjustBet':
+      //   return $this->AdjustBet();
+      //   break;
 
       case 'voidBet':
         return $this->VoidBet();
@@ -554,6 +554,7 @@ class GameHallController extends Controller
       "balanceTs"   => now()
     ];
   }
+
   public function Settle()
   {
     // call betInformation
@@ -957,7 +958,6 @@ class GameHallController extends Controller
         $this->betTime = $tokenRaw->betTime;
 
         if ($amount < 0) {
-
           return response()->json([
             "status" => '1018',
             "desc" => "Not Enough Balance"
@@ -971,13 +971,13 @@ class GameHallController extends Controller
             if ($bets->type === 'Cancel') {
               return [
                 "status" => '0000',
-                "balance" => $creditMember / $this->ratio,
+                "balance" => (string)round($creditMember / $this->ratio, 3),
                 "balanceTs"   => $this->betTime
               ];
             }
             return [
               "status" => '0000',
-              "balance" => $creditMember / $this->ratio,
+              "balance" => (string)round($creditMember / $this->ratio, 3),
               "balanceTs"   => $this->betTime
             ];
           } else {
@@ -1033,14 +1033,14 @@ class GameHallController extends Controller
       }
       return [
         "status" => '0000',
-        "balance" => $amount / $this->ratio,
+        "balance" => (string)round($amount / $this->ratio, 3),
         "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
       ];
     } catch (\Throwable $th) {
       return response()->json([
-        "code" => 500,
-        "message" => "Internal Serve Error"
-    ]);
+          "code" => 500,
+          "message" => "Internal Serve Error"
+      ]);
     }
   }
   public function CancelBetNSettle()
