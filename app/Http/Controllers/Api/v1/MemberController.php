@@ -68,39 +68,39 @@ class MemberController extends ApiController
   {
     try {
       $id = auth('api')->user()->id;
+      $fromDate = Carbon::now()->subDay(7)->format('Y-m-d 00:00:00');
+      $toDate = Carbon::now();
 
       # History Deposit
-      $deposit = DB::select(\DB::raw("
-                  SELECT
-                      jumlah,
-                      credit,
-                      approval_status,
-                      created_at,
-                      created_by,
-                      if (
-                        approval_status = 0
-                          , 'Pending'
-                          , if (
-                              approval_status = 1
-                              , 'Success'
-                              , if (
-                                  approval_status = 2
-                                  , 'Rejected'
-                                  , 'nulled'
-                              )
-                          )
-                      ) as 'deposit status'
-                  FROM
-                      deposit
-                  WHERE
-                    (created_by = $id AND deleted_at IS NULL) OR deleted_at IS NOT NULL AND created_by = $id
-                  ORDER BY
-                      created_at
-                  DESC"));
-      
+      $deposit = DB::select("SELECT
+                    jumlah,
+                    credit,
+                    approval_status,
+                    created_at,
+                    created_by,
+                    if (
+                        approval_status = 0,
+                        'Pending',
+                        if (
+                            approval_status = 1,
+                            'Success',
+                            if (
+                                approval_status = 2,
+                                'Rejected',
+                                'nulled'
+                            )
+                        )
+                    ) as 'deposit status'
+                FROM
+                    deposit
+                WHERE
+                    created_by = $id
+                    AND created_at BETWEEN '$fromDate' AND '$toDate'
+                ORDER BY
+                    created_at DESC");
+
       # History Withdraw
-      $withdraw = DB::select(\DB::raw("
-                  SELECT
+      $withdraw = DB::select("SELECT
                       jumlah,
                       credit,
                       approval_status,
@@ -122,10 +122,11 @@ class MemberController extends ApiController
                   FROM
                       withdraw
                   WHERE
-                      (created_by = $id AND deleted_at IS NULL) OR deleted_at IS NOT NULL AND created_by = $id
+                      created_by = $id
+                      AND created_at BETWEEN '$fromDate' AND '$toDate'
                   ORDER BY
                       created_at
-                  DESC"));
+                  DESC");
 
       # Login / Logout Filter
       $activity_members = DB::select("SELECT
@@ -135,6 +136,7 @@ class MemberController extends ApiController
                   activity_log
               WHERE
                   log_name = 'Member Login' OR log_name ='Member Log Out'
+                  AND created_at BETWEEN '$fromDate' AND '$toDate'
               ORDER BY
                     created_at
               DESC");
@@ -152,7 +154,8 @@ class MemberController extends ApiController
 
       $member = MembersModel::where('id', $id)->first();
       $activity = [];
-      foreach ($properties as $index => $json) {
+      $filterDate = collect($properties)->whereBetween('created_at', [$fromDate, $toDate])->all();
+      foreach ($filterDate as $index => $json) {
           if ($json['target'] == $member->username) {
             $data = [
               "ip" => $json['ip'],
@@ -178,7 +181,9 @@ class MemberController extends ApiController
 
 
       $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-        ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id');
+        ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+        ->whereBetween('bets.created_at', [$fromDate, $toDate])
+        ->whereIn('bets.type', ['Win', 'Lose', 'Bet', 'Settle']);
 
       # Histori Bonus
       $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
@@ -195,6 +200,7 @@ class MemberController extends ApiController
           ) as created_at,
           bonus_history.member_id
         ")
+        ->whereBetween('bonus_history.created_at', [$fromDate, $toDate])
         ->where('bonus_history.is_send', 1)
         ->where('bonus_history.member_id', auth('api')->user()->id);
 
@@ -601,47 +607,46 @@ class MemberController extends ApiController
           'togel' => $togel,
         ];
       } else {
-        # History bets, deposit, withdraw and bonus
-        $allProBet = DB::select(\DB::raw("SELECT
-                  'Bets' AS Tables,
-                  a.bet as betsBet,
-                  a.win as betsWin,
-                  a.game_info as betsGameInfo,
-                  a.bet_id as betsBetId,
-                  a.game_id as betsGameId,
-                  a.deskripsi as betsDeskripsi,
-                  a.credit as betsCredit,
-                  a.created_at as created_at,
-                  c.constant_provider_name as betsProviderName,
-                  NULL as betsTogelHistoryId,
-                  NULL as betsTogelHistoryPasaran,
-                  NULL as betsTogelHistorDeskripsi,
-                  NULL as betsTogelHistoryDebit,
-                  NULL as betsTogelHistoryKredit,
-                  NULL as betsTogelHistoryBalance,
-                  NULL as betsTogelHistoryCreatedBy,
-                  NULL as depositCredit,
-                  NULL as depositJumlah,
-                  NULL as depositStatus,
-                  NULL as depositDescription,
-                  NULL as withdrawCredit,
-                  NULL as withdrawJumlah,
-                  NULL as withdrawStatus,
-                  NULL as withdrawDescription,
-                  NULL as bonusHistoryNamaBonus,
-                  NULL as bonusHistoryType,
-                  NULL as bonusHistoryJumlah,
-                  NULL as bonusHistoryHadiah,
-                  NULL as bonusHistoryCreatedBy,
-                  NULL as activityDeskripsi,
-                  NULL as activityName,
-                  NULL as detail
-              FROM bets as a
-              LEFT JOIN members as b ON a.created_by = b.id
-              LEFT JOIN constant_provider as c ON a.constant_provider_id = c.id
-              WHERE a.created_by = $id
-              UNION ALL
-              SELECT
+        # History bets 
+        $providers = $query->where('bets.created_by', auth('api')->user()->id)
+                    ->selectRaw("
+                      'Bets' AS Tables,
+                      bets.bet as betsBet,
+                      bets.win as betsWin,
+                      bets.game_info as betsGameInfo,
+                      bets.bet_id as betsBetId,
+                      bets.game_id as betsGameId,
+                      bets.deskripsi as betsDeskripsi,
+                      bets.credit as betsCredit,
+                      bets.created_at as created_at,
+                      constant_provider.constant_provider_name as betsProviderName,
+                      NULL as betsTogelHistoryId,
+                      NULL as betsTogelHistoryPasaran,
+                      NULL as betsTogelHistorDeskripsi,
+                      NULL as betsTogelHistoryDebit,
+                      NULL as betsTogelHistoryKredit,
+                      NULL as betsTogelHistoryBalance,
+                      NULL as betsTogelHistoryCreatedBy,
+                      NULL as depositCredit,
+                      NULL as depositJumlah,
+                      NULL as depositStatus,
+                      NULL as depositDescription,
+                      NULL as withdrawCredit,
+                      NULL as withdrawJumlah,
+                      NULL as withdrawStatus,
+                      NULL as withdrawDescription,
+                      NULL as bonusHistoryNamaBonus,
+                      NULL as bonusHistoryType,
+                      NULL as bonusHistoryJumlah,
+                      NULL as bonusHistoryHadiah,
+                      NULL as bonusHistoryCreatedBy,
+                      NULL as activityDeskripsi,
+                      NULL as activityName,
+                      NULL as detail
+                    ")->get()->toArray();
+
+        # History deposit, withdraw and bonus
+        $allProBet = DB::select(\DB::raw("SELECT                  
                   'Deposit' as Tables,
                   NULL as betsBet,
                   NULL as betsWin,
@@ -690,9 +695,9 @@ class MemberController extends ApiController
               FROM
                   deposit as a
               LEFT JOIN members as b ON b.id = a.created_by
-
-              WHERE
-                  (a.created_by = $id AND a.deleted_at IS NULL) OR a.deleted_at IS NOT NULL AND a.created_by = $id
+              WHERE                  
+                  a.created_by = $id
+                  AND a.created_at BETWEEN '$fromDate' AND '$toDate'
               UNION ALL
               SELECT
                   'Withdraw' as Tables,
@@ -743,8 +748,9 @@ class MemberController extends ApiController
               FROM
                   withdraw as a
               LEFT JOIN members as b ON b.id = a.created_by
-              WHERE
-                (a.created_by = $id AND a.deleted_at IS NULL) OR a.deleted_at IS NOT NULL AND a.created_by = $id
+              WHERE                
+                  a.created_by = $id
+                  AND a.created_at BETWEEN '$fromDate' AND '$toDate'
               UNION ALL
               SELECT
                   'Bonus History' as Tables,
@@ -787,7 +793,11 @@ class MemberController extends ApiController
               FROM
                   bonus_history as a
               LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id
-              WHERE a.member_id = $id AND is_send = 1 AND a.deleted_at IS NULL
+              WHERE 
+                  a.created_at BETWEEN '$fromDate' AND '$toDate'
+                  AND a.member_id = $id 
+                  AND is_send = 1 
+                  AND a.deleted_at IS NULL
               ORDER BY created_at DESC"));
 
         # Histori Login/Logout
@@ -797,7 +807,10 @@ class MemberController extends ApiController
                             FROM
                                 activity_log
                             WHERE
-                                log_name = 'Member Login' OR log_name ='Member Log Out'");
+                                log_name = 'Member Login' 
+                                OR log_name ='Member Log Out'
+                                AND created_at BETWEEN '$fromDate' AND '$toDate'
+                            ");
         $properties = [];
         foreach ($activity_members as $activity) {
           $array = json_decode($activity->properties, true);
@@ -811,7 +824,8 @@ class MemberController extends ApiController
 
         $member = MembersModel::where('id', auth('api')->user()->id)->first();
         $activity = [];
-        foreach ($properties as $index => $json) {
+        $filterDate = collect($properties)->whereBetween('created_at', [$fromDate, $toDate])->all();
+        foreach ($filterDate as $index => $json) {
           if ($json['target'] == $member->username) {
               $activity[] = $json;
           }
@@ -856,6 +870,8 @@ class MemberController extends ApiController
           ];
           $activitys[] = $activity;
         };
+
+        // dd($activitys);
 
         #History Bets Togel
         $betTogelHistories = [];
@@ -940,7 +956,7 @@ class MemberController extends ApiController
         }
 
         # Combine all history
-        $alldata1 = array_merge($allProBet, $activitys);
+        $alldata1 = array_merge($providers, $allProBet, $activitys);
         $alldata2 = array_merge($alldata1, $betTogelHistories);
         $alldata3 = array_merge($alldata2, $togelReferals);
         $date = array_column($alldata3, 'created_at');
@@ -998,7 +1014,10 @@ class MemberController extends ApiController
   }
 
   public function getTogel()
-  {
+  {    
+    $fromDate = Carbon::now()->subDay(7)->format('Y-m-d 00:00:00');
+    $toDate = Carbon::now();
+
     $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')
               ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')
               ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
@@ -1612,7 +1631,7 @@ class MemberController extends ApiController
                       )
                   ) as 'Status'
               ")
-              // ->where('bets_togel.updated_at', null)
+              ->whereBetween('bets_togel.created_at', [$fromDate, $toDate])
               ->where('bets_togel.created_by', '=', auth('api')->user()->id)->orderBy('bets_togel.id', 'DESC')->get();
 
     return $this->togel = collect($result)->map(function ($value) {
@@ -1660,6 +1679,10 @@ class MemberController extends ApiController
 
   protected function dataTogel()
   {
+    
+    $fromDate = Carbon::now()->subDay(7)->format('Y-m-d 00:00:00');
+    $toDate = Carbon::now();
+
     $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')
         ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')
         ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
@@ -2274,7 +2297,7 @@ class MemberController extends ApiController
                 )
             ) as 'Status'
         ")
-        // ->where('bets_togel.updated_at', null)
+        ->whereBetween('bets_togel.created_at', [$fromDate, $toDate])
         ->where('bets_togel.created_by', '=', auth('api')->user()->id)
         ->orderBy('bets_togel.id', 'DESC')
         ->groupBy('bets_togel.togel_game_id')
@@ -2286,6 +2309,7 @@ class MemberController extends ApiController
   protected function detailDataTogel($id)
   {
     $date = BetsTogel::find($id);
+    
     $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')
             ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')
             ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
