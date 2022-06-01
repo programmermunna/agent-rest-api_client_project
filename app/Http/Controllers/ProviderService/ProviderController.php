@@ -95,11 +95,11 @@ class ProviderController extends Controller
       #update if player only deposit not playing
       if ($data->status == 2) {
         $nameProvider = BetModel::where('bets.bet_id', $data->code)->first();
-        $nameProvider->update([
-          'round_id' => 0,
-          'credit' => $member->credit,
-        ]);
-        if ($nameProvider) {
+        if ($nameProvider) {          
+          $nameProvider->update([
+            'round_id' => 0,
+            'credit' => $member->credit,
+          ]);
           $data = [
             "success" =>  false,
             "code" => 109,
