@@ -32,10 +32,22 @@ class ProviderController extends Controller
     if ($amount < 0) {
       $res = [
         "success" => false,
+        "code" => 50110,
         "amount"  => $member->credit
       ];
       return Response::json($res);
     } else {
+
+      $checkDuplicate = BetModel::where('bets.bet_id', $data->code)->first();
+      if ($checkDuplicate) {
+        $data = [
+          "success" =>  false,
+          "code" => 109,
+          "amount" => $member->credit
+        ];
+        return Response::json($data);
+      }
+
       $member->update([
         'credit' => $amount,
         'created_at' => Carbon::now(),
