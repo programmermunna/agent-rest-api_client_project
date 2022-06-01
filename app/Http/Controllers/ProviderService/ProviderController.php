@@ -99,6 +99,14 @@ class ProviderController extends Controller
           'round_id' => 0,
           'credit' => $member->credit,
         ]);
+        if ($nameProvider) {
+          $data = [
+            "success" =>  false,
+            "code" => 109,
+            "amount" => $member->credit
+          ];
+          return Response::json($data);
+        }
       }
       $member->update([
         'credit' => $amount
