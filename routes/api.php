@@ -195,6 +195,7 @@ Route::group(['prefix' => 'endpoint'], function () {
 	Route::get('provider', [OutResult::class, 'getResultByProvider']);
 	Route::get('paitoEight', [OutResult::class, 'paitoEight']);
     Route::match(['get', 'post'],"paitoAll", [OutResult::class, 'paitoAll']);
+    Route::match(['get', 'post'],"paitoTest", [OutResult::class, 'paitoTestAll']);
 	Route::get('shio' , [OutResult::class , 'getShioTables']);
 	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
 	Route::get('pasaran', [OutResult::class, 'getPasaran']);
