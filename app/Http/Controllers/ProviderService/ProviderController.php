@@ -703,7 +703,7 @@ class ProviderController extends Controller
     }
   }
 
-  // bet pragmatik
+  // bet pragmatic, PG Soft, and Playtech
   public function betPragmatic(Request $request)
   {
     $this->token = $request->token;
@@ -715,7 +715,8 @@ class ProviderController extends Controller
     $amount = $creditMember - $amountbet;
     // dd($data);
     $bonus = AppSetting::where('type', 'game')->pluck('value', 'id');
-    if ($amount < 0) {
+    // if ($amount < 0) {
+    if ($creditMember < $amountbet) {
       $res = [
         "success" => false,
         "amount"  => $creditMember
