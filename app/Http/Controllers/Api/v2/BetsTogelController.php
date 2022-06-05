@@ -27,7 +27,7 @@ class BetsTogelController extends ApiController
    */
   public function store(BetsTogelRequest $request)
   {    
-    $start = microtime(true);
+    // $start = microtime(true);
 
     # check if credit member 0
     if (auth('api')->user()->credit === 0) {
@@ -70,7 +70,7 @@ class BetsTogelController extends ApiController
     try {
       
       DB::beginTransaction();
-      
+
       foreach ($this->checkBlokednumber($request, $provider) as $togel) {    
         # definition of bonus referal
         $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
@@ -133,11 +133,12 @@ class BetsTogelController extends ApiController
 
       DB::commit();
 
-      $finish = microtime(true);
-      $hasil = $finish - $start;
-      $milliseconds = round($hasil * 1000);
-      $seconds = $milliseconds / 1000;
-      return response()->json(['message' => 'success, milliseconds : '. $milliseconds .'ms, seconds : '. $seconds .' s', 'code' => 200], 200);
+      // $finish = microtime(true);
+      // $hasil = $finish - $start;
+      // $milliseconds = round($hasil * 1000);
+      // $seconds = $milliseconds / 1000;
+      // return response()->json(['message' => 'success, milliseconds : '. $milliseconds .'ms, seconds : '. $seconds .' s', 'code' => 200], 200);
+      return response()->json(['message' => 'success', 'code' => 200], 200);
 
     } catch (Throwable $error) {
       DB::rollBack();
