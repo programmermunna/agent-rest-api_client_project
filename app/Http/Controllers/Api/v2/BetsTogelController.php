@@ -70,6 +70,7 @@ class BetsTogelController extends ApiController
     try {
       
       DB::beginTransaction();
+      
       foreach ($this->checkBlokednumber($request, $provider) as $togel) {    
         # definition of bonus referal
         $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
@@ -128,14 +129,16 @@ class BetsTogelController extends ApiController
             'jumlah' => $calculateReferal,
           ]);
         }
-      }      
+      }    
+
+      DB::commit();
 
       $finish = microtime(true);
       $hasil = $finish - $start;
       $milliseconds = round($hasil * 1000);
       $seconds = $milliseconds / 1000;
       return response()->json(['message' => 'success, milliseconds : '. $milliseconds .'ms, seconds : '. $seconds .' s', 'code' => 200], 200);
-      
+
     } catch (Throwable $error) {
       DB::rollBack();
       Log::error($error->getMessage());
