@@ -26,8 +26,9 @@ class BetsTogelController extends ApiController
    * @param BetsTogelRequest $request
    */
   public function store(BetsTogelRequest $request)
-  {
+  {    
     $start = microtime(true);
+
     # check if credit member 0
     if (auth('api')->user()->credit === 0) {
       return response()->json([
@@ -65,6 +66,7 @@ class BetsTogelController extends ApiController
     $bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
 
     # Loop the validated data and take key data and remapping the key
+    DB::beginTransaction();
     try {
       foreach ($this->checkBlokednumber($request, $provider) as $togel) {    
         # definition of bonus referal
@@ -139,6 +141,8 @@ class BetsTogelController extends ApiController
       Log::error($error->getMessage());
       return $error->getMessage();
     }
+
+    DB::commit();
   }
 
   // Check if exist on request 
