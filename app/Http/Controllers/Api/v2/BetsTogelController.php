@@ -26,8 +26,18 @@ class BetsTogelController extends ApiController
    * @param BetsTogelRequest $request
    */
   public function store(BetsTogelRequest $request)
-  {
+  {    
     $start = microtime(true);
+
+    # check if credit member 0
+    if (auth('api')->user()->credit === 0) {
+      return response()->json([
+        'code' => 422,
+        'message' => 'saldo kurang'
+      ], 422);
+    }
+
+    # check pasaran and game togel
     $pasaran = ConstantProviderTogelModel::where('name', $request->provider)->first();
     $game    = TogelGame::select(['id','name'])->where('name', $request->type)->first();
     if(is_null($pasaran)){
@@ -36,46 +46,39 @@ class BetsTogelController extends ApiController
     if(is_null($game)){
       return $this->errorResponse('Jenis game tidak ditemukan', 400);
     }
-    // First For All Take The Type Of Game 
+
+    # First For All Take The Type Of Game 
     $togelGames = TogelGame::query()->get()->pluck(['id'], 'name');
     $providerGame = ConstantProviderTogelModel::query()->get()->pluck(['id'], 'name');
 
-    // Cek From Request or Body Has Value Type Of Games
-    // $this->checkType();
-    // take type of game and provider
+    # Cek From Request or Body Has Value Type Of Games
+    # take type of game and provider
     $gameType = $togelGames[$request->type];
     $provider = $providerGame[$request->provider];
 
-    // $togel_result_number = TogelResultNumberModel::query()
-    //   ->where('constant_provider_togel_id', $provider)
-    //   ->latest('result_date')
-    //   ->first();
     $periodProvider = ConstantProviderTogelModel::query()
       ->where('id', $provider)
       ->first();
 
-    // get setting games 
+    # get setting games 
     $settingGames = $this->getSettingGames($gameType, $provider)->first();
-
-    $bets = [];
-    $total_bets_after_disc = [];
 
     $bonus = ConstantProviderTogelModel::pluck('value', 'name_initial');
 
-    // Loop the validated data and take key data and remapping the key
+    # Loop the validated data and take key data and remapping the key
+    
     try {
-      $payBetTogel = 0;
+      
+      DB::beginTransaction();
       foreach ($this->checkBlokednumber($request, $provider) as $togel) {    
-        // definition of bonus referal
+        # definition of bonus referal
         $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
-        // $calculateReferal = $provider === 1 ? $bonus['HKD'] * $togel['pay_amount'] : ($provider === 2 ? $bonus['NZB'] * $togel['pay_amount'] : ($provider === 3 ? $bonus['SY'] * $togel['pay_amount'] : ($provider === 4 ? $bonus['HAI'] * $togel['pay_amount'] : ($provider === 5 ? $bonus['SG'] * $togel['pay_amount'] : ($provider === 6 ? $bonus['JINAN'] * $togel['pay_amount'] : ($provider === 7 ? $bonus['QTR'] * $togel['pay_amount'] : ($provider === 8 ? $bonus['BGP'] * $togel['pay_amount'] : ($provider === 9 ? $bonus['HK'] * $togel['pay_amount'] : ($provider === 10 ? $bonus['SGP45'] * $togel['pay_amount'] : '')))))))));
         
-        // get member bet
+        # get member bet
         $member =  MembersModel::where('id', auth('api')->user()->id)->first();
-        $payBetTogel+=$togel['pay_amount'];
-        array_push($bets, array_merge($togel, [
+        $payBetTogel = $togel['pay_amount'];
+        $beforeBets = array_merge($togel, [
           'balance' => $member->credit - $payBetTogel,
-          // 'period'      => is_null($togel_result_number) ? 1 : intval($togel_result_number->period) + 1,
           'period'      => $periodProvider->period,
           'bonus_daily_referal' => $calculateReferal,
           "togel_game_id" => $gameType,
@@ -83,89 +86,61 @@ class BetsTogelController extends ApiController
           'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release 
           'created_by' => auth('api')->user()->id, // Laravel Can Handler which user has login please cek config.auth folder
           'created_at' => now()
-        ]));
-        DB::beginTransaction();
+        ]);
+
+        # check is buangan
+        $afterBet = DB::table('bets_togel')->insertGetId($beforeBets);
+        $checkBetBuangan = $this->CheckIsBuangan($afterBet);
+        if ($checkBetBuangan != []) {
+          if ($checkBetBuangan[0]->results != null) {
+            foreach (json_decode($checkBetBuangan[0]->results) as $bet) {
+              BetsTogel::query()
+                ->where('id', $bet->bet_id)
+                ->where('constant_provider_togel_id', $bet->constant_provider_togel_id)
+                ->update([
+                  'is_bets_buangan' => $bet->is_bets_buangan,
+                  'buangan_before_submit' => $bet->buangan_before_submit,
+                ]);
+            }
+          }
+        }
+        # update member
         $member->update([
+          'credit' => $member->credit - $payBetTogel,
           'update_at' => Carbon::now(),
           'bonus_referal' => $member->bonus_referal + $calculateReferal,
-          // 'bonus_referal' => $provider === 1 ? $member->bonus_referal + ($bonus['HKD'] * $togel['pay_amount']) : ($provider === 2 ? $member->bonus_referal + ($bonus['NZB'] * $togel['pay_amount']) : ($provider === 3 ? $member->bonus_referal + ($bonus['SY'] * $togel['pay_amount']) : ($provider === 4 ? $member->bonus_referal + ($bonus['HAI'] * $togel['pay_amount']) : ($provider === 5 ? $member->bonus_referal + ($bonus['SG'] * $togel['pay_amount']) : ($provider === 6 ? $member->bonus_referal + ($bonus['JINAN'] * $togel['pay_amount']) : ($provider === 7 ? $member->bonus_referal + ($bonus['QTR'] * $togel['pay_amount']) : ($provider === 8 ? $member->bonus_referal + ($bonus['BGP'] * $togel['pay_amount']) : ($provider === 9 ? $member->bonus_referal + ($bonus['HK'] * $togel['pay_amount']) : ($provider === 10 ? $member->bonus_referal + ($bonus['SGP45'] * $togel['pay_amount']) : ''))))))))),
         ]);
-        DB::commit();
 
-        // check if any referrer
+        # check if any referrer
         if ($member->referrer_id) {
           // calculate bonus have referrer
           $referal =  MembersModel::where('id', $member->referrer_id)->first();
-          DB::beginTransaction();
           $referal->update([
             'update_at' => Carbon::now(),
             'credit' => $referal->credit + $calculateReferal,
           ]);
 
-          // create bonus history
+          # create bonus history
           BonusHistoryModel::create([
             'constant_bonus_id' => 3,
             'created_by' => $member->referrer_id,
             'created_at' => Carbon::now(),
             'jumlah' => $calculateReferal,
           ]);
-          DB::commit();
-        }
-
-        // Sum pay_amount
-        array_push($total_bets_after_disc, floatval($togel['pay_amount']));
-      }
-
-      $idx = [];
-      
-      foreach ($bets as $bet) {
-        DB::beginTransaction();
-        $idx[] = DB::table('bets_togel')->insertGetId($bet);
-        $member =  MembersModel::where('id', auth('api')->user()->id)->first();
-        $amountCredit = $member->credit - $bet['pay_amount'];
-        $member->update([
-          'credit' => $amountCredit
-        ]);
-        
-        DB::commit();
-      }     
-      DB::beginTransaction();
-      $this->inserBetTogelToHistory($idx);
-      $response = $this->CheckIsBuangan($idx);
-      DB::commit();
-      // }
-
-      // Cek This is Bet Buangan 
-      if ($response != []) {
-        if ($response[0]->results != null) {
-          foreach (json_decode($response[0]->results) as $bet) {
-            DB::beginTransaction();
-            BetsTogel::query()
-              ->where('id', $bet->bet_id)
-              ->where('constant_provider_togel_id', $bet->constant_provider_togel_id)
-              ->update([
-                'is_bets_buangan' => $bet->is_bets_buangan,
-                'buangan_before_submit' => $bet->buangan_before_submit,
-              ]);
-            DB::commit();
-          }
         }
       }      
-      
-      $this->updateCredit($total_bets_after_disc);
-
-      // return response()->json(['message' => 'success', 'code' => 200], 200);
 
       $finish = microtime(true);
       $hasil = $finish - $start;
       $milliseconds = round($hasil * 1000);
       $seconds = $milliseconds / 1000;
       return response()->json(['message' => 'success, milliseconds : '. $milliseconds .'ms, seconds : '. $seconds .' s', 'code' => 200], 200);
+      
     } catch (Throwable $error) {
       DB::rollBack();
       Log::error($error->getMessage());
       return $error->getMessage();
-    }
+    }  
   }
 
   // Check if exist on request 
@@ -237,13 +212,6 @@ class BetsTogelController extends ApiController
    */
   protected function updateCredit($totalBets)
   {
-    if (auth('api')->user()->credit === 0) {
-      return response()->json([
-        'code' => 422,
-        'message' => 'saldo kurang'
-      ], 422);
-    }
-
     $credit = floatval(auth('api')->user()->credit) - array_sum($totalBets);
     auth('api')->user()->update([
       'credit' => $credit
@@ -262,10 +230,16 @@ class BetsTogelController extends ApiController
   /**
    * @param array $betsId array of bets id  
    */
-  protected function CheckIsBuangan(array $betsId)
+  protected function CheckIsBuangan($betsId)
   {
-    $bets_id  = implode(",", $betsId);
+    $bets_id  = $betsId;
     DB::select("SET @bet_ids=' a.id in (" . $bets_id . ")';");
     return DB::select("CALL is_buangan_before_terpasang(@bet_ids)"); // will be return empty
   }
+  // protected function CheckIsBuangan(array $betsId)
+  // {
+  //   $bets_id  = implode(",", $betsId);
+  //   DB::select("SET @bet_ids=' a.id in (" . $bets_id . ")';");
+  //   return DB::select("CALL is_buangan_before_terpasang(@bet_ids)"); // will be return empty
+  // }
 }
