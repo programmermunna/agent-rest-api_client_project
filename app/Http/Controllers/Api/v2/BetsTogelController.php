@@ -68,13 +68,14 @@ class BetsTogelController extends ApiController
     # Loop the validated data and take key data and remapping the key
     DB::beginTransaction();
     try {
+      $payBetTogel = 0;
       foreach ($this->checkBlokednumber($request, $provider) as $togel) {    
         # definition of bonus referal
         $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
         
         # get member bet
         $member =  MembersModel::where('id', auth('api')->user()->id)->first();
-        $payBetTogel = $togel['pay_amount'];
+        $payBetTogel += $togel['pay_amount'];
         $beforeBets = array_merge($togel, [
           'balance' => $member->credit - $payBetTogel,
           'period'      => $periodProvider->period,
@@ -104,9 +105,8 @@ class BetsTogelController extends ApiController
           }
         }
 
-        # update credit member
+        # update member
         $member->update([
-          'credit' => $member->credit - $payBetTogel,
           'update_at' => Carbon::now(),
           'bonus_referal' => $member->bonus_referal + $calculateReferal,
         ]);
@@ -129,6 +129,8 @@ class BetsTogelController extends ApiController
           ]);
         }
       }
+
+      $this->updateCredit($payBetTogel);
 
       $finish = microtime(true);
       $hasil = $finish - $start;
