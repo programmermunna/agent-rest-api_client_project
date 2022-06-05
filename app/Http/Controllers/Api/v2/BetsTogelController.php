@@ -216,7 +216,8 @@ class BetsTogelController extends ApiController
    */
   protected function updateCredit($totalBets)
   {
-    $credit = floatval(auth('api')->user()->credit) - array_sum($totalBets);
+    // $credit = floatval(auth('api')->user()->credit) - array_sum($totalBets);
+    $credit = floatval(auth('api')->user()->credit) - $totalBets;
     auth('api')->user()->update([
       'credit' => $credit
     ]);
