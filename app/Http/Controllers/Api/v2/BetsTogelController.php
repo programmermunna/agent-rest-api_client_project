@@ -565,8 +565,6 @@ class BetsTogelController extends ApiController
             ->where('bets_togel.updated_at', null)
             ->where('constant_provider_togel.id', $pasaran->id)
             ->where('bets_togel.togel_game_id', $game->id)
-            ->where('bets_togel.number_1', $data['number_1'])
-            ->where('bets_togel.number_2', $data['number_2'])
             ->where('bets_togel.number_3', $data['number_3'])
             ->where('bets_togel.number_4', $data['number_4'])
             ->where('bets_togel.number_5', $data['number_5'])
@@ -1142,7 +1140,7 @@ class BetsTogelController extends ApiController
 
       $data = [];
       foreach ($results as $key => $value) {
-        if ($value['data']['bet'] < $value['data']['sisaQuota']) {
+        if ($value['data']['bet'] > $value['data']['sisaQuota']) {
           $data[] = $value['data'];
         }
       }
