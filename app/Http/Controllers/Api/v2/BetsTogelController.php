@@ -54,8 +54,8 @@ class BetsTogelController extends ApiController
     }
 
     # First For All Take The Type Of Game 
-    $togelGames = TogelGame::query()->get()->pluck(['id'], 'name');
-    $providerGame = ConstantProviderTogelModel::query()->get()->pluck(['id'], 'name');
+    $togelGames = TogelGame::query()->get()->pluck(['id', 'name']);
+    $providerGame = ConstantProviderTogelModel::query()->get()->pluck(['id', 'name']);
 
     # Cek From Request or Body Has Value Type Of Games
     # take type of game and provider
@@ -1160,7 +1160,7 @@ class BetsTogelController extends ApiController
 
       if ($data != []) {
         $sisaQuota = $data[0]['sisaQuota'] <= 0 ? "sisa quota sudah habis" : "sisa quota sebesar Rp. ". number_format($data[0]['sisaQuota']) ."";
-        return "Over Kuota (sudah limit), ".$sisaQuota." untuk nomor ". $data[0]['nomor'] ."";
+        return "Over Kuota (sudah limit), ".$sisaQuota." untuk nomor ". $data[0]['nomor'] ." di Game ".$data[0]['game']."";
       }
       return false;      
     } catch (\Throwable $th) {
