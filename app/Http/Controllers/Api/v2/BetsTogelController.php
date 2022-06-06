@@ -268,6 +268,19 @@ class BetsTogelController extends ApiController
       $lastPeriod = BetsTogel::select('period')->latest()->first();
       $results = [];
       foreach ($request->data as $key => $data) {
+        $number_3 = array_key_exists('number_3', $data) ? $data['number_3'] : null;
+        $number_4 = array_key_exists('number_4', $data) ? $data['number_4'] : null;
+        $number_5 = array_key_exists('number_5', $data) ? $data['number_5'] : null;
+        $number_6 = array_key_exists('number_6', $data) ? $data['number_6'] : null;
+        $tebak_as_kop_kepala_ekor = array_key_exists('tebak_as_kop_kepala_ekor', $data) ? $data['tebak_as_kop_kepala_ekor'] : null;
+        $tebak_besar_kecil = array_key_exists('tebak_besar_kecil', $data) ? $data['tebak_besar_kecil'] : null;
+        $tebak_genap_ganjil = array_key_exists('tebak_genap_ganjil', $data) ? $data['tebak_genap_ganjil'] : null;
+        $tebak_tengah_tepi = array_key_exists('tebak_tengah_tepi', $data) ? $data['tebak_tengah_tepi'] : null;
+        $tebak_depan_tengah_belakang = array_key_exists('tebak_depan_tengah_belakang', $data) ? $data['tebak_depan_tengah_belakang'] : null;
+        $tebak_mono_stereo = array_key_exists('tebak_mono_stereo', $data) ? $data['tebak_mono_stereo'] : null;
+        $tebak_kembang_kempis_kembar = array_key_exists('tebak_kembang_kempis_kembar', $data) ? $data['tebak_kembang_kempis_kembar'] : null;
+        $tebak_shio = array_key_exists('tebak_shio', $data) ? $data['tebak_shio'] : null;
+
         $checkBetTogels = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
             ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
             ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
@@ -565,18 +578,18 @@ class BetsTogelController extends ApiController
             ->where('bets_togel.updated_at', null)
             ->where('constant_provider_togel.id', $pasaran->id)
             ->where('bets_togel.togel_game_id', $game->id)
-            ->where('bets_togel.number_3', $data['number_3'])
-            ->where('bets_togel.number_4', $data['number_4'])
-            ->where('bets_togel.number_5', $data['number_5'])
-            ->where('bets_togel.number_6', $data['number_6'])
-            ->where('bets_togel.tebak_as_kop_kepala_ekor', $data['tebak_as_kop_kepala_ekor'])
-            ->where('bets_togel.tebak_besar_kecil', $data['tebak_besar_kecil'])
-            ->where('bets_togel.tebak_genap_ganjil', $data['tebak_genap_ganjil'])
-            ->where('bets_togel.tebak_tengah_tepi', $data['tebak_tengah_tepi'])
-            ->where('bets_togel.tebak_depan_tengah_belakang', $data['tebak_depan_tengah_belakang'])
-            ->where('bets_togel.tebak_mono_stereo', $data['tebak_mono_stereo'])
-            ->where('bets_togel.tebak_kembang_kempis_kembar', $data['tebak_kembang_kempis_kembar'])
-            ->where('bets_togel.tebak_shio', $data['tebak_shio']);
+            ->where('bets_togel.number_3', $number_3)
+            ->where('bets_togel.number_4', $number_4)
+            ->where('bets_togel.number_5', $number_5)
+            ->where('bets_togel.number_6', $number_6)
+            ->where('bets_togel.tebak_as_kop_kepala_ekor', $tebak_as_kop_kepala_ekor)
+            ->where('bets_togel.tebak_besar_kecil', $tebak_besar_kecil)
+            ->where('bets_togel.tebak_genap_ganjil', $tebak_genap_ganjil)
+            ->where('bets_togel.tebak_tengah_tepi', $tebak_tengah_tepi)
+            ->where('bets_togel.tebak_depan_tengah_belakang', $tebak_depan_tengah_belakang)
+            ->where('bets_togel.tebak_mono_stereo', $tebak_mono_stereo)
+            ->where('bets_togel.tebak_kembang_kempis_kembar', $tebak_kembang_kempis_kembar)
+            ->where('bets_togel.tebak_shio', $tebak_shio);
 
           if ($lastPeriod) {             
             $checkBetTogels->where('bets_togel.period', $lastPeriod->period)
@@ -1146,7 +1159,8 @@ class BetsTogelController extends ApiController
       }
 
       if ($data != []) {
-        return "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($data[0]['sisaQuota']) ." untuk nomor ". $data[0]['nomor'] ."";
+        $sisaQuota = $data[0]['sisaQuota'] <= 0 ? "sisa quota sudah habis" : "sisa quota sebesar Rp. ". number_format($data[0]['sisaQuota']) ."";
+        return "Over Kuota (sudah limit), ".$sisaQuota." untuk nomor ". $data[0]['nomor'] ."";
       }
       return false;      
     } catch (\Throwable $th) {
