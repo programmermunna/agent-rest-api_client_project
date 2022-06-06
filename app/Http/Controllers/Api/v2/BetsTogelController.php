@@ -866,12 +866,12 @@ class BetsTogelController extends ApiController
                         )
                         ->where('constant_provider_togel_id', $pasaran->id)
                         ->where('togel_game_id', $game->id)->first();
-                $game =TogelGame::select('name')->where('id', $game->id)->first();
+                $gameName =TogelGame::select('name')->where('id', $game->id)->first();
                 $sisaQuota = $settingGames->limit_total - $checkBetTogel->totalBet;
                 $result =  [
                   'status' => 'success',
                   'data'   =>[
-                  'game' => $game['name'],
+                  'game' => $gameName->name,
                   'nomor' => $checkBetTogel->Nomor,
                   'total-limit' => $settingGames->limit_total,
                   'limit-terpakai' => $checkBetTogel->totalBet,
@@ -1133,11 +1133,11 @@ class BetsTogelController extends ApiController
                         )
                         ->where('constant_provider_togel_id', $pasaran->id)
                         ->where('togel_game_id', $game->id)->first();
-                $game =TogelGame::select('name')->where('id', $game->id)->first();
+                $gameName =TogelGame::select('name')->where('id', $game->id)->first();
                 $result =  [
                   'status' => 'success',
                   'data'   =>[
-                  'game' => $game['name'],
+                  'game' => $gameName->name,
                   'nomor' => null,
                   'total-limit' => $settingGames->limit_total,
                   'limit-terpakai' => null,
