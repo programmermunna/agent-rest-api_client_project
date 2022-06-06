@@ -601,7 +601,7 @@ class BetsTogelController extends ApiController
           
           if ($checkBetTogel == true) {
               if ($game->id == 1){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_4d'
                                 )
@@ -619,7 +619,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_3d'
                                 )
@@ -637,7 +637,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d'
                                 )
@@ -655,7 +655,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d_depan'
                                 )
@@ -673,7 +673,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d_tengah'
                                 )
@@ -693,7 +693,7 @@ class BetsTogelController extends ApiController
                   ];
                 }
               } elseif ($game->id == 2){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_4d'
                                 )
@@ -711,7 +711,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_3d'
                                 )
@@ -729,7 +729,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d'
                                 )
@@ -749,7 +749,7 @@ class BetsTogelController extends ApiController
                   ];
                 } 
               } elseif ($game->id == 3){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_4d'
                                 )
@@ -767,7 +767,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_3d'
                                 )
@@ -785,7 +785,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d'
                                 )
@@ -805,7 +805,7 @@ class BetsTogelController extends ApiController
                   ];
                 } 
               } elseif ($game->id == 4){          
-                if ($data['number_6'] !== null && $data['number_5'] !== null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                if ($data['number_6'] !== null && $data['number_5'] !== null && $data['number_4'] == null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d'
                                 )
@@ -823,7 +823,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] !== null && $data['number_3'] !== null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] !== null && $data['number_3'] !== null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d_depan'
                                 )
@@ -841,7 +841,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] == null && $data['number_5'] !== null && $data['number_4'] !== null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] == null && $data['number_5'] !== null && $data['number_4'] !== null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d_tengah'
                                 )
@@ -882,7 +882,7 @@ class BetsTogelController extends ApiController
               } 
           } else {
               if ($game->id == 1){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_4d'
                                 )
@@ -899,7 +899,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_3d'
                                 )
@@ -916,7 +916,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d'
                                 )
@@ -933,7 +933,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d_depan'
                                 )
@@ -950,7 +950,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d_tengah'
                                 )
@@ -969,7 +969,7 @@ class BetsTogelController extends ApiController
                   ];
                 }
               } elseif ($game->id == 2){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_4d'
                                 )
@@ -986,7 +986,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_3d'
                                 )
@@ -1003,7 +1003,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d'
                                 )
@@ -1022,7 +1022,7 @@ class BetsTogelController extends ApiController
                   ];
                 } 
               } elseif ($game->id == 3){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_4d'
                                 )
@@ -1039,7 +1039,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_3d'
                                 )
@@ -1056,7 +1056,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d'
                                 )
@@ -1075,7 +1075,7 @@ class BetsTogelController extends ApiController
                   ];
                 } 
               } elseif ($game->id == 4){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d'
                                 )
@@ -1092,7 +1092,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d_depan'
                                 )
@@ -1109,7 +1109,7 @@ class BetsTogelController extends ApiController
                       'bet' => $data['pay_amount'],
                     ]            
                   ];
-                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null && $data['number_2'] == null && $data['number_1'] == null){
+                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   $settingGames = TogelSettingGames::select(
                                   'limit_total_2d_tengah'
                                 )
