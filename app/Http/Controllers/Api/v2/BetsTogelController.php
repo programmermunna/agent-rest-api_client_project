@@ -54,8 +54,8 @@ class BetsTogelController extends ApiController
     }
 
     # First For All Take The Type Of Game 
-    $togelGames = TogelGame::query()->get()->pluck(['id', 'name']);
-    $providerGame = ConstantProviderTogelModel::query()->get()->pluck(['id', 'name']);
+    $togelGames = TogelGame::query()->get()->pluck(['id'], 'name');
+    $providerGame = ConstantProviderTogelModel::query()->get()->pluck(['id'], 'name');
 
     # Cek From Request or Body Has Value Type Of Games
     # take type of game and provider
@@ -871,7 +871,7 @@ class BetsTogelController extends ApiController
                 $result =  [
                   'status' => 'success',
                   'data'   =>[
-                  'game' => $game->name,
+                  'game' => $game['name'],
                   'nomor' => $checkBetTogel->Nomor,
                   'total-limit' => $settingGames->limit_total,
                   'limit-terpakai' => $checkBetTogel->totalBet,
@@ -1137,7 +1137,7 @@ class BetsTogelController extends ApiController
                 $result =  [
                   'status' => 'success',
                   'data'   =>[
-                  'game' => $game->name,
+                  'game' => $game['name'],
                   'nomor' => null,
                   'total-limit' => $settingGames->limit_total,
                   'limit-terpakai' => null,
