@@ -95,7 +95,7 @@ class ProviderController extends Controller
       #update if player only deposit not playing
       if ($data->status == 2) {
         $nameProvider = BetModel::where('bets.bet_id', $data->code)->first();
-        if ($nameProvider) {          
+        if ($nameProvider) {
           $nameProvider->update([
             'round_id' => 0,
             'credit' => $member->credit,
@@ -183,7 +183,7 @@ class ProviderController extends Controller
         'created_by' => $member->id
       ];
       $this->insertBet($bets);
-      // 
+      //
       // if ($member->referrer_id) {
       //     BonusHistoryModel::create([
       //         'constant_bonus_id' => 3,
@@ -440,7 +440,7 @@ class ProviderController extends Controller
     return Response::json($res);
   }
 
-  
+
 
   public function result(Request $request)
   {
@@ -725,6 +725,10 @@ class ProviderController extends Controller
     } else {
       $bets = BetModel::where('bet_id', $data->code)->first();
       if ($bets) {
+        $member->DB::update([
+            'credit'=> $creditMember + $amountbet,
+            'created_at'=>Carbon::now(),
+        ]);
         $success = [
           "id"    => $bets->id,
           "success" =>  true,
@@ -909,7 +913,7 @@ class ProviderController extends Controller
   }
   /**
    *  @deprecated resultPgSoft
-   *  Following Changes From Provider 
+   *  Following Changes From Provider
    *  This Method No able to use again
    */
   public function resultPgSoft(Request $request)
@@ -1004,7 +1008,7 @@ class ProviderController extends Controller
    */
   public function PgSoftTransaction(Request $request)
   {
-    // Depdencies 
+    // Depdencies
     $this->token = $request->token;
     $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
     $user_id = $data->userId;
@@ -1012,9 +1016,9 @@ class ProviderController extends Controller
     $bets = BetModel::where('bet_id', $data->code)->first();
     $creditMember = $member->credit + $data->amount;
     $betAmount = $data->betAmount * 1000;
-      
+
     // Check transaction id duplicate
-    if ($bets) {      
+    if ($bets) {
       return response()->json([
         "data" => [
           "currency_code" => "IDR",
@@ -1033,10 +1037,10 @@ class ProviderController extends Controller
       ], 200);
     }
     /**
-     *   assume member balance 3000 
-     *   and bet to lose 
-     *   the request from provider is 
-     *   the transafer_amount -1000 
+     *   assume member balance 3000
+     *   and bet to lose
+     *   the request from provider is
+     *   the transafer_amount -1000
      *   so the logic must like curentBalance + -1000 = 2000 ;
      */
     $member->update([
@@ -1044,7 +1048,7 @@ class ProviderController extends Controller
       'updated_at' => Carbon::now(),
     ]);
 
-      
+
     $bet = [
       'constant_provider_id' => $data->provider === 'Pragmatic' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ''))))),
       'bet_id'     => $data->code,
@@ -1059,7 +1063,7 @@ class ProviderController extends Controller
       'credit'     => $member->credit,
       'created_by' => $member->id
     ];
-      
+
     try {
       $this->insertBet($bet);
       return response()->json([
