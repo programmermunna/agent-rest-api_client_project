@@ -53,7 +53,6 @@ class BetsTogelController extends ApiController
 
     # check limit line
     $sisaLimitLines = $this->sisaLimitLine($request);
-    dd($sisaLimitLines);
     if ($sisaLimitLines == true) {
       return $this->errorResponse($sisaLimitLines, 400);
     }
