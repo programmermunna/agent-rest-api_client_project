@@ -10,6 +10,8 @@ use App\Models\TogelGame;
 use App\Models\TogelResultNumberModel;
 use App\Models\TogelBlokAngka;
 use App\Models\TogelSettingGames;
+use App\Models\BetsTogelQuotaLimitModel;
+use App\Models\TogelShioNameModel;
 use App\Models\BetTogelLimitLineSettingsModel;
 use App\Models\BetTogelLimitLineTransactionsModel;
 use App\Models\MembersModel;
@@ -37,7 +39,17 @@ class BetsTogelController extends ApiController
         'code' => 422,
         'message' => 'saldo kurang'
       ], 422);
-    }    
+    } 
+    
+    # check pasaran and game togel
+    $pasaran = ConstantProviderTogelModel::where('name', $request->provider)->first();
+    $game    = TogelGame::select(['id','name'])->where('name', $request->type)->first();
+    if(is_null($pasaran)){
+      return $this->errorResponse('Nama pasaran tidak ditemukan', 400);
+    }
+    if(is_null($game)){
+      return $this->errorResponse('Jenis game tidak ditemukan', 400);
+    }
 
     # check limit line
     $sisaLimitLines = $this->sisaLimitLine($request);
@@ -49,16 +61,6 @@ class BetsTogelController extends ApiController
     $sisaQuota = $this->sisaQuota($request);
     if ($sisaQuota == true) {
       return $this->errorResponse($sisaQuota, 400);
-    }
-    
-    # check pasaran and game togel
-    $pasaran = ConstantProviderTogelModel::where('name', $request->provider)->first();
-    $game    = TogelGame::select(['id','name'])->where('name', $request->type)->first();
-    if(is_null($pasaran)){
-      return $this->errorResponse('Nama pasaran tidak ditemukan', 400);
-    }
-    if(is_null($game)){
-      return $this->errorResponse('Jenis game tidak ditemukan', 400);
     }
 
     # First For All Take The Type Of Game 
@@ -84,6 +86,13 @@ class BetsTogelController extends ApiController
     try {
       
       DB::beginTransaction();
+
+      
+      $payAmount = collect($this->checkBlokednumber($request, $provider))->sum('pay_amount');
+      $checkMember = MembersModel::where('id', auth('api')->user()->id)->first();
+      if( $payAmount > (float)$checkMember['credit']){
+        return $this->errorResponse("Saldo anda tidak mencukupi", 400);
+      }  
 
       foreach ($this->checkBlokednumber($request, $provider) as $togel) {    
         # definition of bonus referal
@@ -1360,7 +1369,112 @@ class BetsTogelController extends ApiController
 
             } else {
 
-              return false;
+              if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
+                
+                $limitLine = $setting['limit_4d'];
+
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_3' => $data['number_3'],
+                    'number_4' => $data['number_4'],
+                    'number_5' => $data['number_5'],
+                    'number_6' => $data['number_6'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_3'].$data['number_4'].$data['number_5'].$data['number_6'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                
+                $limitLine = $setting['limit_3d'];
+
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_4' => $data['number_4'],
+                    'number_5' => $data['number_5'],
+                    'number_6' => $data['number_6'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_4'].$data['number_5'].$data['number_6'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                
+                $limitLine = $setting['limit_2d'];
+
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_5' => $data['number_5'],
+                    'number_6' => $data['number_6'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_5'].$data['number_6'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                
+                $limitLine = $setting['limit_2d_depan'];
+
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_3' => $data['number_3'],
+                    'number_4' => $data['number_4'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_3'].$data['number_4'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                
+                $limitLine = $setting['limit_2d_tengah'];
+                
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_4' => $data['number_4'],
+                    'number_5' => $data['number_5'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_4'].$data['number_5'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } else {
+                return false;
+              }
               
             }
           } else {
@@ -1468,7 +1582,112 @@ class BetsTogelController extends ApiController
 
             } else {
 
-              return false;
+              if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
+                
+                $limitLine = $setting['limit_4d'];
+
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_3' => $data['number_3'],
+                    'number_4' => $data['number_4'],
+                    'number_5' => $data['number_5'],
+                    'number_6' => $data['number_6'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_3'].$data['number_4'].$data['number_5'].$data['number_6'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                
+                $limitLine = $setting['limit_3d'];
+
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_4' => $data['number_4'],
+                    'number_5' => $data['number_5'],
+                    'number_6' => $data['number_6'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_4'].$data['number_5'].$data['number_6'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                
+                $limitLine = $setting['limit_2d'];
+
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_5' => $data['number_5'],
+                    'number_6' => $data['number_6'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_5'].$data['number_6'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                
+                $limitLine = $setting['limit_2d_depan'];
+
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_3' => $data['number_3'],
+                    'number_4' => $data['number_4'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_3'].$data['number_4'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                
+                $limitLine = $setting['limit_2d_tengah'];
+                
+                if (1 > $limitLine) {
+                  BetTogelLimitLineTransactionsModel::create([
+                    'constant_provider_togel_id' => $pasaran->id,
+                    'number_4' => $data['number_4'],
+                    'number_5' => $data['number_5'],
+                    'member_id' => auth('api')->user()->id,
+                    'created_by' => 0,
+                    'created_at' => Carbon::now(),
+                  ]);
+                  $nomor = $data['number_4'].$data['number_5'];
+                  $message = "Nomor ".$nomor." ini telah mencapai limit line";
+                  return $message;
+                } else {
+                  return false;
+                }
+
+              } else {
+                return false;
+              }
 
             }
           }             
