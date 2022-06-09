@@ -1250,7 +1250,7 @@ class BetsTogelController extends ApiController
           $checkBetTogel = $betTogel->get()->toArray();
 
           $countNumber = collect($checkBetTogel)->count();
-
+          // dd($countNumber);
           $checkLimitLineTransaction = BetTogelLimitLineTransactionsModel::where('constant_provider_togel_id', $pasaran->id)
                                         ->where('number_3', $number_3)
                                         ->where('number_4', $number_4)
@@ -1284,7 +1284,7 @@ class BetsTogelController extends ApiController
                 
                 $limitLine = $setting['limit_4d'];
 
-                if ($countNumber > $limitLine) {
+                if ($countNumber >= $limitLine) {
                   BetTogelLimitLineTransactionsModel::create([
                     'constant_provider_togel_id' => $pasaran->id,
                     'number_3' => $data['number_3'],
@@ -1303,7 +1303,7 @@ class BetsTogelController extends ApiController
                 
                 $limitLine = $setting['limit_3d'];
 
-                if ($countNumber > $limitLine) {
+                if ($countNumber >= $limitLine) {
                   BetTogelLimitLineTransactionsModel::create([
                     'constant_provider_togel_id' => $pasaran->id,
                     'number_4' => $data['number_4'],
@@ -1321,7 +1321,7 @@ class BetsTogelController extends ApiController
                 
                 $limitLine = $setting['limit_2d'];
 
-                if ($countNumber > $limitLine) {
+                if ($countNumber >= $limitLine) {
                   BetTogelLimitLineTransactionsModel::create([
                     'constant_provider_togel_id' => $pasaran->id,
                     'number_5' => $data['number_5'],
@@ -1338,7 +1338,7 @@ class BetsTogelController extends ApiController
                 
                 $limitLine = $setting['limit_2d_depan'];
 
-                if ($countNumber > $limitLine) {
+                if ($countNumber >= $limitLine) {
                   BetTogelLimitLineTransactionsModel::create([
                     'constant_provider_togel_id' => $pasaran->id,
                     'number_3' => $data['number_3'],
@@ -1355,7 +1355,7 @@ class BetsTogelController extends ApiController
                 
                 $limitLine = $setting['limit_2d_tengah'];
                 
-                if ($countNumber > $limitLine) {
+                if ($countNumber >= $limitLine) {
                   BetTogelLimitLineTransactionsModel::create([
                     'constant_provider_togel_id' => $pasaran->id,
                     'number_4' => $data['number_4'],
