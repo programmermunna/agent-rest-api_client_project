@@ -1187,8 +1187,9 @@ class BetsTogelController extends ApiController
       if(is_null($game)){
         return $this->errorResponse('Jenis game tidak ditemukan', 400);
       }
+      $idGame = [1, 2, 3, 4];
 
-      if ($game['id'] == 1 || $game['id'] == 2 || $game['id'] == 3 || $game['id'] == 4) {
+      if (in_array($game['id'], $idGame)) {
 
         $lastPeriod = BetsTogel::select('period')->latest()->first();
         foreach ($request->data as $key => $data) {
@@ -1229,14 +1230,12 @@ class BetsTogelController extends ApiController
               ")
               ->where('bets_togel.updated_at', null)
               ->where('constant_provider_togel.id', $pasaran->id)
-              ->where('bets_togel.created_by', auth('api')->user()->id)
               ->where('bets_togel.number_3', $number_3)
               ->where('bets_togel.number_4', $number_4)
               ->where('bets_togel.number_5', $number_5)
               ->where('bets_togel.number_6', $number_6);
 
           $checkLimitLineTransaction = BetTogelLimitLineTransactionsModel::where('constant_provider_togel_id', $pasaran->id)
-                                        ->where('member_id', auth('api')->user()->id)
                                         ->where('number_3', $number_3)
                                         ->where('number_4', $number_4)
                                         ->where('number_5', $number_5)
