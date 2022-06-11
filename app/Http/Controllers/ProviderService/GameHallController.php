@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\ProviderService;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\BonusModel;
 use App\Models\ConstantProvider;
 use App\Models\UploadBonusModel;
@@ -12,6 +13,7 @@ use App\Models\BetModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
 
 class GameHallController extends Controller
 {
@@ -33,6 +35,35 @@ class GameHallController extends Controller
     $this->token =  request()->token;
     $this->transaction = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
   }
+
+  // public function getBalance(Request $request)
+  // {
+  //   try {      
+  //     $this->token = $request->token;
+  //     $decoded = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+  //     $userId = preg_replace("/[^0-9]/","", $decoded->userId);
+  //     $member = MembersModel::where('id', $userId)->first();
+      
+  //     if (substr($decoded->userId, -3) == "pti") {
+  //       $res = [
+  //         "status" => "0000",
+  //         "userId" => $decoded->userId,
+  //         "balance" => $member->credit
+  //       ];
+  //     } else {
+  //       $res = [
+  //         "status" => "0000",
+  //         "userId" => $decoded->userId,
+  //         "balance" => (string)round($member->credit/1000, 3)
+  //       ];
+  //     }
+
+  //     return Response::json($res);
+
+  //   } catch (\Throwable $th) {
+  //     return response()->json($th->getMessage(), 500);
+  //   }
+  // }
 
   // Listen Transaction From Decoded Token
   public function listenTransaction()
