@@ -1226,11 +1226,10 @@ class BetsTogelController extends ApiController
               ->leftJoin('togel_setting_game', 'bets_togel.togel_setting_game_id', '=', 'togel_setting_game.id')
               ->selectRaw("
                   COUNT(bets_togel.id) as total,
-                  number_3,
-                  number_4,
-                  number_5,
-                  number_6,
-                  number_3,
+                  bets_togel.number_3,
+                  bets_togel.number_4,
+                  bets_togel.number_5,
+                  bets_togel.number_6,
                   if (
                     bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
                     , concat(bets_togel.number_3, bets_togel.number_4, bets_togel.number_5, bets_togel.number_6)
