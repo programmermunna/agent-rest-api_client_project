@@ -53,7 +53,6 @@ class BetsTogelController extends ApiController
 
     # check limit line
     $sisaLimitLines = $this->sisaLimitLine($request);
-    dd($sisaLimitLines);
     if ($sisaLimitLines == true) {
       return $this->errorResponse($sisaLimitLines, 400);
     }
@@ -1279,7 +1278,7 @@ class BetsTogelController extends ApiController
             $betTogel = $checkBetTogels;
           }
           $checkBetTogel = $betTogel->get()->toArray();
-          
+
           $countNumber = collect($checkBetTogel)->count();
 
           # table bet_togel_limit_line_transaction no longer used in the future
