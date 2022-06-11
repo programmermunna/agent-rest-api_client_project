@@ -1203,10 +1203,10 @@ class BetsTogelController extends ApiController
         $lastPeriod = BetsTogel::select('period')->where('constant_provider_togel_id', $pasaran->id)->latest()->first();  
         
         foreach ($request->data as $key => $data) {
-          // $number_3 = array_key_exists('number_3', $data) ? $data['number_3'] : null;
-          // $number_4 = array_key_exists('number_4', $data) ? $data['number_4'] : null;
-          // $number_5 = array_key_exists('number_5', $data) ? $data['number_5'] : null;
-          // $number_6 = array_key_exists('number_6', $data) ? $data['number_6'] : null;
+          $number_3 = array_key_exists('number_3', $data) ? $data['number_3'] : null;
+          $number_4 = array_key_exists('number_4', $data) ? $data['number_4'] : null;
+          $number_5 = array_key_exists('number_5', $data) ? $data['number_5'] : null;
+          $number_6 = array_key_exists('number_6', $data) ? $data['number_6'] : null;
 
           $checkBeforeInserts = collect($request->data)
                                 ->where('number_3', ($data['number_3'] != null ? '!=' : ''), null)
@@ -1343,7 +1343,7 @@ class BetsTogelController extends ApiController
             
             if ($checkBeforeInserts != []) {
               
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
+              if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                   
                   $limitLine = $setting['limit_4d'];
 
@@ -1352,7 +1352,7 @@ class BetsTogelController extends ApiController
                     return $message;
                   }
 
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+              } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   
                   $limitLine = $setting['limit_3d'];
 
@@ -1361,7 +1361,7 @@ class BetsTogelController extends ApiController
                     return $message;
                   }
 
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+              } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                   
                   $limitLine = $setting['limit_2d'];
 
@@ -1370,7 +1370,7 @@ class BetsTogelController extends ApiController
                     return $message;
                   }
 
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+              } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
                   
                   $limitLine = $setting['limit_2d_depan'];
 
@@ -1379,7 +1379,7 @@ class BetsTogelController extends ApiController
                     return $message;
                   }
 
-                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+              } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                   
                   $limitLine = $setting['limit_2d_tengah'];
                   
@@ -1388,9 +1388,9 @@ class BetsTogelController extends ApiController
                     return $message;
                   }
 
-                } else {
-                  return false;
-                }
+              } else {
+                return false;
+              }
 
             }
 
