@@ -18,6 +18,7 @@ class BetTogelLimitLineTransactionsModel extends Model
     protected $fillable = [
         'id'
         , 'constant_provider_togel_id'
+        , 'game_name'
         , 'number_1'
         , 'number_2'
         , 'number_3'
