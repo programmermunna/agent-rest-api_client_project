@@ -897,8 +897,6 @@ class BetsTogelController extends ApiController
                   ]            
                 ];
               } 
-              dd($result);
-              $results[] = $result;
           } else {
               if ($game->id == 1){
                 if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
