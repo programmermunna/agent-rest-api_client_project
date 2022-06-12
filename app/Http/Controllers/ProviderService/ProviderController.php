@@ -716,19 +716,19 @@ class ProviderController extends Controller
     // dd($data);
     $bonus = AppSetting::where('type', 'game')->pluck('value', 'id');
 
-    # check transaksi
-    $bets = BetModel::where('bet_id', $data->code)->first();
-    if ($bets) {
-      $member->update([
-        'credit' => $creditMember + $amountbet,
-        'updated_at' => Carbon::now(),
-      ]);
-      $success = [
-        "id"    => $bets->id,
-        "success" =>  true,
-        "amount" => $creditMember
-      ];
-    }
+    // # check transaksi
+    // $bets = BetModel::where('bet_id', $data->code)->first();
+    // if ($bets) {
+    //   $member->update([
+    //     'credit' => $creditMember + $amountbet,
+    //     'updated_at' => Carbon::now(),
+    //   ]);
+    //   $success = [
+    //     "id"    => $bets->id,
+    //     "success" =>  true,
+    //     "amount" => $creditMember
+    //   ];
+    // }
     
     // if ($amount < 0) {
     if ($creditMember < $amountbet) {
