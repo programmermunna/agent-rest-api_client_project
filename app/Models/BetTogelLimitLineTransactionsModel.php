@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BetTogelLimitLineTransactionsModel extends Model
 {
+    use SoftDeletes;
     protected $connection = 'mysql';
 
     protected $table = 'bet_togel_limit_line_transactions';
