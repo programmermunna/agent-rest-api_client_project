@@ -1202,7 +1202,8 @@ class BetsTogelController extends ApiController
       if (in_array($game->id, $idGame)) {
         $lastPeriod = BetsTogel::select('period')->where('constant_provider_togel_id', $pasaran->id)->latest()->first();  
         
-        $results = [];
+        $limitLine = false;
+        $message = '';
         foreach ($request->data as $key => $data) {
           $number_3 = array_key_exists('number_3', $data) ? $data['number_3'] : null;
           $number_4 = array_key_exists('number_4', $data) ? $data['number_4'] : null;
@@ -1296,16 +1297,20 @@ class BetsTogelController extends ApiController
 
           $countNumber = collect($checkBetTogel)->count();
 
-          # table bet_togel_limit_line_transaction no longer used in the future
+          # game name
           if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null) {
             $game_name = "4D";
-          } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null) {
+          } 
+          if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null) {
             $game_name = "3D";
-          } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null) {
+          } 
+          if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null) {
             $game_name = "2D";
-          } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null) {
+          } 
+          if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null) {
             $game_name = "2D Tengah";
-          } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null) {
+          } 
+          if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null) {
             $game_name = "2D Depan";
           }
           
@@ -1327,22 +1332,21 @@ class BetsTogelController extends ApiController
                                         ->where('number_5', $number_5)
                                         ->where('number_6', $number_6)->first();
                                         
-            if ($checkLimitLineTransactionAgain) {
-              $results[] =  false;
-            } else {
+            if ($checkLimitLineTransactionAgain != null) {
+              $limitLine = true;
               $message = "Game ".$game_name." telah mencapai limit line";
-              $results[] =  $message;
+              continue;
             }  
 
+          }
+            
+          if ($checkLimitLineSetting) {
+            $setting = $checkLimitLineSetting;
           } else {
+            $setting = ConstantProviderTogelModel::where('constant_provider_togel.id', $pasaran->id)->first();
+          }  
             
-            if ($checkLimitLineSetting) {
-              $setting = $checkLimitLineSetting;
-            } else {
-              $setting = ConstantProviderTogelModel::where('constant_provider_togel.id', $pasaran->id)->first();
-            }  
-            
-            if ($checkBeforeInserts != []) {
+          if ($checkBeforeInserts != []) {
 
               $checkNumberExist = collect($checkBetTogel)
                       ->where('number_3', $number_3)
@@ -1358,57 +1362,62 @@ class BetsTogelController extends ApiController
                     $limitLine = $setting['limit_4d'];
                     
                     if ($countNumberbeforeInsert >= $limitLine) {
-                      $message = "Game ".$game_name." telah mencapai limit lines";
-                      $results[] =  $message;
+                      $limitLine = true;
+                      $message = "Game ".$game_name." telah mencapai limit line";
+                      continue;
                     }
 
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                } 
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                     
                     $limitLine = $setting['limit_3d'];
                     
                     if ($countNumberbeforeInsert >= $limitLine) {
+                      $limitLine = true;
                       $message = "Game ".$game_name." telah mencapai limit line";
-                      $results[] =  $message;
+                      continue;
                     }
 
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                } 
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                     
                     $limitLine = $setting['limit_2d'];
 
                     if ($countNumberbeforeInsert >= $limitLine) {
+                      $limitLine = true;
                       $message = "Game ".$game_name." telah mencapai limit line";
-                      $results[] =  $message;
+                      continue;
                     }
 
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                } 
+                if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
                     
                     $limitLine = $setting['limit_2d_depan'];
 
                     if ($countNumberbeforeInsert >= $limitLine) {
+                      $limitLine = true;
                       $message = "Game ".$game_name." telah mencapai limit line";
-                      $results[] =  $message;
+                      continue;
                     }
 
-                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                } 
+                if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                     
                     $limitLine = $setting['limit_2d_tengah'];
                     
                     if ($countNumberbeforeInsert >= $limitLine) {
+                      $limitLine = true;
                       $message = "Game ".$game_name." telah mencapai limit line";
-                      $results[] =  $message;
+                      continue;
                     }
 
-                } else {
-                  $results[] =  false;
                 }
-                
-              } else {
-                $results[] =  false;
+
               }
 
-            }            
-                                  
-            if ($checkBetTogel != []) {
+          }            
+                                
+          if ($checkBetTogel != []) {
 
                 $checkNumberExist = collect($checkBetTogel)
                       ->where('number_3', $number_3)
@@ -1417,9 +1426,7 @@ class BetsTogelController extends ApiController
                       ->where('number_6', $number_6)
                       ->first();
 
-                if ($checkNumberExist) {
-                  $results[] =  false;
-                } else {
+                if ($checkNumberExist == null ) {
                   
                   if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                     
@@ -1441,11 +1448,13 @@ class BetsTogelController extends ApiController
                         ]);
                       }
 
+                      $limitLine = true;
                       $message = "Game ".$game_name." telah mencapai limit line";
-                      $results[] =  $message;
+                      continue;
                     }
 
-                  } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                  } 
+                  if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                     
                     $limitLine = $setting['limit_3d'];
                     
@@ -1463,11 +1472,14 @@ class BetsTogelController extends ApiController
                           'created_at' => Carbon::now(),
                         ]);
                       }
+
+                      $limitLine = true;
                       $message = "Game ".$game_name." telah mencapai limit line";
-                      $results[] =  $message;
+                      continue;
                     }
 
-                  } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                  } 
+                  if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                     
                     $limitLine = $setting['limit_2d'];
 
@@ -1484,11 +1496,14 @@ class BetsTogelController extends ApiController
                           'created_at' => Carbon::now(),
                         ]);
                       }
+
+                      $limitLine = true;
                       $message = "Game ".$game_name." telah mencapai limit line";
-                      $results[] =  $message;
+                      continue;
                     }
 
-                  } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                  } 
+                  if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
                     
                     $limitLine = $setting['limit_2d_depan'];
 
@@ -1505,11 +1520,14 @@ class BetsTogelController extends ApiController
                           'created_at' => Carbon::now(),
                         ]);
                       }
+
+                      $limitLine = true;
                       $message = "Game ".$game_name." telah mencapai limit line";
-                      $results[] =  $message;
+                      continue;
                     }
 
-                  } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                  } 
+                  if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
                     
                     $limitLine = $setting['limit_2d_tengah'];
                     
@@ -1526,33 +1544,22 @@ class BetsTogelController extends ApiController
                           'created_at' => Carbon::now(),
                         ]);
                       }
+
+                      $limitLine = true;
                       $message = "Game ".$game_name." telah mencapai limit line";
-                      $results[] =  $message;
+                      continue;
                     }
 
-                  } else {
-                    $results[] =  false;
                   }
 
                 }
               
-            }       
-            
-          }
+          }       
                        
         }
-        
-        $dataresults;
-        foreach ($results as $key => $value) {
-          if ($value != false) {
-            $dataresults = $value;
-          } else {
-            $dataresults = null;
-          }
-        }
 
-        if ($dataresults != null) {
-          return $dataresults;
+        if ($limitLine == true){
+          return $message;
         } else {
           return false;
         }
