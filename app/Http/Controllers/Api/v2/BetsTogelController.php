@@ -1355,7 +1355,7 @@ class BetsTogelController extends ApiController
                       ->where('number_6', $number_6)
                       ->first();
 
-              if ($checkNumberExist) {
+              if ($checkNumberExist == null) {
 
                 if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                     
