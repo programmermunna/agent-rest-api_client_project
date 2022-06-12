@@ -1012,7 +1012,7 @@ class BetsTogelController extends ApiController
 
             } else {
 
-              $message = "Sisa quota telah habis untuk nomor ". $checkBetTogel['Nomor'] . " di Game ". $checkBetTogel['name'];
+              $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($checkBetTogelQuotaLimit['sisa_quota']). " untuk nomor ". $checkBetTogel['Nomor'] . " di Game ". $checkBetTogel['name'];
               return $message;
 
             }
@@ -1103,7 +1103,7 @@ class BetsTogelController extends ApiController
 
             } else {
 
-              $message = "Sisa quota telah habis untuk nomor ". $checkBetTogel['Nomor'] . " di Game ". $checkBetTogel['name'];
+              $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($checkBetTogelQuotaLimit['sisa_quota']). " untuk nomor ". $checkBetTogel['Nomor'] . " di Game ". $checkBetTogel['name'];
               return $message;
 
             }
