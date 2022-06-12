@@ -616,7 +616,7 @@ class BetsTogelController extends ApiController
             ->leftJoin('togel_shio_name', 'bets_togel.tebak_shio', '=', 'togel_shio_name.id')
             ->join('togel_setting_game', 'bets_togel.togel_setting_game_id', '=', 'togel_setting_game.id')
             ->selectRaw("
-                SUM(bets_togel.bet_amount) as totalBet,
+                SUM(bets_togel.pay_amount) as totalBet,
                 togel_game.name,
                 if (
                   bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
@@ -1122,9 +1122,10 @@ class BetsTogelController extends ApiController
 
                   $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
 
-                  if ($settingGames['limit_total_4d'] < $totalBets ) {
+                  if ($settingGames['limit_total_4d'] <= $totalBets ) {                    
                     
                     $sisaQuota = $settingGames['limit_total_4d'] - $checkBetTogel['totalBet'];
+                    
                     BetsTogelQuotaLimitModel::create([
                       'togel_game_id' => $game->id,
                       'constant_provider_togel_id'  => $pasaran->id,
