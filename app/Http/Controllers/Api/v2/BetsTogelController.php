@@ -1351,14 +1351,14 @@ class BetsTogelController extends ApiController
                       ->where('number_6', $number_6)
                       ->first();
 
-              if ($checkNumberExist == null) {
-              
+              if ($checkNumberExist) {
+
                 if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                     
                     $limitLine = $setting['limit_4d'];
                     
                     if ($countNumberbeforeInsert >= $limitLine) {
-                      $message = "Game ".$game_name." telah mencapai limit line";
+                      $message = "Game ".$game_name." telah mencapai limit lines";
                       $results[] =  $message;
                     }
 
@@ -1401,7 +1401,7 @@ class BetsTogelController extends ApiController
                 } else {
                   $results[] =  false;
                 }
-
+                
               } else {
                 $results[] =  false;
               }
@@ -1542,15 +1542,17 @@ class BetsTogelController extends ApiController
                        
         }
         
-        $data;
+        $dataresults;
         foreach ($results as $key => $value) {
           if ($value != false) {
-            $data = $value;
+            $dataresults = $value;
+          } else {
+            $dataresults = null;
           }
         }
-        
-        if ($results != null) {
-          return $data;
+
+        if ($dataresults != null) {
+          return $dataresults;
         } else {
           return false;
         }
