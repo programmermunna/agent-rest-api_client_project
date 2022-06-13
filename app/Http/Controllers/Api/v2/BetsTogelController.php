@@ -1335,7 +1335,7 @@ class BetsTogelController extends ApiController
                                         
             if ($checkLimitLineTransactionAgain == null) {
               $limitLine = true;
-              $message = "Game ".$game_name." telah mencapai limit line";
+              $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
               continue;
             }  
 
@@ -1355,7 +1355,7 @@ class BetsTogelController extends ApiController
                 
                 if ($countNumberbeforeInsert > $limitLine) {
                   $limitLine = true;
-                  $message = "Game ".$game_name." telah mencapai limit lines";
+                  $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                   continue;
                 }
                 
@@ -1367,7 +1367,7 @@ class BetsTogelController extends ApiController
                 
                 if ($countNumberbeforeInsert > $limitLine) {
                   $limitLine = true;
-                  $message = "Game ".$game_name." telah mencapai limit lines";
+                  $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                   continue;
                 }
                 
@@ -1379,7 +1379,7 @@ class BetsTogelController extends ApiController
 
                 if ($countNumberbeforeInsert > $limitLine) {
                   $limitLine = true;
-                  $message = "Game ".$game_name." telah mencapai limit lines";
+                  $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                   continue;
                 }
             }
@@ -1390,7 +1390,7 @@ class BetsTogelController extends ApiController
 
                 if ($countNumberbeforeInsert > $limitLine) {
                   $limitLine = true;
-                  $message = "Game ".$game_name." telah mencapai limit lines";
+                  $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                   continue;
                 }
             }
@@ -1401,7 +1401,7 @@ class BetsTogelController extends ApiController
                 
                 if ($countNumberbeforeInsert > $limitLine) {
                   $limitLine = true;
-                  $message = "Game ".$game_name." telah mencapai limit lines";
+                  $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                   continue;
                 }
             }
@@ -1440,7 +1440,7 @@ class BetsTogelController extends ApiController
                       }
 
                       $limitLine = true;
-                      $message = "Game ".$game_name." telah mencapai limit line";
+                      $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                       continue;
                     }
 
@@ -1465,7 +1465,7 @@ class BetsTogelController extends ApiController
                       }
 
                       $limitLine = true;
-                      $message = "Game ".$game_name." telah mencapai limit line";
+                      $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                       continue;
                     }
 
@@ -1489,7 +1489,7 @@ class BetsTogelController extends ApiController
                       }
 
                       $limitLine = true;
-                      $message = "Game ".$game_name." telah mencapai limit line";
+                      $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                       continue;
                     }
 
@@ -1513,7 +1513,7 @@ class BetsTogelController extends ApiController
                       }
 
                       $limitLine = true;
-                      $message = "Game ".$game_name." telah mencapai limit line";
+                      $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                       continue;
                     }
 
@@ -1537,7 +1537,7 @@ class BetsTogelController extends ApiController
                       }
 
                       $limitLine = true;
-                      $message = "Game ".$game_name." telah mencapai limit line";
+                      $message = "Taruhan ".$game_name." Anda sudah melewati limit line yang sudah ditentukan";
                       continue;
                     }
 
