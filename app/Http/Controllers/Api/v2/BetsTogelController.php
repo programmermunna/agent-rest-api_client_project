@@ -298,13 +298,324 @@ class BetsTogelController extends ApiController
         $tebak_kembang_kempis_kembar = array_key_exists('tebak_kembang_kempis_kembar', $data) ? $data['tebak_kembang_kempis_kembar'] : null;
         $tebak_shio = array_key_exists('tebak_shio', $data) ? $data['tebak_shio'] : null;
 
+        $settingGames = TogelSettingGames::where('constant_provider_togel_id', $pasaran->id)
+                        ->where('togel_game_id', $game->id)->first();
+
+        $checkBetTogelQuotaLimit = BetsTogelQuotaLimitModel::join('constant_provider_togel', 'bets_togel_quota_limit.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
+            ->join('togel_game', 'bets_togel_quota_limit.togel_game_id', '=', 'togel_game.id')
+            ->leftJoin('togel_shio_name', 'bets_togel_quota_limit.tebak_shio', '=', 'togel_shio_name.id')
+            ->selectRaw("
+                bets_togel_quota_limit.id,
+                bets_togel_quota_limit.sisa_quota,
+                togel_game.name,
+                if (
+                  bets_togel_quota_limit.number_6 is not null and bets_togel_quota_limit.number_5 is not null and bets_togel_quota_limit.number_4 is not null and bets_togel_quota_limit.number_3 is not null and bets_togel_quota_limit.number_2 is null and bets_togel_quota_limit.number_1 is null
+                  , concat(bets_togel_quota_limit.number_3, bets_togel_quota_limit.number_4, bets_togel_quota_limit.number_5, bets_togel_quota_limit.number_6)
+                  , if (
+                      bets_togel_quota_limit.number_6 is not null and bets_togel_quota_limit.number_5 is not null and bets_togel_quota_limit.number_4 is not null and bets_togel_quota_limit.number_3 is null and bets_togel_quota_limit.number_2 is null and bets_togel_quota_limit.number_1 is null
+                      , concat(bets_togel_quota_limit.number_4, bets_togel_quota_limit.number_5, bets_togel_quota_limit.number_6)
+                      , if (
+                          bets_togel_quota_limit.number_6 is not null and bets_togel_quota_limit.number_5 is not null and bets_togel_quota_limit.number_4 is null and bets_togel_quota_limit.number_3 is null and bets_togel_quota_limit.number_2 is null and bets_togel_quota_limit.number_1 is null
+                          , concat(bets_togel_quota_limit.number_5, bets_togel_quota_limit.number_6)
+                          , if (
+                              bets_togel_quota_limit.number_6 is null and bets_togel_quota_limit.number_5 is not null and bets_togel_quota_limit.number_4 is not null and bets_togel_quota_limit.number_3 is null and bets_togel_quota_limit.number_2 is null and bets_togel_quota_limit.number_1 is null
+                              , concat(bets_togel_quota_limit.number_4, bets_togel_quota_limit.number_5)
+                              , if (
+                                  bets_togel_quota_limit.number_6 is null and bets_togel_quota_limit.number_5 is null and bets_togel_quota_limit.number_4 is not null and bets_togel_quota_limit.number_3 is not null and bets_togel_quota_limit.number_2 is null and bets_togel_quota_limit.number_1 is null
+                                  , concat(bets_togel_quota_limit.number_3, bets_togel_quota_limit.number_4)
+                                  , if (
+                                      togel_game.id = 5 and bets_togel_quota_limit.number_3 is null and bets_togel_quota_limit.number_4 is null and bets_togel_quota_limit.number_5 is null
+                                      ,bets_togel_quota_limit.number_6
+                                      , if (
+                                          togel_game.id = 5 and bets_togel_quota_limit.number_3 is null and bets_togel_quota_limit.number_4 is null and bets_togel_quota_limit.number_6 is null
+                                          ,bets_togel_quota_limit.number_5
+                                          , if (
+                                              togel_game.id = 5 and bets_togel_quota_limit.number_3 is null and bets_togel_quota_limit.number_5 is null and bets_togel_quota_limit.number_6 is null
+                                              ,bets_togel_quota_limit.number_4
+                                              , if (
+                                                  togel_game.id = 5 and bets_togel_quota_limit.number_4 is null and bets_togel_quota_limit.number_5 is null and bets_togel_quota_limit.number_6 is null
+                                                  ,bets_togel_quota_limit.number_3
+                                                  , if (
+                                                      togel_game.id = 6
+                                                      , concat(bets_togel_quota_limit.number_5, bets_togel_quota_limit.number_6)
+                                                      , if (
+                                                          togel_game.id = 7
+                                                          , concat(bets_togel_quota_limit.number_4, bets_togel_quota_limit.number_5, bets_togel_quota_limit.number_6)
+                                                          , if (
+                                                              togel_game.id = 8 and bets_togel_quota_limit.number_3 is null and bets_togel_quota_limit.number_4 is null and bets_togel_quota_limit.number_5 is null
+                                                              , concat(bets_togel_quota_limit.number_6, ' - ' , bets_togel_quota_limit.tebak_as_kop_kepala_ekor)
+                                                              , if (
+                                                                  togel_game.id = 8 and bets_togel_quota_limit.number_3 is null and bets_togel_quota_limit.number_4 is null and bets_togel_quota_limit.number_6 is null
+                                                                  , concat(bets_togel_quota_limit.number_5, ' - ' , bets_togel_quota_limit.tebak_as_kop_kepala_ekor)
+                                                                  , if (
+                                                                      togel_game.id = 8 and bets_togel_quota_limit.number_3 is null and bets_togel_quota_limit.number_5 is null and bets_togel_quota_limit.number_6 is null
+                                                                      , concat(bets_togel_quota_limit.number_4, ' - ' , bets_togel_quota_limit.tebak_as_kop_kepala_ekor)
+                                                                      , if (
+                                                                          togel_game.id = 8 and bets_togel_quota_limit.number_4 is null and bets_togel_quota_limit.number_5 is null and bets_togel_quota_limit.number_6 is null
+                                                                          , concat(bets_togel_quota_limit.number_3, ' - ' , bets_togel_quota_limit.tebak_as_kop_kepala_ekor)
+                                                                          , if (
+                                                                              togel_game.id = 9
+                                                                              , if (
+                                                                                  bets_togel_quota_limit.tebak_besar_kecil is null
+                                                                                  , if (
+                                                                                      bets_togel_quota_limit.tebak_genap_ganjil is null
+                                                                                      , if (
+                                                                                          bets_togel_quota_limit.tebak_tengah_tepi is null
+                                                                                          , 'nulled'
+                                                                                          , bets_togel_quota_limit.tebak_tengah_tepi
+                                                                                      )
+                                                                                      , bets_togel_quota_limit.tebak_genap_ganjil
+                                                                                  )
+                                                                                  , bets_togel_quota_limit.tebak_besar_kecil
+                                                                              )
+                                                                              , if (
+                                                                                  togel_game.id = 10
+                                                                                  , if (
+                                                                                      bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'as' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                      , concat('as', '-', 'genap')
+                                                                                      , if (
+                                                                                          bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'as' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                          , concat('as', '-', 'ganjil')
+                                                                                          , if (
+                                                                                              bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'kop' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                              , concat('kop', '-', 'genap')
+                                                                                              , if (
+                                                                                                  bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'kop' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                  , concat('kop', '-', 'ganjil')
+                                                                                                  , if (
+                                                                                                      bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                                      , concat('kepala', '-', 'genap')
+                                                                                                      , if (
+                                                                                                          bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                          , concat('kepala', '-', 'ganjil')
+                                                                                                          , if (
+                                                                                                              bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                                              , concat('ekor', '-', 'genap')
+                                                                                                              , if (
+                                                                                                                  bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                                  , concat('ekor', '-', 'ganjil')
+                                                                                                                  , if (
+                                                                                                                      bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'as' and bets_togel_quota_limit.tebak_besar_kecil = 'besar'
+                                                                                                                      , concat('as', '-', 'besar')
+                                                                                                                      , if (
+                                                                                                                          bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'as' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil'
+                                                                                                                          , concat('as', '-', 'kecil')
+                                                                                                                          , if (
+                                                                                                                              bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'kop' and bets_togel_quota_limit.tebak_besar_kecil = 'besar'
+                                                                                                                              , concat('kop', '-', 'besar')
+                                                                                                                              , if (
+                                                                                                                                  bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'kop' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil'
+                                                                                                                                  , concat('kop', '-', 'kecil')
+                                                                                                                                  , if (
+                                                                                                                                      bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel_quota_limit.tebak_besar_kecil = 'besar'
+                                                                                                                                      , concat('kepala', '-', 'besar')
+                                                                                                                                      , if (
+                                                                                                                                          bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil'
+                                                                                                                                          , concat('kepala', '-', 'kecil')
+                                                                                                                                          , if (
+                                                                                                                                              bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel_quota_limit.tebak_besar_kecil = 'besar'
+                                                                                                                                              , concat('ekor', '-', 'besar')
+                                                                                                                                              , if (
+                                                                                                                                                  bets_togel_quota_limit.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil'
+                                                                                                                                                  , concat('ekor', '-', 'kecil')
+                                                                                                                                                  , 'nulled'
+                                                                                                                                              )
+                                                                                                                                          )
+                                                                                                                                      )
+                                                                                                                                  )
+                                                                                                                              )
+                                                                                                                          )
+                                                                                                                      )
+                                                                                                                  )
+                                                                                                              )
+                                                                                                          )
+                                                                                                      )
+                                                                                                  )
+                                                                                              )
+                                                                                          )
+                                                                                      )
+                                                                                  )
+                                                                                  , if (
+                                                                                      togel_game.id = 11
+                                                                                      , if (
+                                                                                          bets_togel_quota_limit.tebak_depan_tengah_belakang = 'belakang' and bets_togel_quota_limit.tebak_mono_stereo = 'stereo'
+                                                                                          , concat('belakang', ' - ', 'stereo')
+                                                                                          , if (
+                                                                                              bets_togel_quota_limit.tebak_depan_tengah_belakang = 'belakang' and bets_togel_quota_limit.tebak_mono_stereo = 'mono'
+                                                                                              , concat('belakang', ' - ', 'mono')
+                                                                                              , if (
+                                                                                                  bets_togel_quota_limit.tebak_depan_tengah_belakang = 'belakang' and bets_togel_quota_limit.tebak_kembang_kempis_kembar = 'kembang'
+                                                                                                  , concat('belakang', ' - ', 'kembang')
+                                                                                                  , if (
+                                                                                                      bets_togel_quota_limit.tebak_depan_tengah_belakang = 'belakang' and bets_togel_quota_limit.tebak_kembang_kempis_kembar = 'kempis'
+                                                                                                      , concat('belakang', ' - ', 'kempis')
+                                                                                                      , if (
+                                                                                                          bets_togel_quota_limit.tebak_depan_tengah_belakang = 'belakang' and bets_togel_quota_limit.tebak_kembang_kempis_kembar = 'kembar'
+                                                                                                          , concat('belakang', ' - ', 'kembar')
+                                                                                                          , if (
+                                                                                                              bets_togel_quota_limit.tebak_depan_tengah_belakang = 'tengah' and bets_togel_quota_limit.tebak_mono_stereo = 'stereo'
+                                                                                                              , concat('tengah', ' - ', 'stereo')
+                                                                                                              , if (
+                                                                                                                  bets_togel_quota_limit.tebak_depan_tengah_belakang = 'tengah' and bets_togel_quota_limit.tebak_mono_stereo = 'mono'
+                                                                                                                  , concat('tengah', ' - ', 'mono')
+                                                                                                                  , if (
+                                                                                                                      bets_togel_quota_limit.tebak_depan_tengah_belakang = 'tengah' and bets_togel_quota_limit.tebak_kembang_kempis_kembar = 'kembang'
+                                                                                                                      , concat('tengah', ' - ', 'kembang')
+                                                                                                                      , if (
+                                                                                                                          bets_togel_quota_limit.tebak_depan_tengah_belakang = 'tengah' and bets_togel_quota_limit.tebak_kembang_kempis_kembar = 'kempis'
+                                                                                                                          , concat('tengah', ' - ', 'kempis')
+                                                                                                                          , if (
+                                                                                                                              bets_togel_quota_limit.tebak_depan_tengah_belakang = 'tengah' and bets_togel_quota_limit.tebak_kembang_kempis_kembar = 'kembar'
+                                                                                                                              , concat('tengah', ' - ', 'kembar')
+                                                                                                                              , if (
+                                                                                                                                  bets_togel_quota_limit.tebak_depan_tengah_belakang = 'depan' and bets_togel_quota_limit.tebak_mono_stereo = 'stereo'
+                                                                                                                                  , concat('depan', ' - ', 'stereo')
+                                                                                                                                  , if (
+                                                                                                                                      bets_togel_quota_limit.tebak_depan_tengah_belakang = 'depan' and bets_togel_quota_limit.tebak_mono_stereo = 'mono'
+                                                                                                                                      , concat('depan', ' - ', 'mono')
+                                                                                                                                      , if (
+                                                                                                                                          bets_togel_quota_limit.tebak_depan_tengah_belakang = 'depan' and bets_togel_quota_limit.tebak_kembang_kempis_kembar = 'kembang'
+                                                                                                                                          , concat('depan', ' - ', 'kembang')
+                                                                                                                                          , if (
+                                                                                                                                              bets_togel_quota_limit.tebak_depan_tengah_belakang = 'depan' and bets_togel_quota_limit.tebak_kembang_kempis_kembar = 'kempis'
+                                                                                                                                              , concat('depan', ' - ', 'kempis')
+                                                                                                                                              , if (
+                                                                                                                                                  bets_togel_quota_limit.tebak_depan_tengah_belakang = 'depan' and bets_togel_quota_limit.tebak_kembang_kempis_kembar = 'kembar'
+                                                                                                                                                  , concat('depan', ' - ', 'kembar')
+                                                                                                                                                  , 'nulled'
+                                                                                                                                              )
+                                                                                                                                          )
+                                                                                                                                      )
+                                                                                                                                  )
+                                                                                                                              )
+                                                                                                                          )
+                                                                                                                      )
+                                                                                                                  )
+                                                                                                              )
+                                                                                                          )
+                                                                                                      )
+                                                                                                  )
+                                                                                              )
+                                                                                          )
+                                                                                      )
+                                                                                      , if (
+                                                                                          togel_game.id = 12
+                                                                                          , if (
+                                                                                              bets_togel_quota_limit.tebak_depan_tengah_belakang = 'belakang' and bets_togel_quota_limit.tebak_besar_kecil = 'besar' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                              , concat('belakang', '-', 'besar', '-', 'genap')
+                                                                                              , if (
+                                                                                                  bets_togel_quota_limit.tebak_depan_tengah_belakang = 'belakang' and bets_togel_quota_limit.tebak_besar_kecil = 'besar' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                  , concat('belakang', '-', 'besar', '-', 'ganjil')
+                                                                                                  , if (
+                                                                                                      bets_togel_quota_limit.tebak_depan_tengah_belakang = 'belakang' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                                      , concat('belakang', '-', 'kecil', '-', 'genap')
+                                                                                                      , if (
+                                                                                                          bets_togel_quota_limit.tebak_depan_tengah_belakang = 'belakang' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                          , concat('belakang', '-', 'kecil', '-', 'ganjil')
+                                                                                                          , if (
+                                                                                                              bets_togel_quota_limit.tebak_depan_tengah_belakang = 'tengah' and bets_togel_quota_limit.tebak_besar_kecil = 'besar' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                                              , concat('tengah', '-', 'besar', '-', 'genap')
+                                                                                                              , if (
+                                                                                                                  bets_togel_quota_limit.tebak_depan_tengah_belakang = 'tengah' and bets_togel_quota_limit.tebak_besar_kecil = 'besar' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                                  , concat('tengah', '-', 'besar', '-', 'ganjil')
+                                                                                                                  , if (
+                                                                                                                      bets_togel_quota_limit.tebak_depan_tengah_belakang = 'tengah' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                                                      , concat('tengah', '-', 'kecil', '-', 'genap')
+                                                                                                                      , if (
+                                                                                                                          bets_togel_quota_limit.tebak_depan_tengah_belakang = 'tengah' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                                          , concat('tengah', '-', 'kecil', '-', 'ganjil')
+                                                                                                                          , if (
+                                                                                                                              bets_togel_quota_limit.tebak_depan_tengah_belakang = 'depan' and bets_togel_quota_limit.tebak_besar_kecil = 'besar' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                                                              , concat('depan', '-', 'besar', '-', 'genap')
+                                                                                                                              , if (
+                                                                                                                                  bets_togel_quota_limit.tebak_depan_tengah_belakang = 'depan' and bets_togel_quota_limit.tebak_besar_kecil = 'besar' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                                                  , concat('depan', '-', 'besar', '-', 'ganjil')
+                                                                                                                                  , if (
+                                                                                                                                      bets_togel_quota_limit.tebak_depan_tengah_belakang = 'depan' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil' and bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                                                                      , concat('depan', '-', 'kecil', '-', 'genap')
+                                                                                                                                      , if (
+                                                                                                                                          bets_togel_quota_limit.tebak_depan_tengah_belakang = 'depan' and bets_togel_quota_limit.tebak_besar_kecil = 'kecil' and bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                                                          , concat('depan', '-', 'kecil', '-', 'ganjil')
+                                                                                                                                          , 'nulled'
+                                                                                                                                      )
+                                                                                                                                  )
+                                                                                                                              )
+                                                                                                                          )
+                                                                                                                      )
+                                                                                                                  )
+                                                                                                              )
+                                                                                                          )
+                                                                                                      )
+                                                                                                  )
+                                                                                              )
+                                                                                          )
+                                                                                          , if (
+                                                                                              togel_game.id = 13
+                                                                                              , if (
+                                                                                                  bets_togel_quota_limit.tebak_genap_ganjil = 'genap'
+                                                                                                  , 'genap'
+                                                                                                  , if (
+                                                                                                      bets_togel_quota_limit.tebak_genap_ganjil = 'ganjil'
+                                                                                                      , 'ganjil'
+                                                                                                      , if (
+                                                                                                          bets_togel_quota_limit.tebak_besar_kecil = 'besar'
+                                                                                                          , 'besar'
+                                                                                                          , if (
+                                                                                                              bets_togel_quota_limit.tebak_besar_kecil = 'kecil'
+                                                                                                              , 'kecil'
+                                                                                                              , 'nulled'
+                                                                                                          )
+                                                                                                      )
+                                                                                                  )
+                                                                                              )
+                                                                                              , if (
+                                                                                                  togel_game.id = 14
+                                                                                                  , togel_shio_name.name
+                                                                                                  , 'nulled'
+                                                                                              )
+                                                                                          )
+                                                                                      )
+                                                                                  )
+                                                                              )
+                                                                          )
+                                                                      )
+                                                                  )
+                                                              )
+                                                          )
+                                                      )
+                                                  )
+                                              )
+                                          )
+                                      )
+                                  )
+                              )
+                          )
+                      )
+                  )
+              ) as 'Nomor'
+            ")
+            ->where('constant_provider_togel.id', $pasaran->id)
+            ->where('bets_togel_quota_limit.togel_game_id', $game->id)
+            ->where('bets_togel_quota_limit.number_3', $number_3)
+            ->where('bets_togel_quota_limit.number_4', $number_4)
+            ->where('bets_togel_quota_limit.number_5', $number_5)
+            ->where('bets_togel_quota_limit.number_6', $number_6)
+            ->where('bets_togel_quota_limit.tebak_as_kop_kepala_ekor', $tebak_as_kop_kepala_ekor)
+            ->where('bets_togel_quota_limit.tebak_besar_kecil', $tebak_besar_kecil)
+            ->where('bets_togel_quota_limit.tebak_genap_ganjil', $tebak_genap_ganjil)
+            ->where('bets_togel_quota_limit.tebak_tengah_tepi', $tebak_tengah_tepi)
+            ->where('bets_togel_quota_limit.tebak_depan_tengah_belakang', $tebak_depan_tengah_belakang)
+            ->where('bets_togel_quota_limit.tebak_mono_stereo', $tebak_mono_stereo)
+            ->where('bets_togel_quota_limit.tebak_kembang_kempis_kembar', $tebak_kembang_kempis_kembar)
+            ->where('bets_togel_quota_limit.tebak_shio', $tebak_shio)->first();
+
         $checkBetTogels = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')  
             ->join('constant_provider_togel', 'bets_togel.constant_provider_togel_id', '=', 'constant_provider_togel.id')  
             ->join('togel_game', 'bets_togel.togel_game_id', '=', 'togel_game.id')
             ->leftJoin('togel_shio_name', 'bets_togel.tebak_shio', '=', 'togel_shio_name.id')
             ->join('togel_setting_game', 'bets_togel.togel_setting_game_id', '=', 'togel_setting_game.id')
             ->selectRaw("
-                SUM(bets_togel.bet_amount) as totalBet,
+                SUM(bets_togel.pay_amount) as totalBet,
                 togel_game.name,
                 if (
                   bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
@@ -606,580 +917,654 @@ class BetsTogelController extends ApiController
             ->where('bets_togel.tebak_depan_tengah_belakang', $tebak_depan_tengah_belakang)
             ->where('bets_togel.tebak_mono_stereo', $tebak_mono_stereo)
             ->where('bets_togel.tebak_kembang_kempis_kembar', $tebak_kembang_kempis_kembar)
-            ->where('bets_togel.tebak_shio', $tebak_shio);
+            ->where('bets_togel.tebak_shio', $tebak_shio);        
 
-          if ($lastPeriod) {             
-            $checkBetTogels->where('bets_togel.period', $lastPeriod->period)
-            ->groupBy('bets_togel.togel_game_id');
-          } else {
-            $checkBetTogels->groupBy('bets_togel.togel_game_id');
-          }
-          $checkBetTogel = $checkBetTogels->first();
+        if ($lastPeriod) {             
+          $checkBetTogels->where('bets_togel.period', $lastPeriod->period)
+          ->groupBy('bets_togel.togel_game_id');
+        } else {
+          $checkBetTogels->groupBy('bets_togel.togel_game_id');
+        }
+        $checkBetTogel = $checkBetTogels->first();
+
+        if ($checkBetTogelQuotaLimit) {          
           
           if ($checkBetTogel == true) {
-              if ($game->id == 1){
+            
+            if ($checkBetTogelQuotaLimit['sisa_quota'] >= $data['pay_amount']) {
+              
+              $gameId = [1, 2, 3, 4];
+              
+              if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
+
                 if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_4d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '4D',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_4d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota4D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_3d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '3D',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_3d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota3D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_2d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota2D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d_depan'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota2DD = $settingGames->limit_total_2d_depan - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Depan',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_2d_depan,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota2DD,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d_tengah'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota2DT = $settingGames->limit_total_2d_tengah - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Tengah',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_2d_tengah,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota2DT,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
+                  
+                  $sisaQuota4D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota4D,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  return false;
+
                 }
-              } elseif ($game->id == 2){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_4d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '4D Set',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_4d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota4D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_3d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '3D Set',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_3d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota3D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Set',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_2d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota2D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
+
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+
+                  $sisaQuota3D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota3D,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  return false;
+
                 } 
-              } elseif ($game->id == 3){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_4d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota4D = $settingGames->limit_total_4d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '4D Bolak Balik',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_4d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota4D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_3d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota3D = $settingGames->limit_total_3d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '3D Bolak Balik',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_3d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota3D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Bolak Balik',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_2d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota2D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } 
-              } elseif ($game->id == 4){          
-                if ($data['number_6'] !== null && $data['number_5'] !== null && $data['number_4'] == null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota2D = $settingGames->limit_total_2d - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Quick2d',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_2d,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota2D,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] !== null && $data['number_3'] !== null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d_depan'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota2DD = $settingGames->limit_total_2d_depan - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Depan Quick2d',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_2d_depan,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota2DD,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] == null && $data['number_5'] !== null && $data['number_4'] !== null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d_tengah'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $sisaQuota2DT = $settingGames->limit_total_2d_tengah - $checkBetTogel->totalBet;
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Tengah Quick2d',
-                      'nomor' => $checkBetTogel->Nomor,
-                      'total-limit' => $settingGames->limit_total_2d_tengah,
-                      'limit-terpakai' => $checkBetTogel->totalBet,
-                      'sisaQuota' => $sisaQuota2DT,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                }
-              } else {
-                $settingGames = TogelSettingGames::select(
-                          'limit_total'
-                        )
-                        ->where('constant_provider_togel_id', $pasaran->id)
-                        ->where('togel_game_id', $game->id)->first();
-                $gameName =TogelGame::select('name')->where('id', $game->id)->first();
-                $sisaQuota = $settingGames->limit_total - $checkBetTogel->totalBet;
-                $result =  [
-                  'status' => 'success',
-                  'data'   =>[
-                  'game' => $gameName->name,
-                  'nomor' => $checkBetTogel->Nomor,
-                  'total-limit' => $settingGames->limit_total,
-                  'limit-terpakai' => $checkBetTogel->totalBet,
-                  'sisaQuota' => $sisaQuota,
-                  'bet' => $data['pay_amount'],
-                  ]            
-                ];
-              } 
-          } else {
-              if ($game->id == 1){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_4d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '4D',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_4d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_4d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_3d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '3D',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_3d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_3d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_2d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_2d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d_depan'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Depan',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_2d_depan,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_2d_depan,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d_tengah'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Tengah',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_2d_tengah,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_2d_tengah,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                }
-              } elseif ($game->id == 2){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_4d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '4D Set',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_4d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_4d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_3d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '3D Set',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_3d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_3d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Set',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_2d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_2d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } 
-              } elseif ($game->id == 3){
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_4d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '4D Bolak Balik',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_4d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_4d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_3d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '3D Bolak Balik',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_3d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_3d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Bolak Balik',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_2d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_2d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } 
-              } elseif ($game->id == 4){
+                
                 if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Quick2d',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_2d,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_2d,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d_depan'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Depan Quick2d',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_2d_depan,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_2d_depan,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
-                } elseif ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  $settingGames = TogelSettingGames::select(
-                                  'limit_total_2d_tengah'
-                                )
-                                ->where('constant_provider_togel_id', $pasaran->id)
-                                ->where('togel_game_id', $game->id)->first();
-                  $result =  [
-                    'status' => 'success',
-                    'data'   =>[
-                      'game'  => '2D Tengah Quick2d',
-                      'nomor' => null,
-                      'total-limit' => $settingGames->limit_total_2d_tengah,
-                      'limit-terpakai' => null,
-                      'sisaQuota' => $settingGames->limit_total_2d_tengah,
-                      'bet' => $data['pay_amount'],
-                    ]            
-                  ];
+                  
+                  $sisaQuota2D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota2D,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  return false;
+
+                } 
+                
+                if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                  
+                  $sisaQuota2DD = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota2DD,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  return false;
+
+                } 
+                
+                if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                  
+                  $sisaQuota2DT = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota2DT,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  return false;
+
                 }
+
               } else {
-                $settingGames = TogelSettingGames::select(
-                          'limit_total'
-                        )
-                        ->where('constant_provider_togel_id', $pasaran->id)
-                        ->where('togel_game_id', $game->id)->first();
-                $gameName =TogelGame::select('name')->where('id', $game->id)->first();
-                $result =  [
-                  'status' => 'success',
-                  'data'   =>[
-                  'game' => $gameName->name,
-                  'nomor' => null,
-                  'total-limit' => $settingGames->limit_total,
-                  'limit-terpakai' => null,
-                  'sisaQuota' => $settingGames->limit_total,
-                  'bet' => $data['pay_amount'],
-                  ]            
-                ];
+
+                $sisaQuota = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                $checkBetTogelQuotaLimit->update([
+                  'sisa_quota' => $sisaQuota,
+                  'updated_by' => 0,
+                  'updated_at' => Carbon::now()
+                ]);
+                return false;
+
               }
+
+            } else {
+
+              $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($checkBetTogelQuotaLimit['sisa_quota']). " untuk nomor ". $checkBetTogel['Nomor'] . " di Game ". $checkBetTogel['name'];
+              return $message;
+
+            }
+             
           }
 
-          $results[] = $result;
-      }
+          if ($checkBetTogel == false) {
+            
+            if ($checkBetTogelQuotaLimit['sisa_quota'] >= $data['pay_amount']) {
+              
+              $gameId = [1, 2, 3, 4];
+              
+              if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
+                
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
+                  
+                  $sisaQuota4D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota4D,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  
+                  return false;
 
-      $data = [];
-      foreach ($results as $key => $value) {
-        if ($value['data']['bet'] > $value['data']['sisaQuota']) {
-          $data[] = $value['data'];
+                }
+
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+
+                  $sisaQuota3D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota3D,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  return false;
+
+                } 
+                
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                  
+                  $sisaQuota2D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota2D,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  return false;
+
+                } 
+                
+                if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                  
+                  $sisaQuota2DD = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota2DD,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  return false;
+
+                } 
+                
+                if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                  
+                  $sisaQuota2DT = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                  $checkBetTogelQuotaLimit->update([
+                    'sisa_quota' => $sisaQuota2DT,
+                    'updated_by' => 0,
+                    'updated_at' => Carbon::now()
+                  ]);
+                  return false;
+
+                }
+
+              } else {
+
+                $sisaQuota = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+                $checkBetTogelQuotaLimit->update([
+                  'sisa_quota' => $sisaQuota,
+                  'updated_by' => 0,
+                  'updated_at' => Carbon::now()
+                ]);
+                return false;
+
+              }
+
+            } else {
+
+              $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($checkBetTogelQuotaLimit['sisa_quota']). " untuk nomor ". $checkBetTogel['Nomor'] . " di Game ". $checkBetTogel['name'];
+              return $message;
+
+            }
+             
+          }          
+
         }
-      }
+          
+        if ($checkBetTogel == true) {
+            
+            $gameId = [1, 2, 3, 4];
 
-      if ($data != []) {
-        $sisaQuota = $data[0]['sisaQuota'] <= 0 ? "sisa quota sudah habis" : "sisa quota sebesar Rp. ". number_format($data[0]['sisaQuota']) ."";
-        return "Over Kuota (sudah limit), ".$sisaQuota." untuk nomor ". $data[0]['nomor'] ." di Game ".$data[0]['game']."";
-      }
-      return false;      
+            if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
+
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
+
+                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+                  if ($settingGames['limit_total_4d'] <= $totalBets ) {                    
+                    
+                    $sisaQuota = $settingGames['limit_total_4d'] - $checkBetTogel['totalBet'];
+
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_3'  => $data['number_3'],
+                      'number_4'  => $data['number_4'],
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name']."";
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                } 
+                
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+
+                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+                  if ($settingGames['limit_total_3d'] <= $totalBets ) {
+                    
+                    $sisaQuota = $settingGames['limit_total_3d'] - $checkBetTogel['totalBet'];
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_4'  => $data['number_4'],
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                } 
+                
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                  
+                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+                  if ($settingGames['limit_total_2d'] <= $totalBets ) {
+                    
+                    $sisaQuota = $settingGames['limit_total_2d'] - $checkBetTogel['totalBet'];
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                } 
+                
+                if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                  
+                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+                  if ($settingGames['limit_total_2d_depan'] <= $totalBets ) {
+                    
+                    $sisaQuota = $settingGames['limit_total_2d_depan'] - $checkBetTogel['totalBet'];
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_4'  => $data['number_4'],
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                } 
+                
+                if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                  
+                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+                  if ($settingGames['limit_total_2d_tengah'] <= $totalBets ) {
+                    
+                    $sisaQuota = $settingGames['limit_total_2d_tengah'] - $checkBetTogel['totalBet'];
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_4'  => $data['number_4'],
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                }
+
+            } else {
+
+              $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+              if ($settingGames['limit_total'] <= $totalBets ) {
+                
+                $sisaQuota = $settingGames['limit_total'] - $checkBetTogel['totalBet'];
+                BetsTogelQuotaLimitModel::create([
+                  'togel_game_id' => $game->id,
+                  'constant_provider_togel_id'  => $pasaran->id,
+                  'number_3'  => $number_3,
+                  'number_4'  => $number_4,
+                  'number_5'  => $number_5,
+                  'number_6'  => $number_6,
+                  'tebak_as_kop_kepala_ekor'  => $tebak_as_kop_kepala_ekor,
+                  'tebak_besar_kecil' => $tebak_besar_kecil,
+                  'tebak_genap_ganjil'  => $tebak_genap_ganjil,
+                  'tebak_tengah_tepi' => $tebak_tengah_tepi,
+                  'tebak_depan_tengah_belakang' => $tebak_depan_tengah_belakang,
+                  'tebak_mono_stereo' => $tebak_mono_stereo,
+                  'tebak_kembang_kempis_kembar' => $tebak_kembang_kempis_kembar,
+                  'tebak_shio'  => $tebak_shio,
+                  'sisa_quota'  => $sisaQuota,
+                  'created_by'  => 0,
+                  'created_at'  => Carbon::now()
+                ]);
+
+                $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name']."";
+                return $message;
+
+              } else {
+                return false;
+              }
+
+            }
+             
+        } else {
+            $gameId = [1, 2, 3, 4];
+
+            if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
+
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
+                  
+                  $totalBets =  $data['pay_amount'];
+                  
+                  if ($settingGames['limit_total_4d'] <= $totalBets ) {
+                    
+                    $sisaQuota = $settingGames['limit_total_4d'];
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_3'  => $data['number_3'],
+                      'number_4'  => $data['number_4'],
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+                    $nomor = $data['number_3'].$data['number_4'].$data['number_5'].$data['number_6'];
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $nomor ." di Game ".$game['name'];
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                } 
+                
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+
+                  $totalBets =  $data['pay_amount'];
+
+                  if ($settingGames['limit_total_3d'] <= $totalBets ) {
+                    
+                    $sisaQuota = $settingGames['limit_total_3d'];
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_4'  => $data['number_4'],
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+                    $nomor = $data['number_4'].$data['number_5'].$data['number_6'];
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $nomor ." di Game ".$game['name'];
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                } 
+                
+                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                  
+                  $totalBets =  $data['pay_amount'];
+
+                  if ($settingGames['limit_total_2d'] <= $totalBets ) {
+                    
+                    $sisaQuota = $settingGames['limit_total_2d'];
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+                    $nomor = $data['number_5'].$data['number_6'];
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $nomor ." di Game ".$game['name'];
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                } 
+                
+                if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                  
+                  $totalBets =  $data['pay_amount'];
+
+                  if ($settingGames['limit_total_2d_depan'] <= $totalBets ) {
+                    
+                    $sisaQuota = $settingGames['limit_total_2d_depan'];
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_4'  => $data['number_4'],
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+                    $nomor = $data['number_3'].$data['number_4'];
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $nomor ." di Game ".$game['name'];
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                } 
+                
+                if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                  
+                  $totalBets =  $data['pay_amount'];
+
+                  if ($settingGames['limit_total_2d_tengah'] <= $totalBets ) {
+                    
+                    $sisaQuota = $settingGames['limit_total_2d_tengah'];
+                    BetsTogelQuotaLimitModel::create([
+                      'togel_game_id' => $game->id,
+                      'constant_provider_togel_id'  => $pasaran->id,
+                      'number_4'  => $data['number_4'],
+                      'number_5'  => $data['number_5'],
+                      'number_6'  => $data['number_6'],
+                      'sisa_quota'  => $sisaQuota,
+                      'created_by'  => 0,
+                      'created_at'  => Carbon::now()
+                    ]);
+                    $nomor = $data['number_4'].$data['number_5'];
+                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $nomor ." di Game ".$game['name'];
+                    return $message;
+
+                  } else {
+                    return false;
+                  }
+
+                }
+
+            } else {
+
+              $totalBets =  $data['pay_amount'];
+
+              if ($settingGames['limit_total'] <= $totalBets ) {
+                
+                $sisaQuota = $settingGames['limit_total'];
+                BetsTogelQuotaLimitModel::create([
+                  'togel_game_id' => $game->id,
+                  'constant_provider_togel_id'  => $pasaran->id,
+                  'number_3'  => $number_3,
+                  'number_4'  => $number_4,
+                  'number_5'  => $number_5,
+                  'number_6'  => $number_6,
+                  'tebak_as_kop_kepala_ekor'  => $tebak_as_kop_kepala_ekor,
+                  'tebak_besar_kecil' => $tebak_besar_kecil,
+                  'tebak_genap_ganjil'  => $tebak_genap_ganjil,
+                  'tebak_tengah_tepi' => $tebak_tengah_tepi,
+                  'tebak_depan_tengah_belakang' => $tebak_depan_tengah_belakang,
+                  'tebak_mono_stereo' => $tebak_mono_stereo,
+                  'tebak_kembang_kempis_kembar' => $tebak_kembang_kempis_kembar,
+                  'tebak_shio'  => $tebak_shio,
+                  'sisa_quota'  => $sisaQuota,
+                  'created_by'  => 0,
+                  'created_at'  => Carbon::now()
+                ]);
+
+                if ($game['id'] == 5) {
+                  $nomor = $number_6;
+                } 
+                
+                if ($game['id'] == 6) {
+                  $nomor = $number_5.$number_6;
+                } 
+                
+                if ($game['id'] == 7) {
+                  $nomor = $number_4.$number_5.$number_6;
+                } 
+                
+                if ($game['id'] == 8) {
+
+                  if ($number_3 != null) {
+                    $nomor = $number_3." - ".$tebak_as_kop_kepala_ekor;
+                  } 
+                  
+                  if ($number_4 != null) {
+                    $nomor = $number_4." - ".$tebak_as_kop_kepala_ekor;
+                  } 
+                  
+                  if ($number_5 != null) {
+                    $nomor = $number_5." - ".$tebak_as_kop_kepala_ekor;
+                  } 
+                  
+                  if ($number_6 != null) {
+                    $nomor = $number_6." - ".$tebak_as_kop_kepala_ekor;
+                  }                 
+                  
+                } 
+                
+                if ($game['id'] == 9) {
+                  
+                  if ($tebak_besar_kecil != null) {
+                    $nomor = $tebak_besar_kecil;
+                  } 
+                  
+                  if ($tebak_genap_ganjil != null) {
+                    $nomor = $tebak_genap_ganjil;
+                  } 
+                  
+                  if ($tebak_tengah_tepi != null) {
+                    $nomor = $tebak_tengah_tepi;
+                  }
+                  
+
+                } 
+                
+                if ($game['id'] == 10) {
+                  
+                  if ($tebak_besar_kecil != null) {
+                    $nomor = $tebak_as_kop_kepala_ekor." - ".$tebak_besar_kecil;
+                  } 
+                  
+                  if ($tebak_genap_ganjil != null) {
+                    $nomor = $tebak_as_kop_kepala_ekor." - ".$tebak_genap_ganjil;
+                  }
+                  
+
+                } 
+                
+                if ($game['id'] == 11) {
+                  
+                  if ($tebak_mono_stereo != null) {
+                    $nomor = $tebak_depan_tengah_belakang." - ".$tebak_mono_stereo;
+                  } 
+                  
+                  if ($tebak_kembang_kempis_kembar != null) {
+                    $nomor = $tebak_depan_tengah_belakang." - ".$tebak_kembang_kempis_kembar;
+                  }
+
+                } 
+                
+                if ($game['id'] == 12) {
+                  $nomor = $tebak_depan_tengah_belakang." - ".$tebak_besar_kecil." - ".$tebak_genap_ganjil;
+                } 
+                
+                if ($game['id'] == 13) {
+                  
+                  if ($tebak_besar_kecil != null) {
+                    $nomor = $tebak_besar_kecil;
+                  } 
+                  
+                  if ($tebak_genap_ganjil != null) {
+                    $nomor = $tebak_genap_ganjil;
+                  }
+                  
+
+                } 
+                
+                if ($game['id'] == 14) {
+                  $shioName = TogelShioNameModel::find($tebak_shio);
+                  $nomor = $shioName['name'];
+                }
+                
+                $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $nomor ." di Game ".$game['name'];
+                return $message;
+
+              }
+
+            }  
+
+        }
+
+      }      
+      
+      return false;
+
     } catch (\Throwable $th) {
       return $this->errorResponse($th->getMessage(), 500);
     }
