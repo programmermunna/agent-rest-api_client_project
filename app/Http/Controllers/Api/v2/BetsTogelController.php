@@ -933,11 +933,11 @@ class BetsTogelController extends ApiController
         }
         $checkBetTogel = $checkBetTogels->first();
 
+        
         if ($checkBetTogelQuotaLimit == true) {
-
-          if ($checkBetTogelQuotaLimit['sisa_quota'] >= $data['pay_amount']) {
-
-            $sisaQuota = true;        
+          
+          if ($checkBetTogelQuotaLimit['sisa_quota'] >= $data['pay_amount']) {            
+                    
             $sisaQuotas = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
             $resultsUpdate[] = [
               'id' => $checkBetTogelQuotaLimit['id'],
@@ -945,6 +945,9 @@ class BetsTogelController extends ApiController
             ];
 
           } else {
+            
+            $sisaQuota = true;
+            
             $gameId = [1, 2, 3, 4];
 
             if (in_array($game['id'], $gameId)) {
@@ -1220,7 +1223,7 @@ class BetsTogelController extends ApiController
                   'created_by'  => 0,
                   'created_at'  => Carbon::now()
                 ];
-                $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name']."";
+                $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas). " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name']."";
                 continue;
 
               }
@@ -1517,24 +1520,11 @@ class BetsTogelController extends ApiController
 
         }
 
-        // if ($AddtoLimitQuota == false) {
-
-        //   foreach ($resultsUpdate as $key => $value) {
-        //     BetsTogelQuotaLimitModel::where('id', $value['id'])
-        //     ->update([
-        //       'sisa_quota' => $value['sisa_quota'],
-        //       'updated_by' => 0,
-        //       'updated_at' => Carbon::now()]
-        //     );
-        //   }          
-
-        // }
-
         return $message;
       } 
       
       if ($sisaQuota == false){        
-
+        
         if ($AddtoLimitQuota == false) {
 
           foreach ($resultsUpdate as $key => $value) {
