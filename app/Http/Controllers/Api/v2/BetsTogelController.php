@@ -288,7 +288,6 @@ class BetsTogelController extends ApiController
       $sisaQuota = false;
       $message = '';
 
-      DB::beginTransaction();
       foreach ($request->data as $key => $data) {
         $number_3 = array_key_exists('number_3', $data) ? $data['number_3'] : null;
         $number_4 = array_key_exists('number_4', $data) ? $data['number_4'] : null;
@@ -1608,10 +1607,8 @@ class BetsTogelController extends ApiController
         
 
       }
-      
-      if ($sisaQuota == true) { 
-        DB::roleBack();
-        DB::commit();     
+
+      if ($sisaQuota == true) {             
         return $message;
       } else {
         return false;
