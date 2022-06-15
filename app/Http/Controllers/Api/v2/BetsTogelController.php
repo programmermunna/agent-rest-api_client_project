@@ -59,6 +59,7 @@ class BetsTogelController extends ApiController
 
     # check sisa quota
     $sisaQuota = $this->sisaQuota($request);
+    // dd($sisaQuota);
     if ($sisaQuota == true) {
       return $this->errorResponse($sisaQuota, 400);
     }
@@ -273,7 +274,7 @@ class BetsTogelController extends ApiController
   # check sisa Quota
   protected function sisaQuota(BetsTogelRequest $request){
     try {
-
+      
       $pasaran = ConstantProviderTogelModel::where('name', $request->provider)->first();
       $game    = TogelGame::select(['id','name'])->where('name', $request->type)->first();
       if(is_null($pasaran)){
@@ -283,7 +284,11 @@ class BetsTogelController extends ApiController
         return $this->errorResponse('Jenis game tidak ditemukan', 400);
       }
       $lastPeriod = BetsTogel::select('period')->latest()->first();
-      $results = [];
+
+      $sisaQuota = false;
+      $message = '';
+
+      DB::beginTransaction();
       foreach ($request->data as $key => $data) {
         $number_3 = array_key_exists('number_3', $data) ? $data['number_3'] : null;
         $number_4 = array_key_exists('number_4', $data) ? $data['number_4'] : null;
@@ -927,643 +932,691 @@ class BetsTogelController extends ApiController
         }
         $checkBetTogel = $checkBetTogels->first();
 
-        if ($checkBetTogelQuotaLimit) {          
-          
-          if ($checkBetTogel == true) {
+        if ($checkBetTogelQuotaLimit == true) {
+
+          if ($checkBetTogelQuotaLimit['sisa_quota'] >= $data['pay_amount']) {
             
-            if ($checkBetTogelQuotaLimit['sisa_quota'] >= $data['pay_amount']) {
+            $sisaQuotas = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
+            $checkBetTogelQuotaLimit->update([
+              'sisa_quota' => $sisaQuotas,
+              'updated_by' => 0,
+              'updated_at' => Carbon::now()
+            ]);
+
+          } else {
+            $gameId = [1, 2, 3, 4];
+
+            if (in_array($game['id'], $gameId)) {
+              $nomor = $number_3.$number_4.$number_5.$number_6;
+            }
+
+            if ($game['id'] == 5) {
+              $nomor = $number_6;
+            } 
+            
+            if ($game['id'] == 6) {
+              $nomor = $number_5.$number_6;
+            } 
+            
+            if ($game['id'] == 7) {
+              $nomor = $number_4.$number_5.$number_6;
+            } 
+            
+            if ($game['id'] == 8) {
+
+              if ($number_3 != null) {
+                $nomor = $number_3." - ".$tebak_as_kop_kepala_ekor;
+              } 
               
-              $gameId = [1, 2, 3, 4];
+              if ($number_4 != null) {
+                $nomor = $number_4." - ".$tebak_as_kop_kepala_ekor;
+              } 
               
-              if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
+              if ($number_5 != null) {
+                $nomor = $number_5." - ".$tebak_as_kop_kepala_ekor;
+              } 
+              
+              if ($number_6 != null) {
+                $nomor = $number_6." - ".$tebak_as_kop_kepala_ekor;
+              }                 
+              
+            } 
+            
+            if ($game['id'] == 9) {
+              
+              if ($tebak_besar_kecil != null) {
+                $nomor = $tebak_besar_kecil;
+              } 
+              
+              if ($tebak_genap_ganjil != null) {
+                $nomor = $tebak_genap_ganjil;
+              } 
+              
+              if ($tebak_tengah_tepi != null) {
+                $nomor = $tebak_tengah_tepi;
+              }
+              
 
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
-                  
-                  $sisaQuota4D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota4D,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  return false;
+            } 
+            
+            if ($game['id'] == 10) {
+              
+              if ($tebak_besar_kecil != null) {
+                $nomor = $tebak_as_kop_kepala_ekor." - ".$tebak_besar_kecil;
+              } 
+              
+              if ($tebak_genap_ganjil != null) {
+                $nomor = $tebak_as_kop_kepala_ekor." - ".$tebak_genap_ganjil;
+              }
+              
 
-                }
-
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-
-                  $sisaQuota3D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota3D,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  return false;
-
-                } 
-                
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
-                  
-                  $sisaQuota2D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota2D,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  return false;
-
-                } 
-                
-                if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
-                  
-                  $sisaQuota2DD = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota2DD,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  return false;
-
-                } 
-                
-                if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  
-                  $sisaQuota2DT = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota2DT,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  return false;
-
-                }
-
-              } else {
-
-                $sisaQuota = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                $checkBetTogelQuotaLimit->update([
-                  'sisa_quota' => $sisaQuota,
-                  'updated_by' => 0,
-                  'updated_at' => Carbon::now()
-                ]);
-                return false;
-
+            } 
+            
+            if ($game['id'] == 11) {
+              
+              if ($tebak_mono_stereo != null) {
+                $nomor = $tebak_depan_tengah_belakang." - ".$tebak_mono_stereo;
+              } 
+              
+              if ($tebak_kembang_kempis_kembar != null) {
+                $nomor = $tebak_depan_tengah_belakang." - ".$tebak_kembang_kempis_kembar;
               }
 
-            } else {
+            } 
+            
+            if ($game['id'] == 12) {
+              $nomor = $tebak_depan_tengah_belakang." - ".$tebak_besar_kecil." - ".$tebak_genap_ganjil;
+            } 
+            
+            if ($game['id'] == 13) {
+              
+              if ($tebak_besar_kecil != null) {
+                $nomor = $tebak_besar_kecil;
+              } 
+              
+              if ($tebak_genap_ganjil != null) {
+                $nomor = $tebak_genap_ganjil;
+              }
+              
 
-              $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($checkBetTogelQuotaLimit['sisa_quota']). " untuk nomor ". $checkBetTogel['Nomor'] . " di Game ". $checkBetTogel['name'];
-              return $message;
-
+            } 
+            
+            if ($game['id'] == 14) {
+              $shioName = TogelShioNameModel::find($tebak_shio);
+              $nomor = $shioName['name'];
             }
-             
+
+            $sisaQuota = true;
+            $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($checkBetTogelQuotaLimit['sisa_quota']). " untuk nomor ". $nomor . " di Game ". $game['name'];
+            continue;
+
           }
 
-          if ($checkBetTogel == false) {
-            
-            if ($checkBetTogelQuotaLimit['sisa_quota'] >= $data['pay_amount']) {
-              
-              $gameId = [1, 2, 3, 4];
-              
-              if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
-                
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
-                  
-                  $sisaQuota4D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota4D,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  
-                  return false;
-
-                }
-
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-
-                  $sisaQuota3D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota3D,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  return false;
-
-                } 
-                
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
-                  
-                  $sisaQuota2D = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota2D,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  return false;
-
-                } 
-                
-                if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
-                  
-                  $sisaQuota2DD = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota2DD,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  return false;
-
-                } 
-                
-                if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  
-                  $sisaQuota2DT = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                  $checkBetTogelQuotaLimit->update([
-                    'sisa_quota' => $sisaQuota2DT,
-                    'updated_by' => 0,
-                    'updated_at' => Carbon::now()
-                  ]);
-                  return false;
-
-                }
-
-              } else {
-
-                $sisaQuota = $checkBetTogelQuotaLimit['sisa_quota'] - $data['pay_amount'];
-                $checkBetTogelQuotaLimit->update([
-                  'sisa_quota' => $sisaQuota,
-                  'updated_by' => 0,
-                  'updated_at' => Carbon::now()
-                ]);
-                return false;
-
-              }
-
-            } else {
-
-              $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($checkBetTogelQuotaLimit['sisa_quota']). " untuk nomor ". $checkBetTogel['Nomor'] . " di Game ". $checkBetTogel['name'];
-              return $message;
-
-            }
-             
-          }          
-
         }
-          
+        
         if ($checkBetTogel == true) {
             
-            $gameId = [1, 2, 3, 4];
+          $gameId = [1, 2, 3, 4];
 
-            if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
+          if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
+            
+              if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
 
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
+                $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
 
-                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
-
-                  if ($settingGames['limit_total_4d'] <= $totalBets ) {                    
-                    
-                    $sisaQuota = $settingGames['limit_total_4d'] - $checkBetTogel['totalBet'];
-
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_3'  => $data['number_3'],
-                      'number_4'  => $data['number_4'],
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name']."";
-                    return $message;
-
-                  } else {
-                    return false;
-                  }
-
-                } 
-                
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-
-                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
-
-                  if ($settingGames['limit_total_3d'] <= $totalBets ) {
-                    
-                    $sisaQuota = $settingGames['limit_total_3d'] - $checkBetTogel['totalBet'];
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_4'  => $data['number_4'],
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
-                    return $message;
-
-                  } else {
-                    return false;
-                  }
-
-                } 
-                
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                if ($settingGames['limit_total_4d'] < $totalBets) {                    
                   
-                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+                  $sisaQuotas = $settingGames['limit_total_4d'] - $checkBetTogel['totalBet'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_3'  => $data['number_3'],
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
 
-                  if ($settingGames['limit_total_2d'] <= $totalBets ) {
-                    
-                    $sisaQuota = $settingGames['limit_total_2d'] - $checkBetTogel['totalBet'];
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
-                    return $message;
-
-                  } else {
-                    return false;
-                  }
-
-                } 
-                
-                if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
-                  
-                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
-
-                  if ($settingGames['limit_total_2d_depan'] <= $totalBets ) {
-                    
-                    $sisaQuota = $settingGames['limit_total_2d_depan'] - $checkBetTogel['totalBet'];
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_4'  => $data['number_4'],
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
-                    return $message;
-
-                  } else {
-                    return false;
-                  }
-
-                } 
-                
-                if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  
-                  $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
-
-                  if ($settingGames['limit_total_2d_tengah'] <= $totalBets ) {
-                    
-                    $sisaQuota = $settingGames['limit_total_2d_tengah'] - $checkBetTogel['totalBet'];
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_4'  => $data['number_4'],
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
-                    return $message;
-
-                  } else {
-                    return false;
-                  }
+                  $sisaQuota = true;
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas). " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name']."";
+                  continue;
 
                 }
 
-            } else {
+                if ($settingGames['limit_total_4d'] >= $totalBets) {
 
-              $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+                  $sisaQuotas = $settingGames['limit_total_4d'] - $totalBets;
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_3'  => $data['number_3'],
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
 
-              if ($settingGames['limit_total'] <= $totalBets ) {
+                }
+
+              } 
+              
+              if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+
+                $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+                if ($settingGames['limit_total_3d'] < $totalBets ) {
+                  
+                  $sisaQuotas = $settingGames['limit_total_3d'] - $checkBetTogel['totalBet'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+
+                  $sisaQuota = true;
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
+                  continue;
+
+                }
+
                 
-                $sisaQuota = $settingGames['limit_total'] - $checkBetTogel['totalBet'];
-                BetsTogelQuotaLimitModel::create([
-                  'togel_game_id' => $game->id,
-                  'constant_provider_togel_id'  => $pasaran->id,
-                  'number_3'  => $number_3,
-                  'number_4'  => $number_4,
-                  'number_5'  => $number_5,
-                  'number_6'  => $number_6,
-                  'tebak_as_kop_kepala_ekor'  => $tebak_as_kop_kepala_ekor,
-                  'tebak_besar_kecil' => $tebak_besar_kecil,
-                  'tebak_genap_ganjil'  => $tebak_genap_ganjil,
-                  'tebak_tengah_tepi' => $tebak_tengah_tepi,
-                  'tebak_depan_tengah_belakang' => $tebak_depan_tengah_belakang,
-                  'tebak_mono_stereo' => $tebak_mono_stereo,
-                  'tebak_kembang_kempis_kembar' => $tebak_kembang_kempis_kembar,
-                  'tebak_shio'  => $tebak_shio,
-                  'sisa_quota'  => $sisaQuota,
-                  'created_by'  => 0,
-                  'created_at'  => Carbon::now()
-                ]);
 
-                $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name']."";
-                return $message;
+                if ($settingGames['limit_total_3d'] >= $totalBets) {
 
-              } else {
-                return false;
+                  $sisaQuotas = $settingGames['limit_total_3d'] - $totalBets;
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+                  
+                }
+
+              } 
+              
+              if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                
+                $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+                if ($settingGames['limit_total_2d'] < $totalBets ) {
+                  
+                  $sisaQuotas = $settingGames['limit_total_2d'] - $checkBetTogel['totalBet'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+
+                  $sisaQuota = true;
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
+                  continue;
+
+                }
+
+                if ($settingGames['limit_total_2d'] >= $totalBets) {
+
+                  $sisaQuotas = $settingGames['limit_total_2d'] - $totalBets;
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+                  
+                }
+
+              } 
+              
+              if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                
+                $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+                if ($settingGames['limit_total_2d_depan'] < $totalBets ) {
+                  
+                  $sisaQuotas = $settingGames['limit_total_2d_depan'] - $checkBetTogel['totalBet'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+
+                  $sisaQuota = true;
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
+                  continue;
+
+                }
+
+                if ($settingGames['limit_total_2d_depan'] >= $totalBets) {
+
+                  $sisaQuotas = $settingGames['limit_total_2d_depan'] - $totalBets;
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+                  
+                }
+
+              } 
+              
+              if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                
+                $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+                if ($settingGames['limit_total_2d_tengah'] < $totalBets ) {
+                  
+                  $sisaQuotas = $settingGames['limit_total_2d_tengah'] - $checkBetTogel['totalBet'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+
+                  $sisaQuota = true;
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas) . " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name'];
+                  continue;
+
+                }
+
+                if ($settingGames['limit_total_2d_tengah'] >= $totalBets) {
+
+                  $sisaQuotas = $settingGames['limit_total_2d_tengah'] - $totalBets;
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+                  
+                }
+
               }
+
+          } else {
+
+            $totalBets = $checkBetTogel['totalBet'] + $data['pay_amount'];
+
+            if ($settingGames['limit_total'] < $totalBets ) {
+              
+              $sisaQuotas = $settingGames['limit_total'] - $checkBetTogel['totalBet'];
+              BetsTogelQuotaLimitModel::create([
+                'togel_game_id' => $game->id,
+                'constant_provider_togel_id'  => $pasaran->id,
+                'number_3'  => $number_3,
+                'number_4'  => $number_4,
+                'number_5'  => $number_5,
+                'number_6'  => $number_6,
+                'tebak_as_kop_kepala_ekor'  => $tebak_as_kop_kepala_ekor,
+                'tebak_besar_kecil' => $tebak_besar_kecil,
+                'tebak_genap_ganjil'  => $tebak_genap_ganjil,
+                'tebak_tengah_tepi' => $tebak_tengah_tepi,
+                'tebak_depan_tengah_belakang' => $tebak_depan_tengah_belakang,
+                'tebak_mono_stereo' => $tebak_mono_stereo,
+                'tebak_kembang_kempis_kembar' => $tebak_kembang_kempis_kembar,
+                'tebak_shio'  => $tebak_shio,
+                'sisa_quota'  => $sisaQuotas,
+                'created_by'  => 0,
+                'created_at'  => Carbon::now()
+              ]);
+
+              $sisaQuota = true;
+              $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $checkBetTogel['Nomor'] ." di Game ".$checkBetTogel['name']."";
+              continue;
 
             }
-             
-        } else {
-            $gameId = [1, 2, 3, 4];
 
-            if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
+            if ($settingGames['limit_total'] >= $totalBets ) {
+              
+              $sisaQuotas = $settingGames['limit_total'] - $totalBets;
+              BetsTogelQuotaLimitModel::create([
+                'togel_game_id' => $game->id,
+                'constant_provider_togel_id'  => $pasaran->id,
+                'number_3'  => $number_3,
+                'number_4'  => $number_4,
+                'number_5'  => $number_5,
+                'number_6'  => $number_6,
+                'tebak_as_kop_kepala_ekor'  => $tebak_as_kop_kepala_ekor,
+                'tebak_besar_kecil' => $tebak_besar_kecil,
+                'tebak_genap_ganjil'  => $tebak_genap_ganjil,
+                'tebak_tengah_tepi' => $tebak_tengah_tepi,
+                'tebak_depan_tengah_belakang' => $tebak_depan_tengah_belakang,
+                'tebak_mono_stereo' => $tebak_mono_stereo,
+                'tebak_kembang_kempis_kembar' => $tebak_kembang_kempis_kembar,
+                'tebak_shio'  => $tebak_shio,
+                'sisa_quota'  => $sisaQuotas,
+                'created_by'  => 0,
+                'created_at'  => Carbon::now()
+              ]);
 
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
-                  
-                  $totalBets =  $data['pay_amount'];
-                  
-                  if ($settingGames['limit_total_4d'] <= $totalBets ) {
-                    
-                    $sisaQuota = $settingGames['limit_total_4d'];
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_3'  => $data['number_3'],
-                      'number_4'  => $data['number_4'],
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-                    $nomor = $data['number_3'].$data['number_4'].$data['number_5'].$data['number_6'];
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $nomor ." di Game ".$game['name'];
-                    return $message;
+            }
 
-                  } else {
-                    return false;
-                  }
+          }
+           
+        }
 
-                } 
+        if ($checkBetTogel == false) {
+            
+          $gameId = [1, 2, 3, 4];
+          
+          if (in_array($game->id, $gameId)){ # Game 4D/3D/2D | 4D/3D/2D Set | Bolak Balik | Quick 2D
+              
+              if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] != null){
                 
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-
-                  $totalBets =  $data['pay_amount'];
-
-                  if ($settingGames['limit_total_3d'] <= $totalBets ) {
-                    
-                    $sisaQuota = $settingGames['limit_total_3d'];
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_4'  => $data['number_4'],
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-                    $nomor = $data['number_4'].$data['number_5'].$data['number_6'];
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $nomor ." di Game ".$game['name'];
-                    return $message;
-
-                  } else {
-                    return false;
-                  }
-
-                } 
+                $totalBets =  $data['pay_amount'];
                 
-                if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
+                if ($settingGames['limit_total_4d'] < $totalBets ) {
                   
-                  $totalBets =  $data['pay_amount'];
+                  $sisaQuotas = $settingGames['limit_total_4d'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_3'  => $data['number_3'],
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
 
-                  if ($settingGames['limit_total_2d'] <= $totalBets ) {
-                    
-                    $sisaQuota = $settingGames['limit_total_2d'];
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-                    $nomor = $data['number_5'].$data['number_6'];
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $nomor ." di Game ".$game['name'];
-                    return $message;
-
-                  } else {
-                    return false;
-                  }
-
-                } 
-                
-                if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
-                  
-                  $totalBets =  $data['pay_amount'];
-
-                  if ($settingGames['limit_total_2d_depan'] <= $totalBets ) {
-                    
-                    $sisaQuota = $settingGames['limit_total_2d_depan'];
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_4'  => $data['number_4'],
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-                    $nomor = $data['number_3'].$data['number_4'];
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $nomor ." di Game ".$game['name'];
-                    return $message;
-
-                  } else {
-                    return false;
-                  }
-
-                } 
-                
-                if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
-                  
-                  $totalBets =  $data['pay_amount'];
-
-                  if ($settingGames['limit_total_2d_tengah'] <= $totalBets ) {
-                    
-                    $sisaQuota = $settingGames['limit_total_2d_tengah'];
-                    BetsTogelQuotaLimitModel::create([
-                      'togel_game_id' => $game->id,
-                      'constant_provider_togel_id'  => $pasaran->id,
-                      'number_4'  => $data['number_4'],
-                      'number_5'  => $data['number_5'],
-                      'number_6'  => $data['number_6'],
-                      'sisa_quota'  => $sisaQuota,
-                      'created_by'  => 0,
-                      'created_at'  => Carbon::now()
-                    ]);
-                    $nomor = $data['number_4'].$data['number_5'];
-                    $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota) . " untuk nomor ". $nomor ." di Game ".$game['name'];
-                    return $message;
-
-                  } else {
-                    return false;
-                  }
+                  $sisaQuota = true;
+                  $nomor = $data['number_3'].$data['number_4'].$data['number_5'].$data['number_6'];
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas). " untuk nomor ". $nomor ." di Game ".$game['name'];
+                  continue;
 
                 }
 
-            } else {
+              } 
+              
+              if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
 
-              $totalBets =  $data['pay_amount'];
+                $totalBets =  $data['pay_amount'];
 
-              if ($settingGames['limit_total'] <= $totalBets ) {
-                
-                $sisaQuota = $settingGames['limit_total'];
-                BetsTogelQuotaLimitModel::create([
-                  'togel_game_id' => $game->id,
-                  'constant_provider_togel_id'  => $pasaran->id,
-                  'number_3'  => $number_3,
-                  'number_4'  => $number_4,
-                  'number_5'  => $number_5,
-                  'number_6'  => $number_6,
-                  'tebak_as_kop_kepala_ekor'  => $tebak_as_kop_kepala_ekor,
-                  'tebak_besar_kecil' => $tebak_besar_kecil,
-                  'tebak_genap_ganjil'  => $tebak_genap_ganjil,
-                  'tebak_tengah_tepi' => $tebak_tengah_tepi,
-                  'tebak_depan_tengah_belakang' => $tebak_depan_tengah_belakang,
-                  'tebak_mono_stereo' => $tebak_mono_stereo,
-                  'tebak_kembang_kempis_kembar' => $tebak_kembang_kempis_kembar,
-                  'tebak_shio'  => $tebak_shio,
-                  'sisa_quota'  => $sisaQuota,
-                  'created_by'  => 0,
-                  'created_at'  => Carbon::now()
-                ]);
+                if ($settingGames['limit_total_3d'] < $totalBets ) {
+                  
+                  $sisaQuotas = $settingGames['limit_total_3d'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
 
-                if ($game['id'] == 5) {
-                  $nomor = $number_6;
-                } 
-                
-                if ($game['id'] == 6) {
-                  $nomor = $number_5.$number_6;
-                } 
-                
-                if ($game['id'] == 7) {
-                  $nomor = $number_4.$number_5.$number_6;
-                } 
-                
-                if ($game['id'] == 8) {
+                  $sisaQuota = true;
+                  $nomor = $data['number_4'].$data['number_5'].$data['number_6'];
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas) . " untuk nomor ". $nomor ." di Game ".$game['name'];
+                  continue;
 
-                  if ($number_3 != null) {
-                    $nomor = $number_3." - ".$tebak_as_kop_kepala_ekor;
-                  } 
-                  
-                  if ($number_4 != null) {
-                    $nomor = $number_4." - ".$tebak_as_kop_kepala_ekor;
-                  } 
-                  
-                  if ($number_5 != null) {
-                    $nomor = $number_5." - ".$tebak_as_kop_kepala_ekor;
-                  } 
-                  
-                  if ($number_6 != null) {
-                    $nomor = $number_6." - ".$tebak_as_kop_kepala_ekor;
-                  }                 
-                  
-                } 
-                
-                if ($game['id'] == 9) {
-                  
-                  if ($tebak_besar_kecil != null) {
-                    $nomor = $tebak_besar_kecil;
-                  } 
-                  
-                  if ($tebak_genap_ganjil != null) {
-                    $nomor = $tebak_genap_ganjil;
-                  } 
-                  
-                  if ($tebak_tengah_tepi != null) {
-                    $nomor = $tebak_tengah_tepi;
-                  }
-                  
-
-                } 
-                
-                if ($game['id'] == 10) {
-                  
-                  if ($tebak_besar_kecil != null) {
-                    $nomor = $tebak_as_kop_kepala_ekor." - ".$tebak_besar_kecil;
-                  } 
-                  
-                  if ($tebak_genap_ganjil != null) {
-                    $nomor = $tebak_as_kop_kepala_ekor." - ".$tebak_genap_ganjil;
-                  }
-                  
-
-                } 
-                
-                if ($game['id'] == 11) {
-                  
-                  if ($tebak_mono_stereo != null) {
-                    $nomor = $tebak_depan_tengah_belakang." - ".$tebak_mono_stereo;
-                  } 
-                  
-                  if ($tebak_kembang_kempis_kembar != null) {
-                    $nomor = $tebak_depan_tengah_belakang." - ".$tebak_kembang_kempis_kembar;
-                  }
-
-                } 
-                
-                if ($game['id'] == 12) {
-                  $nomor = $tebak_depan_tengah_belakang." - ".$tebak_besar_kecil." - ".$tebak_genap_ganjil;
-                } 
-                
-                if ($game['id'] == 13) {
-                  
-                  if ($tebak_besar_kecil != null) {
-                    $nomor = $tebak_besar_kecil;
-                  } 
-                  
-                  if ($tebak_genap_ganjil != null) {
-                    $nomor = $tebak_genap_ganjil;
-                  }
-                  
-
-                } 
-                
-                if ($game['id'] == 14) {
-                  $shioName = TogelShioNameModel::find($tebak_shio);
-                  $nomor = $shioName['name'];
                 }
+
+              } 
+              
+              if ($data['number_6'] != null && $data['number_5'] != null && $data['number_4'] == null && $data['number_3'] == null){
                 
-                $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuota). " untuk nomor ". $nomor ." di Game ".$game['name'];
-                return $message;
+                $totalBets =  $data['pay_amount'];
+
+                if ($settingGames['limit_total_2d'] < $totalBets ) {
+                  
+                  $sisaQuotas = $settingGames['limit_total_2d'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+
+                  $sisaQuota = true;
+                  $nomor = $data['number_5'].$data['number_6'];
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas) . " untuk nomor ". $nomor ." di Game ".$game['name'];
+                  continue;
+
+                }
+
+              } 
+              
+              if ($data['number_6'] == null && $data['number_5'] == null && $data['number_4'] != null && $data['number_3'] != null){
+                
+                $totalBets =  $data['pay_amount'];
+
+                if ($settingGames['limit_total_2d_depan'] < $totalBets ) {
+                  
+                  $sisaQuotas = $settingGames['limit_total_2d_depan'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+
+                  $sisaQuota = true;
+                  $nomor = $data['number_3'].$data['number_4'];
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas) . " untuk nomor ". $nomor ." di Game ".$game['name'];
+                  continue;
+
+                }
+
+              } 
+              
+              if ($data['number_6'] == null && $data['number_5'] != null && $data['number_4'] != null && $data['number_3'] == null){
+                
+                $totalBets =  $data['pay_amount'];
+
+                if ($settingGames['limit_total_2d_tengah'] < $totalBets ) {
+                  
+                  $sisaQuotas = $settingGames['limit_total_2d_tengah'];
+                  BetsTogelQuotaLimitModel::create([
+                    'togel_game_id' => $game->id,
+                    'constant_provider_togel_id'  => $pasaran->id,
+                    'number_4'  => $data['number_4'],
+                    'number_5'  => $data['number_5'],
+                    'number_6'  => $data['number_6'],
+                    'sisa_quota'  => $sisaQuotas,
+                    'created_by'  => 0,
+                    'created_at'  => Carbon::now()
+                  ]);
+
+                  $sisaQuota = true;
+                  $nomor = $data['number_4'].$data['number_5'];
+                  $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas) . " untuk nomor ". $nomor ." di Game ".$game['name'];
+                  continue;
+
+                }
 
               }
 
-            }  
+          } else {
+
+            $totalBets =  $data['pay_amount'];
+
+            if ($settingGames['limit_total'] < $totalBets ) {
+              
+              $sisaQuotas = $settingGames['limit_total'];
+              BetsTogelQuotaLimitModel::create([
+                'togel_game_id' => $game->id,
+                'constant_provider_togel_id'  => $pasaran->id,
+                'number_3'  => $number_3,
+                'number_4'  => $number_4,
+                'number_5'  => $number_5,
+                'number_6'  => $number_6,
+                'tebak_as_kop_kepala_ekor'  => $tebak_as_kop_kepala_ekor,
+                'tebak_besar_kecil' => $tebak_besar_kecil,
+                'tebak_genap_ganjil'  => $tebak_genap_ganjil,
+                'tebak_tengah_tepi' => $tebak_tengah_tepi,
+                'tebak_depan_tengah_belakang' => $tebak_depan_tengah_belakang,
+                'tebak_mono_stereo' => $tebak_mono_stereo,
+                'tebak_kembang_kempis_kembar' => $tebak_kembang_kempis_kembar,
+                'tebak_shio'  => $tebak_shio,
+                'sisa_quota'  => $sisaQuotas,
+                'created_by'  => 0,
+                'created_at'  => Carbon::now()
+              ]);
+
+              if ($game['id'] == 5) {
+                $nomor = $number_6;
+              } 
+              
+              if ($game['id'] == 6) {
+                $nomor = $number_5.$number_6;
+              } 
+              
+              if ($game['id'] == 7) {
+                $nomor = $number_4.$number_5.$number_6;
+              } 
+              
+              if ($game['id'] == 8) {
+
+                if ($number_3 != null) {
+                  $nomor = $number_3." - ".$tebak_as_kop_kepala_ekor;
+                } 
+                
+                if ($number_4 != null) {
+                  $nomor = $number_4." - ".$tebak_as_kop_kepala_ekor;
+                } 
+                
+                if ($number_5 != null) {
+                  $nomor = $number_5." - ".$tebak_as_kop_kepala_ekor;
+                } 
+                
+                if ($number_6 != null) {
+                  $nomor = $number_6." - ".$tebak_as_kop_kepala_ekor;
+                }                 
+                
+              } 
+              
+              if ($game['id'] == 9) {
+                
+                if ($tebak_besar_kecil != null) {
+                  $nomor = $tebak_besar_kecil;
+                } 
+                
+                if ($tebak_genap_ganjil != null) {
+                  $nomor = $tebak_genap_ganjil;
+                } 
+                
+                if ($tebak_tengah_tepi != null) {
+                  $nomor = $tebak_tengah_tepi;
+                }
+                
+
+              } 
+              
+              if ($game['id'] == 10) {
+                
+                if ($tebak_besar_kecil != null) {
+                  $nomor = $tebak_as_kop_kepala_ekor." - ".$tebak_besar_kecil;
+                } 
+                
+                if ($tebak_genap_ganjil != null) {
+                  $nomor = $tebak_as_kop_kepala_ekor." - ".$tebak_genap_ganjil;
+                }
+                
+
+              } 
+              
+              if ($game['id'] == 11) {
+                
+                if ($tebak_mono_stereo != null) {
+                  $nomor = $tebak_depan_tengah_belakang." - ".$tebak_mono_stereo;
+                } 
+                
+                if ($tebak_kembang_kempis_kembar != null) {
+                  $nomor = $tebak_depan_tengah_belakang." - ".$tebak_kembang_kempis_kembar;
+                }
+
+              } 
+              
+              if ($game['id'] == 12) {
+                $nomor = $tebak_depan_tengah_belakang." - ".$tebak_besar_kecil." - ".$tebak_genap_ganjil;
+              } 
+              
+              if ($game['id'] == 13) {
+                
+                if ($tebak_besar_kecil != null) {
+                  $nomor = $tebak_besar_kecil;
+                } 
+                
+                if ($tebak_genap_ganjil != null) {
+                  $nomor = $tebak_genap_ganjil;
+                }
+                
+
+              } 
+              
+              if ($game['id'] == 14) {
+                $shioName = TogelShioNameModel::find($tebak_shio);
+                $nomor = $shioName['name'];
+              }
+              
+              $sisaQuota = true;
+              $message = "Over Kuota (sudah limit), sisa quota sebesar Rp. ". number_format($sisaQuotas). " untuk nomor ". $nomor ." di Game ".$game['name'];
+              continue;
+
+            }
+
+          }  
 
         }
+        
 
-      }      
+      }
       
-      return false;
+      if ($sisaQuota == true) { 
+        DB::roleBack();
+        DB::commit();     
+        return $message;
+      } else {
+        return false;
+      }
+      
 
     } catch (\Throwable $th) {
       return $this->errorResponse($th->getMessage(), 500);
