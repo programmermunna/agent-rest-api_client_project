@@ -68,7 +68,7 @@ class MemberController extends ApiController
   {
     try {
       $id = auth('api')->user()->id;
-      $fromDate = Carbon::now()->subDay(7)->format('Y-m-d 00:00:00');
+      $fromDate = Carbon::now()->subMonth(2)->format('Y-m-d 00:00:00');
       $toDate = Carbon::now();
 
       # History Deposit
@@ -1015,7 +1015,7 @@ class MemberController extends ApiController
 
   public function getTogel()
   {    
-    $fromDate = Carbon::now()->subDay(7)->format('Y-m-d 00:00:00');
+    $fromDate = Carbon::now()->subMonth(2)->format('Y-m-d 00:00:00');
     $toDate = Carbon::now();
 
     $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')
@@ -1680,7 +1680,7 @@ class MemberController extends ApiController
   protected function dataTogel()
   {
     
-    $fromDate = Carbon::now()->subDay(7)->format('Y-m-d 00:00:00');
+    $fromDate = Carbon::now()->subMonth(2)->format('Y-m-d 00:00:00');
     $toDate = Carbon::now();
 
     $result = BetsTogel::join('members', 'bets_togel.created_by', '=', 'members.id')
@@ -2924,8 +2924,8 @@ class MemberController extends ApiController
                 ) as 'Status'
             ")
             ->where(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"), Carbon::parse($date->created_at)->format('Y-m-d H:i'))
-            // ->where('bets_togel.updated_at', null)
-            ->where('bets_togel.created_by', $date->created_by)->get()->toArray();
+            ->where('bets_togel.created_by', $date->created_by)
+            ->groupBy('bets_togel.togel_game_id')->get()->toArray();
     return $result;
   }
 
