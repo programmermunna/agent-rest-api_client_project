@@ -3245,7 +3245,7 @@ class MemberController extends ApiController
   public function getStatement()
   {
     try {
-      $date = Carbon::now()->subDays(7);
+      $date = Carbon::now()->subMonth(2);
       $date->format('Y-m-d');
       $statement = BetModel::join('members', 'members.id', '=', 'bets.created_by')
         ->select(
@@ -3275,7 +3275,7 @@ class MemberController extends ApiController
   public function statementWdDepo()
   {
     try {
-      $date = Carbon::now()->subDays(7);
+      $date = Carbon::now()->subMonth(2);
       $date->format('Y-m-d');
 
       $deposit = DepositModel::select([
