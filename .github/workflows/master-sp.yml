@@ -3,7 +3,7 @@ name: Deploy Agent REST API Productions
 on:
   push:
     branches:
-      - master-stack
+      - master-sp
 
 jobs:
   deploy:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: master-stack
+          ref: master-sp
       - name: Deploy Agent Rest API PROD
         uses: appleboy/ssh-action@master 
         with:
