@@ -82,7 +82,7 @@ class JWTAuthController extends ApiController
                 'remember_token' => $token,
                 'active' => 1,
                 'last_login_at' => now(),
-                'last_login_ip' => $request->getClientIp(),
+                'last_login_ip' => $request->ip ?? $request->getClientIp(),
             ]);
 
             auth('api')->user();
@@ -95,8 +95,7 @@ class JWTAuthController extends ApiController
                 [
                     'target' => $user->username,
                     'activity' => 'Logged In',
-                    // 'ip' => $request->ip ?? request()->getClientIp(),
-                    'ip' => $request->getClientIp(),
+                    'ip' => $request->ip ?? request()->getClientIp(),
                 ],
                 'Successfully'
             );
