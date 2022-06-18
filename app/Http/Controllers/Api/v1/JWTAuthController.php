@@ -19,6 +19,7 @@ use App\Models\RekeningTujuanDepo;
 use App\Rules\IsValidPassword;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
@@ -38,6 +39,16 @@ class JWTAuthController extends ApiController
     public function authenticate(Request $request){
 
         $input = $request->all();
+
+        // get ip public
+        $client = new Client();
+        $url = "https://api.ipify.org/?format=json";
+        $response = $client->get(
+            $url
+        );
+        $body = $response->getBody();
+        $data = json_decode($body->getContents());
+        $ipPublic = $data->ip;
 
         $fieldType = filter_var($request->user_account, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
@@ -82,7 +93,7 @@ class JWTAuthController extends ApiController
                 'remember_token' => $token,
                 'active' => 1,
                 'last_login_at' => now(),
-                'last_login_ip' => $request->ip ?? $request->getClientIp(),
+                'last_login_ip' => $request->ip ?? $ipPublic,
             ]);
 
             auth('api')->user();
@@ -95,7 +106,7 @@ class JWTAuthController extends ApiController
                 [
                     'target' => $user->username,
                     'activity' => 'Logged In',
-                    'ip' => $request->ip ?? request()->getClientIp(),
+                    'ip' => $request->ip ?? $ipPublic,
                 ],
                 'Successfully'
             );
