@@ -96,7 +96,7 @@ class JWTAuthController extends ApiController
                     'target' => $user->username,
                     'activity' => 'Logged In',
                     // 'ip' => $request->ip ?? request()->getClientIp(),
-                    'ip' => $request->ip(),
+                    'ip' => $request->getClientIp(),
                 ],
                 'Successfully'
             );
