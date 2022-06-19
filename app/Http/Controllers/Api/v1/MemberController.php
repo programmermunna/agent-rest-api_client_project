@@ -1632,7 +1632,11 @@ class MemberController extends ApiController
                   ) as 'Status'
               ")
               ->whereBetween('bets_togel.created_at', [$fromDate, $toDate])
-              ->where('bets_togel.created_by', '=', auth('api')->user()->id)->orderBy('bets_togel.id', 'DESC')->get();
+              ->where('bets_togel.created_by', '=', auth('api')->user()->id)
+              ->orderBy('bets_togel.id', 'DESC')
+              ->groupBy('bets_togel.togel_game_id')
+              ->groupBy(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"))
+              ->get();
 
     return $this->togel = collect($result)->map(function ($value) {
       return [
@@ -1644,7 +1648,8 @@ class MemberController extends ApiController
         'kredit'      => $value->winTogel, #win
         'balance'     => $value->balance,
         'created_by'    => auth('api')->user()->username,
-        'url'       => "/endpoint/getDetailTransaksi?detail=$value->id",
+        // 'url'       => "/endpoint/getDetailTransaksi?detail=$value->id",
+        'url'       => '/endpoint/getDetailTransaksiTogel/'.$value->id,
       ];
 
     // $result = DB::table('bets_togel_history_transaksi as a')
@@ -2004,9 +2009,9 @@ class MemberController extends ApiController
                     )
                 )
             ) as 'Nomor'
-            , bets_togel.bet_amount as 'Bet'
-            , bets_togel.pay_amount as 'Bayar'
-            , bets_togel.win_nominal as 'winTogel'
+            , SUM(bets_togel.bet_amount) as 'Bet'
+            , SUM(bets_togel.pay_amount) as 'Bayar'
+            , SUM(bets_togel.win_nominal) as 'winTogel'
             , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'disc/kei'
 
 
@@ -2925,7 +2930,7 @@ class MemberController extends ApiController
             ")
             ->where(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"), Carbon::parse($date->created_at)->format('Y-m-d H:i'))
             ->where('bets_togel.created_by', $date->created_by)
-            ->groupBy('bets_togel.togel_game_id')->get()->toArray();
+            ->where('bets_togel.togel_game_id', $data->togel_game_id)->get()->toArray();
     return $result;
   }
 
