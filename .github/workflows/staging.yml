@@ -14,7 +14,7 @@ jobs:
       - name: Deploy Agent Rest API To Staging 
         uses: appleboy/ssh-action@master 
         with:
-          host: ${{ secrets.IP_AGENT_REST_STAGING }}
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
           username: ${{ secrets.HOSTNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.SSH_PORT }}
