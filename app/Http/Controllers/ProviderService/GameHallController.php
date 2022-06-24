@@ -1062,10 +1062,12 @@ class GameHallController extends Controller
           }
         }
       }
+      
+      $now = Carbon::now()->setTimezone('Asia/Jakarta');
       return [
         "status" => '0000',
         "balance" => (string)round($amount / $this->ratio, 3),
-        "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+        "balanceTs"   => $now->format("Y-m-d\TH:i:s.vP")
       ];
     } catch (\Throwable $th) {
       return response()->json([
