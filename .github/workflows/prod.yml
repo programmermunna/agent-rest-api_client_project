@@ -3,7 +3,7 @@ name: Deploy Agent REST API Productions
 on:
   push:
     branches:
-      - master
+      - master.v.4.0
 
 jobs:
   deploy:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: master 
+          ref: master.v.4.0 
       - name: Deploy Agent Rest API PROD
         uses: appleboy/ssh-action@master 
         with:
@@ -21,7 +21,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             pwd
-            ./rest.sh
+            ./production.sh
         
   slackNotification:
     needs: deploy
