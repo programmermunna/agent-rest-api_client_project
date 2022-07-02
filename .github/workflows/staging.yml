@@ -22,7 +22,7 @@ jobs:
             pwd
             whoami
             ls -la
-            ./rest.sh
+            ./memberapi.sh
         
   slackNotification:
     needs: deploy
