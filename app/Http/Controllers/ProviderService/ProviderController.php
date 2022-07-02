@@ -273,7 +273,9 @@ class ProviderController extends Controller
       }
     } else {
       $member =  MembersModel::where('id', $data->userId)->first();
-      $bets = BetModel::where('bet_id', $data->betId)->first();
+      // $bets = BetModel::where('bet_id', $data->betId)->first();      
+      $bets = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+        ->where('bet_id', $data->betId)->first();
       $condition = CancelBetModel::where('cancel_id', $data->cancelId)->orWhere('bet_id', $data->betId)->first();
       $cancelCredit = $member->credit + $bets->bet;
       if (!$bets) {
@@ -318,7 +320,7 @@ class ProviderController extends Controller
             'device' => $member->device,
             'ip' => $member->last_login_ip,
           ],
-          "$member->username . ' Cancel on ' . $nameProvider->constant_provider_name . ' type ' .  $nameProvider->game_info . ' idr '. $nameProvider->bet"
+          "$member->username . ' Cancel on ' . $bets->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $bets->bet"
         );
         return Response::json($res);
       }
