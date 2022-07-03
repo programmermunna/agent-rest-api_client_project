@@ -23,8 +23,7 @@ use Lab404\Impersonate\Models\Impersonate;
  */
 class User extends Authenticatable implements MustVerifyEmail, TwoFactorAuthenticatable
 {
-    use HasRoles,
-        Impersonate,
+    use Impersonate,
         MustVerifyEmailTrait,
         SoftDeletes,
         TwoFactorAuthentication,

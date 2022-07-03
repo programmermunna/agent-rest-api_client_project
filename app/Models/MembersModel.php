@@ -22,8 +22,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactorAuthenticatable, JWTSubject
 {
-    use HasRoles,
-        Impersonate,
+    use Impersonate,
         MustVerifyEmailTrait,
         Notifiable,
         SoftDeletes,
