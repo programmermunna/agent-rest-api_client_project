@@ -25,7 +25,7 @@
         "pragmarx/firewall": "^2.3",
         "sentry/sentry-laravel": "^2.8",
         "spatie/laravel-ray": "^1.26",
-        "rappasoft/laravel-livewire-tables": "^0.2.1",
+        "rappasoft/laravel-livewire-tables": "^1.7",
         "tymon/jwt-auth": "^1.0"
     },
     "require-dev": {
