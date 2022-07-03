@@ -10,7 +10,6 @@ use App\Domains\Auth\Notifications\Frontend\ResetPasswordNotification;
 use App\Domains\Auth\Notifications\Frontend\VerifyEmail;
 use App\Models\AdminIp;
 use App\Models\UploadBonusModel;
-use DarkGhostHunter\Laraguard\Contracts\TwoFactorAuthenticatable;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -20,7 +19,7 @@ use Lab404\Impersonate\Models\Impersonate;
 /**
  * Class User.
  */
-class User extends Authenticatable implements MustVerifyEmail, TwoFactorAuthenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use Impersonate,
         MustVerifyEmailTrait,
