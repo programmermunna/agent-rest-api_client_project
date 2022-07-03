@@ -168,7 +168,6 @@ return [
          * Package Service Providers...
          */
         Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
-        Arcanedev\LogViewer\LogViewerServiceProvider::class,
         /*
          * Application Service Providers...
          */
