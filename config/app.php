@@ -169,7 +169,6 @@ return [
          */
         Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
         Arcanedev\LogViewer\LogViewerServiceProvider::class,
-        Maatwebsite\Excel\ExcelServiceProvider::class,
         /*
          * Application Service Providers...
          */
@@ -249,7 +248,6 @@ return [
         //package
         'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
-        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
     ],
 
