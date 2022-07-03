@@ -21,12 +21,10 @@
         "langleyfoxall/laravel-nist-password-rules": "^4.1",
         "laravel/framework": "^8.75",
         "laravel/tinker": "^2.0",
-        "laravel/ui": "^2.0",
         "nesbot/carbon": "^2.41",
         "pragmarx/firewall": "^2.3",
         "sentry/sentry-laravel": "^2.8",
         "spatie/laravel-ray": "^1.26",
-        "tabuna/breadcrumbs": "^1.0",
         "maatwebsite/excel": "^3.1",
         "tymon/jwt-auth": "^1.0"
     },
