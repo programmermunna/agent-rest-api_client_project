@@ -150,13 +150,13 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, JWTSubjec
     }
 
 
-    /**
-     * @var string[]
-     */
-    protected $with = [
-        'permissions',
-        'roles',
-    ];
+    // /**
+    //  * @var string[]
+    //  */
+    // protected $with = [
+    //     'permissions',
+    //     'roles',
+    // ];
 
     /**
      * Return true or false if the user can impersonate an other user.
