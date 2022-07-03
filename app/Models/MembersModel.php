@@ -9,7 +9,9 @@ use App\Domains\Auth\Models\Traits\Method\UserMethod;
 use App\Domains\Auth\Models\Traits\Relationship\UserRelationship;
 use App\Domains\Auth\Models\Traits\Scope\UserScope;
 use App\UserToken;
+use DarkGhostHunter\Laraguard\Contracts\TwoFactorAuthenticatable;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
+use DarkGhostHunter\Laraguard\TwoFactorAuthentication;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -17,12 +19,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Lab404\Impersonate\Models\Impersonate;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Spatie\Permission\Traits\HasRoles;
 
-class MembersModel extends Authenticatable implements MustVerifyEmail, JWTSubject
+class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactorAuthenticatable, JWTSubject
 {
-    use Impersonate,
+    use HasRoles,
+        Impersonate,
         MustVerifyEmailTrait,
         Notifiable,
+        TwoFactorAuthentication,
         SoftDeletes,
         UserAttribute,
         UserMethod,
