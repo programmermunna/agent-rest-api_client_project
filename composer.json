@@ -25,7 +25,6 @@
         "pragmarx/firewall": "^2.3",
         "sentry/sentry-laravel": "^2.8",
         "spatie/laravel-ray": "^1.26",
-        "maatwebsite/excel": "^3.1",
         "rappasoft/laravel-livewire-tables": "^0.2.1",
         "tymon/jwt-auth": "^1.0"
     },
