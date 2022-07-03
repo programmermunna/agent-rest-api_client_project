@@ -7,8 +7,6 @@ use Auth;
 use Illuminate\Support\Facades\Schema;
 
 use Illuminate\Support\ServiceProvider;
-use Spatie\Activitylog\Models\Activity;
-use View;
 
 /**
  * Class AppServiceProvider.
@@ -38,10 +36,6 @@ class AppServiceProvider extends ServiceProvider
         view()->composer('*', function ($view) {
             if (Auth::check()) {
             }
-        });
-
-        Activity::saving(function (Activity $activity) {
-            $activity->properties = $activity->properties->put('ip', request()->ip());
         });
 
         \Str::macro('snakeToTitle', function ($value) {
