@@ -11,7 +11,6 @@ use App\Domains\Auth\Notifications\Frontend\VerifyEmail;
 use App\Models\AdminIp;
 use App\Models\UploadBonusModel;
 use DarkGhostHunter\Laraguard\Contracts\TwoFactorAuthenticatable;
-use DarkGhostHunter\Laraguard\TwoFactorAuthentication;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -26,7 +25,6 @@ class User extends Authenticatable implements MustVerifyEmail, TwoFactorAuthenti
     use Impersonate,
         MustVerifyEmailTrait,
         SoftDeletes,
-        TwoFactorAuthentication,
         UserAttribute,
         UserMethod,
         UserRelationship,
