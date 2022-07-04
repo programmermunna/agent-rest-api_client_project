@@ -9,7 +9,6 @@ use App\Domains\Auth\Models\Traits\Method\UserMethod;
 use App\Domains\Auth\Models\Traits\Relationship\UserRelationship;
 use App\Domains\Auth\Models\Traits\Scope\UserScope;
 use App\UserToken;
-use DarkGhostHunter\Laraguard\Contracts\TwoFactorAuthenticatable;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -20,7 +19,7 @@ use Lab404\Impersonate\Models\Impersonate;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
 
-class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactorAuthenticatable, JWTSubject
+class MembersModel extends Authenticatable implements MustVerifyEmail, JWTSubject
 {
     use HasRoles,
         Impersonate,
