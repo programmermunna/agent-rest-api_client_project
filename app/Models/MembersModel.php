@@ -11,7 +11,6 @@ use App\Domains\Auth\Models\Traits\Scope\UserScope;
 use App\UserToken;
 use DarkGhostHunter\Laraguard\Contracts\TwoFactorAuthenticatable;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
-use DarkGhostHunter\Laraguard\TwoFactorAuthentication;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -27,7 +26,6 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
         Impersonate,
         MustVerifyEmailTrait,
         Notifiable,
-        TwoFactorAuthentication,
         SoftDeletes,
         UserAttribute,
         UserMethod,
