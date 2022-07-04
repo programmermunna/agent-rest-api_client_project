@@ -15,13 +15,15 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Lab404\Impersonate\Models\Impersonate;
+use Spatie\Permission\Traits\HasRoles;
 
 /**
  * Class User.
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use Impersonate,
+    use HasRoles,
+        Impersonate,
         MustVerifyEmailTrait,
         SoftDeletes,
         UserAttribute,
