@@ -5,8 +5,6 @@ namespace App\Imports;
 use App\Models\BonusModel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class BonusImport implements ToModel, WithHeadingRow
 {

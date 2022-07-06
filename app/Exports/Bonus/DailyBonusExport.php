@@ -3,7 +3,6 @@
 namespace App\Exports\Bonus;
 
 use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromView;
 
 class DailyBonusExport implements FromView
 {

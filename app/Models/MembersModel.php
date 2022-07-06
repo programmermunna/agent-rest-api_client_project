@@ -18,8 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Lab404\Impersonate\Models\Impersonate;
-use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Spatie\Permission\Traits\HasRoles;
 
 class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactorAuthenticatable, JWTSubject
 {

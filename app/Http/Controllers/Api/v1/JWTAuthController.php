@@ -87,7 +87,7 @@ class JWTAuthController extends ApiController
                     return $this->errorResponse('Password anda salah', 401);
                 }
             } catch (JWTException $e) {
-                return $this->errorResponse('Could tidak dapat membuat token', 500);
+                return $this->errorResponse('Tidak dapat membuat token', 500);
             }
             auth('api')->user()->update([
                 'remember_token' => $token,
@@ -119,6 +119,7 @@ class JWTAuthController extends ApiController
 
             try {
                 auth('api')->setToken($item->token)->invalidate();
+                $item->delete();
             } catch (\Exception $exception) {
                 //handle exception
             }

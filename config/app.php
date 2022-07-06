@@ -168,8 +168,6 @@ return [
          * Package Service Providers...
          */
         Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
-        Arcanedev\LogViewer\LogViewerServiceProvider::class,
-        Maatwebsite\Excel\ExcelServiceProvider::class,
         /*
          * Application Service Providers...
          */
@@ -189,6 +187,8 @@ return [
         PragmaRX\Firewall\Vendor\Laravel\ServiceProvider::class,
 
         Jenssegers\Agent\AgentServiceProvider::class,
+
+        Spatie\Permission\PermissionServiceProvider::class,
     ],
 
     /*
@@ -249,7 +249,6 @@ return [
         //package
         'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
-        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
         'Agent' => Jenssegers\Agent\Facades\Agent::class,
     ],
 
