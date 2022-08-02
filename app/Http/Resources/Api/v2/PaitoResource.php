@@ -25,7 +25,7 @@ class PaitoResource extends JsonResource
 			'jadwal'  		=> $this->jadwal,
 			'periode' 		=> $this->periode,
 			'is_active'     => $this->is_active,
-			'result'  => $this->resultNumber()->orderByDesc('result_date')->limit(8)->get(),
+			'result'  => $this->resultNumber()->orderByDesc('period')->limit(8)->get(),
 		];
     }
 }

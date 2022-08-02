@@ -25,7 +25,7 @@ class OutResultResource extends JsonResource
 			'jadwal'  		=> $this->jadwal,
 			'periode' 		=> $this->periode,
 			'is_active'     => $this->is_active,
-			'result'  => $this->resultNumber()->orderByDesc('result_date')->first(),
+			'result'  => $this->resultNumber()->orderByDesc('period')->first(),
 		];
 	}
 }
