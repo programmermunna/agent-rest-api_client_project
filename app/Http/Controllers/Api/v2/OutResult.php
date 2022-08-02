@@ -47,7 +47,7 @@ class OutResult extends ApiController
                     , cast(togel_results_number.number_result_5 as char(2))
                     , cast(togel_results_number.number_result_6 as char(2))
                 ) as 'result'
-            ")->get();
+            ")->orderBy('togel_results_number.period', 'desc')->get();
 
 		return $this->paginate($results, 10); 
 	}
@@ -187,7 +187,7 @@ class OutResult extends ApiController
 												) as day,
 												concat(a.name_initial, '-', togel_results_number.period) as pasaran
 											")
-											->orderBy('togel_results_number.result_date', 'desc');
+											->orderBy('togel_results_number.period', 'desc');
 			if ($checkPasaran) {				
 				$result = $resultNumber->where('togel_results_number.constant_provider_togel_id', $request->pasaran);
 				$data = [
