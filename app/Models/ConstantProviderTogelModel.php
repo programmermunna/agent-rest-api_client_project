@@ -27,7 +27,7 @@ class ConstantProviderTogelModel extends Model
 				  'period',
 				  'result_date'
 			  ])
-			  ->orderByDesc('period'); 
+			  ->orderBy('period', 'desc'); 
 	}
 
 }
