@@ -705,89 +705,85 @@ class ProviderController extends Controller
     // bet pragmatic, PG Soft, and Playtech
     public function betPragmatic(Request $request)
     {
-        $this->token = $request->token;
-        $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
-        $user_id = $data->userId;
-        $member = MembersModel::where('id', $user_id)->first();
-        $amountbet = $data->amount;
-        $creditMember = $member->credit;
-        $amount = $creditMember - $amountbet;
-        // dd($data);
-        $bonus = AppSetting::where('type', 'game')->pluck('value', 'id');
+        try {
+            $this->token = $request->token;
+            $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
+            $user_id = $data->userId;
+            $member = MembersModel::where('id', $user_id)->first();
+            $amountbet = $data->amount;
+            $creditMember = $member->credit;
+            $amount = $creditMember - $amountbet;
+            $bonus = AppSetting::where('type', 'game')->pluck('value', 'id');
 
-        // # check transaksi
-        // $bets = BetModel::where('bet_id', $data->code)->first();
-        // if ($bets) {
-        //   $member->update([
-        //     'credit' => $creditMember + $amountbet,
-        //     'updated_at' => Carbon::now(),
-        //   ]);
-        //   $success = [
-        //     "id"    => $bets->id,
-        //     "success" =>  true,
-        //     "amount" => $creditMember
-        //   ];
-        // }
-
-        // if ($amount < 0) {
-        if ($creditMember < $amountbet) {
-            $res = [
-                "success" => false,
-                "amount" => $creditMember,
-            ];
-            return Response::json($res);
-        } else {
-            $bets = BetModel::where('bet_id', $data->code)->first();
-            if ($bets) {
-                $member->DB::update([
-                    'credit' => $creditMember + $amountbet,
-                    'created_at' => Carbon::now(),
-                ]);
-                $success = [
-                    "id" => $bets->id,
-                    "success" => true,
+            if ($creditMember < $amountbet) {
+                $res = [
+                    "success" => false,
+                    "code" => 1,
                     "amount" => $creditMember,
                 ];
+                return Response::json($res);
             } else {
-                $member->update([
-                    'credit' => $amount,
-                    'created_at' => Carbon::now(),
-                    // not use for referal provider (referal just for togel)
-                    // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
-                ]);
-                $bet = [
-                    'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : '')))))),
-                    'bet_id' => $data->code,
-                    'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
-                    'round_id' => $data->roundId,
-                    'type' => 'Lose',
-                    // not use for referal provider (referal just for togel)
-                    // 'bonus_daily_referal' => $data->provider === 'Pragmatic' ? $bonus[7] * $data->amount : ($data->provider === 'Habanero' ? $bonus[9] * $data->amount : ($data->provider === 'Joker Gaming' ? $bonus[11] * $data->amount : ($data->provider === 'Spade Gaming' ? $bonus[10] * $data->amount : ($data->provider === 'Pg Soft' ? $bonus[13] * $data->amount : ($data->provider === 'Playtech' ? $bonus[12] * $data->amount : ''))))),
-                    'game_id' => $data->gameId,
-                    'bet' => $amountbet,
-                    'game_info' => $data->type,
-                    'created_at' => Carbon::now(),
-                    'credit' => $amount,
-                    'created_by' => $member->id,
-                ];
-                $this->insertBet($bet);
                 $bets = BetModel::where('bet_id', $data->code)->first();
-                $success = [
-                    "id" => $bets->id,
-                    "success" => true,
-                    "amount" => $amount,
-                ];
-                // not use for referal provider (referal just for togel)
-                // if ($member->referrer_id) {
-                //     BonusHistoryModel::create([
-                //         'constant_bonus_id' => 3,
-                //         'created_by' => $member->referrer_id,
-                //         'created_at' => Carbon::now(),
-                //         'jumlah' => $data->provider === 'Pragmatic' ?  ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ?  ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ?  ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ?  ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ?  ($bonus[13] * $data->amount) : ($data->provider === 'Playtech' ?  ($bonus[12] * $data->amount) : ''))))),
-                //     ]);
-                // }
+                if ($bets) {
+                    $member->DB::update([
+                        'credit' => $creditMember + $amountbet,
+                        'created_at' => Carbon::now(),
+                    ]);
+                    $success = [
+                        "id" => $bets->id,
+                        "success" => true,
+                        "code" => 0,
+                        "amount" => $creditMember,
+                    ];
+                } else {
+                    $member->update([
+                        'credit' => $amount,
+                        'created_at' => Carbon::now(),
+                        // not use for referal provider (referal just for togel)
+                        // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
+                    ]);
+                    $bet = [
+                        'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : '')))))),
+                        'bet_id' => $data->code,
+                        'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+                        'round_id' => $data->roundId,
+                        'type' => 'Lose',
+                        // not use for referal provider (referal just for togel)
+                        // 'bonus_daily_referal' => $data->provider === 'Pragmatic' ? $bonus[7] * $data->amount : ($data->provider === 'Habanero' ? $bonus[9] * $data->amount : ($data->provider === 'Joker Gaming' ? $bonus[11] * $data->amount : ($data->provider === 'Spade Gaming' ? $bonus[10] * $data->amount : ($data->provider === 'Pg Soft' ? $bonus[13] * $data->amount : ($data->provider === 'Playtech' ? $bonus[12] * $data->amount : ''))))),
+                        'game_id' => $data->gameId,
+                        'bet' => $amountbet,
+                        'game_info' => $data->type,
+                        'created_at' => Carbon::now(),
+                        'credit' => $amount,
+                        'created_by' => $member->id,
+                    ];
+                    $this->insertBet($bet);
+                    $bets = BetModel::where('bet_id', $data->code)->first();
+                    $success = [
+                        "id" => $bets->id,
+                        "success" => true,
+                        "code" => 0,
+                        "amount" => $amount,
+                    ];
+                    // not use for referal provider (referal just for togel)
+                    // if ($member->referrer_id) {
+                    //     BonusHistoryModel::create([
+                    //         'constant_bonus_id' => 3,
+                    //         'created_by' => $member->referrer_id,
+                    //         'created_at' => Carbon::now(),
+                    //         'jumlah' => $data->provider === 'Pragmatic' ?  ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ?  ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ?  ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ?  ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ?  ($bonus[13] * $data->amount) : ($data->provider === 'Playtech' ?  ($bonus[12] * $data->amount) : ''))))),
+                    //     ]);
+                    // }
+                }
+                return Response::json($success);
             }
-            return Response::json($success);
+        } catch (\Throwable$th) {
+            $res = [
+                "success" => false,
+                "code" => 100,
+                "message" => 'Internal Server Error!.',
+            ];
+            return Response::json($res);
         }
     }
 
