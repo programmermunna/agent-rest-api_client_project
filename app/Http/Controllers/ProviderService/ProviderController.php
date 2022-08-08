@@ -761,8 +761,9 @@ class ProviderController extends Controller
                     $bets = BetModel::where('bet_id', $data->code)->first();
                     $success = [
                         "id" => $bets->id,
-                        "success" => true,
-                        "code" => 0,
+                        "success" => false,
+                        "code" => 2,
+                        "message" => "Player not found",
                         "amount" => $amount,
                     ];
                     // not use for referal provider (referal just for togel)
