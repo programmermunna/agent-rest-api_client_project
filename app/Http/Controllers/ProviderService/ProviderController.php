@@ -312,16 +312,16 @@ class ProviderController extends Controller
                     "amount" => $cancelCredit,
                 ];
                 UserLogModel::logMemberActivity(
-                    'Cancel bet',
+                    'Refund bet',
                     $member,
                     $bets,
                     [
                         'target' => $member->username,
-                        'activity' => 'Cancel bet',
+                        'activity' => 'Refund bet',
                         'device' => $member->device,
                         'ip' => $member->last_login_ip,
                     ],
-                    "$member->username . ' Cancel on ' . $bets->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $bets->bet"
+                    "$member->username . ' Refund on ' . $bets->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $bets->bet"
                 );
                 return Response::json($res);
             }
