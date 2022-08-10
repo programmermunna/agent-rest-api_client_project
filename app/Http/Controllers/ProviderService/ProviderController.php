@@ -738,12 +738,12 @@ class ProviderController extends Controller
                     //     'credit' => $creditMember + $amountbet,
                     //     'created_at' => Carbon::now(),
                     // ]);
-                    $success = [
-                        "id" => $bets->id,
-                        "success" => true,
-                        "code" => 0,
-                        "amount" => $creditMember,
-                    ];
+                        // $success = [
+                        //     "id" => $bets->id,
+                        //     "success" => true,
+                        //     "code" => 0,
+                        //     "amount" => $creditMember,
+                        // ];
                 } else {
                     $member->update([
                         'credit' => $amount,
@@ -768,12 +768,12 @@ class ProviderController extends Controller
                     ];
                     $this->insertBet($bet);
                     $bets = BetModel::where('bet_id', $data->code)->first();
-                    $success = [
-                        "id" => $bets->id,
-                        "success" => true,
-                        "code" => 0,
-                        "amount" => $amount,
-                    ];
+                        // $success = [
+                        //     "id" => $bets->id,
+                        //     "success" => true,
+                        //     "code" => 0,
+                        //     "amount" => $amount,
+                        // ];
                     // not use for referal provider (referal just for togel)
                     // if ($member->referrer_id) {
                     //     BonusHistoryModel::create([
@@ -784,15 +784,15 @@ class ProviderController extends Controller
                     //     ]);
                     // }
                 }
-                return Response::json($success);
+                // return Response::json($success);
             }
         } catch (\Throwable $th) {
-            $res = [
-                "success" => false,
-                "code" => 100,
-                "message" => 'Internal Server Error!.',
-            ];
-            return Response::json($res);
+            // $res = [
+            //     "success" => false,
+            //     "code" => 100,
+            //     "message" => 'Internal Server Error!.',
+            // ];
+            // return Response::json($res);
         }
     }
 
