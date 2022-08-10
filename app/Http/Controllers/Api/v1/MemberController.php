@@ -183,7 +183,7 @@ class MemberController extends ApiController
       $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
         ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
         ->whereBetween('bets.created_at', [$fromDate, $toDate])
-        ->whereIn('bets.type', ['Win', 'Lose', 'Bet', 'Settle']);
+        ->whereIn('bets.type', ['Win', 'Lose', 'Bet', 'Settle', 'Refund']);
 
       # Histori Bonus
       $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
