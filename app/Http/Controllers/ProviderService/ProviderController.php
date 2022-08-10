@@ -717,11 +717,6 @@ class ProviderController extends Controller
                     "code" => 4,
                     "message" => "Player not found",
                 ];
-                // $res = [
-                //     "success" => false,
-                //     "code" => 5,
-                //     "message" => "Invalid hash code",
-                // ];
                 return Response::json($res);
             }
             $amountbet = $data->amount;
@@ -772,7 +767,7 @@ class ProviderController extends Controller
                         'created_by' => $member->id,
                     ];
                     $this->insertBet($bet);
-                    $bets = BetModel::where('bet_id', $data->codes)->first();
+                    $bets = BetModel::where('bet_id', $data->code)->first();
                     $success = [
                         "id" => $bets->id,
                         "success" => false,
