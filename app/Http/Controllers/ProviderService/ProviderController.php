@@ -717,6 +717,11 @@ class ProviderController extends Controller
                     "code" => 4,
                     "message" => "Player not found",
                 ];
+                // $res = [
+                //     "success" => false,
+                //     "code" => 5,
+                //     "message" => "Invalid hash code",
+                // ];
                 return Response::json($res);
             }
             $amountbet = $data->amount;
@@ -771,8 +776,8 @@ class ProviderController extends Controller
                     $success = [
                         "id" => $bets->id,
                         "success" => false,
-                        "code" => 4,
-                        "message" => "Player not found",
+                        "code" => 5,
+                        "message" => "Invalid hash code",
                         "amount" => $amount,
                     ];
                     // not use for referal provider (referal just for togel)
