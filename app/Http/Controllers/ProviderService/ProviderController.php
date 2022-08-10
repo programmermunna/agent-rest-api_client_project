@@ -770,7 +770,7 @@ class ProviderController extends Controller
                     $bets = BetModel::where('bet_id', $data->code)->first();
                     $success = [
                         "id" => $bets->id,
-                        "success" => false,
+                        "success" => true,
                         "code" => 0,
                         "amount" => $amount,
                     ];
