@@ -710,6 +710,15 @@ class ProviderController extends Controller
             $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
             $user_id = $data->userId;
             $member = MembersModel::where('id', $user_id)->first();
+
+            if (!$member) {
+                $res = [
+                    "success" => false,
+                    "code" => 4,
+                    "message" => "Player not found",
+                ];
+                return Response::json($res);
+            }
             $amountbet = $data->amount;
             $creditMember = $member->credit;
             $amount = $creditMember - $amountbet;
@@ -762,7 +771,7 @@ class ProviderController extends Controller
                     $success = [
                         "id" => $bets->id,
                         "success" => false,
-                        "code" => 2,
+                        "code" => 4,
                         "message" => "Player not found",
                         "amount" => $amount,
                     ];
