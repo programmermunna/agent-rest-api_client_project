@@ -772,12 +772,11 @@ class ProviderController extends Controller
                         'created_by' => $member->id,
                     ];
                     $this->insertBet($bet);
-                    $bets = BetModel::where('bet_id', $data->code)->first();
+                    $bets = BetModel::where('bet_id', $data->codes)->first();
                     $success = [
                         "id" => $bets->id,
                         "success" => false,
-                        "code" => 5,
-                        "message" => "Invalid hash code",
+                        "code" => 0,
                         "amount" => $amount,
                     ];
                     // not use for referal provider (referal just for togel)
