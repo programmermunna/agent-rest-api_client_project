@@ -1562,7 +1562,7 @@ class BetsTogelController extends ApiController
       $idGame = [1, 2, 3, 4];
 
       if (in_array($game->id, $idGame)) {
-        $lastPeriod = BetsTogel::select('period')->where('constant_provider_togel_id', $pasaran->id)->latest()->first();  
+        // $lastPeriod = BetsTogel::select('period')->where('constant_provider_togel_id', $pasaran->id)->latest()->first();  
         
         $limitLine = false;
         $message = '';
@@ -1648,15 +1648,16 @@ class BetsTogelController extends ApiController
                         ->whereNotNull('bets_togel.number_5')
                         ->whereNotNull('bets_togel.number_6');
               })
+              ->where('bets_togel.period', $pasaran->period)
               ->where('bets_togel.created_by', auth('api')->user()->id)
               ->groupBy('bets_togel.number_3','bets_togel.number_4','bets_togel.number_5','bets_togel.number_6');
 
-          if ($lastPeriod) {             
-            $betTogel = $checkBetTogels->where('bets_togel.period', $lastPeriod->period); 
-          } else {            
-            $betTogel = $checkBetTogels;
-          }
-          $checkBetTogel = $betTogel->get()->toArray();
+          // if ($lastPeriod) {             
+          //   $betTogel = $checkBetTogels->where('bets_togel.period', $lastPeriod->period); 
+          // } else {            
+          //   $betTogel = $checkBetTogels;
+          // }
+          $checkBetTogel = $checkBetTogels->get()->toArray();
 
           $countNumber = collect($checkBetTogel)->count();
 
