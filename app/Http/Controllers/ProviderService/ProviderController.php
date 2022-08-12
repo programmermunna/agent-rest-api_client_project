@@ -702,7 +702,7 @@ class ProviderController extends Controller
         }
     }
 
-    // bet pragmatic, PG Soft, and Playtech
+    // bet pragmatic and Playtech
     public function betPragmatic(Request $request)
     {
         try {
@@ -734,10 +734,6 @@ class ProviderController extends Controller
             } else {
                 $bets = BetModel::where('bet_id', $data->code)->first();
                 if ($bets) {
-                    // $member->DB::update([
-                    //     'credit' => $creditMember + $amountbet,
-                    //     'created_at' => Carbon::now(),
-                    // ]);
                     $success = [
                         "id" => $bets->id,
                         "success" => true,
@@ -784,7 +780,7 @@ class ProviderController extends Controller
                     //     ]);
                     // }
                 }
-                // return Response::json($success);
+                return Response::json($success);
             }
         } catch (\Throwable$th) {
             $res = [
@@ -1037,20 +1033,20 @@ class ProviderController extends Controller
         // Check transaction id duplicate
         if ($bets) {
             return response()->json([
-                "data" => [
-                    "currency_code" => "IDR",
-                    "balance_amount" => round($member->credit / 1000, 2, PHP_ROUND_HALF_DOWN),
-                    "updated_time" => (float) $data->updatedTime,
-                ],
-                "error" => null,
+                // "data" => [
+                //     "currency_code" => "IDR",
+                //     "balance_amount" => round($member->credit / 1000, 2, PHP_ROUND_HALF_DOWN),
+                //     "updated_time" => (float) $data->updatedTime,
+                // ],
+                // "error" => null,
             ], 200);
         } elseif ($member->credit < $betAmount) { // Check member balance
             return response()->json([
-                "data" => null,
-                "error" => [
-                    "code" => 3202,
-                    "message" => "Not enough cash balance to bet",
-                ],
+                // "data" => null,
+                // "error" => [
+                //     "code" => 3202,
+                //     "message" => "Not enough cash balance to bet",
+                // ],
             ], 200);
         }
         /**
@@ -1083,12 +1079,12 @@ class ProviderController extends Controller
         try {
             $this->insertBet($bet);
             return response()->json([
-                "data" => [
-                    "currency_code" => "IDR",
-                    "balance_amount" => round($member->credit / 1000, 2, PHP_ROUND_HALF_DOWN),
-                    "updated_time" => (float) $data->updatedTime,
-                ],
-                "error" => null,
+                // "data" => [
+                //     "currency_code" => "IDR",
+                //     "balance_amount" => round($member->credit / 1000, 2, PHP_ROUND_HALF_DOWN),
+                //     "updated_time" => (float) $data->updatedTime,
+                // ],
+                // "error" => null,
             ], 200);
         } catch (\Throwable$th) {
             return response()->json(['status' => false, "message" => $th->getMessage()], 500);
