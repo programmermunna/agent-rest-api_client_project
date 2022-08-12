@@ -784,9 +784,9 @@ class ProviderController extends Controller
                     //     ]);
                     // }
                 }
-                return Response::json($success);
+                // return Response::json($success);
             }
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             $res = [
                 "success" => false,
                 "code" => 100,

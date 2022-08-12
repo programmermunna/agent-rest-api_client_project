@@ -342,7 +342,7 @@ class GameHallController extends Controller
         }
       }
     }
-    return response()->json($datas, 200);
+    // return response()->json($datas, 200);
   }
 
   // Get the information of the user
