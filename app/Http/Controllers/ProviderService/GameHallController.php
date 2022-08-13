@@ -219,7 +219,7 @@ class GameHallController extends Controller
                 'device' => $nameProvider->device,
                 'ip' => $nameProvider->last_login_ip,
               ],
-              "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+              "$nameProvider->username . ' Bet on Kondisi 1' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
             );
 
             $data = [
@@ -272,7 +272,7 @@ class GameHallController extends Controller
                   'device' => $nameProvider->device,
                   'ip' => $nameProvider->last_login_ip,
                 ],
-                "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+                "$nameProvider->username . ' Bet on kondisi 2' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
               );
 
               $data = [
@@ -328,7 +328,7 @@ class GameHallController extends Controller
                   'device' => $nameProvider->device,
                   'ip' => $nameProvider->last_login_ip,
                 ],
-                "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+                "$nameProvider->username . ' Bet on Kondisi 3' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
               );
 
               $data = [
