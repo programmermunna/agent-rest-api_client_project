@@ -702,7 +702,7 @@ class ProviderController extends Controller
         }
     }
 
-    // bet pragmatic, PG Soft, and Playtech
+    // bet pragmatic and Playtech
     public function betPragmatic(Request $request)
     {
         try {
@@ -734,10 +734,6 @@ class ProviderController extends Controller
             } else {
                 $bets = BetModel::where('bet_id', $data->code)->first();
                 if ($bets) {
-                    // $member->DB::update([
-                    //     'credit' => $creditMember + $amountbet,
-                    //     'created_at' => Carbon::now(),
-                    // ]);
                     $success = [
                         "id" => $bets->id,
                         "success" => true,
@@ -786,7 +782,7 @@ class ProviderController extends Controller
                 }
                 return Response::json($success);
             }
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             $res = [
                 "success" => false,
                 "code" => 100,

@@ -184,7 +184,6 @@ class GameHallController extends Controller
             $member->update([
               'credit' => $amount,
               'updated_at' => Carbon::now(),
-              // 'updated_at' => $tokenRaw->betTime,
             ]);
 
             $bets = BetModel::create([
@@ -199,7 +198,6 @@ class GameHallController extends Controller
               'bet' => $amountbet,
               'credit' => $amount,
               'created_at' => Carbon::now(),
-              // 'created_at' => $tokenRaw->betTime,
               'constant_provider_id' => 11,
               'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
             ]);
@@ -237,7 +235,6 @@ class GameHallController extends Controller
               $member->update([
                 'credit' => $amount,
                 'updated_at' => Carbon::now(),
-                // 'updated_at' => $tokenRaw->betTime,
               ]);
 
               $bets = BetModel::create([
@@ -252,7 +249,6 @@ class GameHallController extends Controller
                 'bet' => $amountbet,
                 'credit' => $amount,
                 'created_at' => Carbon::now(),
-                // 'created_at' => $tokenRaw->betTime,
                 'constant_provider_id' => 11,
                 'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
               ]);
@@ -293,7 +289,6 @@ class GameHallController extends Controller
               $member->update([
                 'credit' => $amount,
                 'updated_at' => Carbon::now(),
-                // 'updated_at' => $tokenRaw->betTime,
               ]);
 
               $bets = BetModel::create([
@@ -308,7 +303,6 @@ class GameHallController extends Controller
                 'bet' => $amountbet,
                 'credit' => $amount,
                 'created_at' => Carbon::now(),
-                // 'created_at' => $tokenRaw->betTime,
                 'constant_provider_id' => 11,
                 'deskripsi' => 'Game Bet' . ' : ' . $amountbet,
               ]);
@@ -356,72 +350,103 @@ class GameHallController extends Controller
 
   public function CancelBet()
   {
-    // call betInformation
-    $token = $this->betInformation();
-    $datas;
-    foreach ($token->data->txns as $tokenRaw) {
-      $member =  MembersModel::where('id', $tokenRaw->userId)->first();
-      $creditMember = $member->credit;
-      $bet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
-            ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
-      if ($bet) {
-        $data = [
-          "status" => '0000',
-          "balance" => $member->credit,
-          "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
-        ];
-        $datas = $data;
-      } else {
-        //update balance member
-        $betBeforeCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
-                      ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->first();
-        if ($betBeforeCancel) {
-          //update type bet
-          BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
-          ->where('platform', $tokenRaw->platform)
-          ->update([
-            'type' => 'Cancel'
-          ]);
-          //update balance member
-          $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
-                        ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
-          MembersModel::where('id', $tokenRaw->userId)->update([
-              'credit' => $creditMember + $betAfterCancel->bet
-          ]);
-          $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
+    try {
+      // call betInformation
+      $token = $this->betInformation();
+      $datas;
+      foreach ($token->data->txns as $tokenRaw) {
+        $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+        $creditMember = $member->credit;
+        $bet = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+              ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
+        if ($bet) {
           $data = [
             "status" => '0000',
-            "balance" => $balanceUpdate->credit,
+            "balance" => $member->credit,
             "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
           ];
           $datas = $data;
         } else {
-          $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
-                        ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
-          $bets = BetModel::create([
-            'platform'  => $tokenRaw->platform,
-            'created_by' => $tokenRaw->userId,
-            'bet_id' => $tokenRaw->platformTxId,
-            'game_info' => 'live_casino',
-            'game_id' => $tokenRaw->gameCode,
-            'round_id' => $tokenRaw->roundId,
-            'credit' => $creditMember + $betAfterCancel->bet,
-            'type' => 'Cancel',
-            'bet' => 0,
-            'created_at' => Carbon::now()->format("Y-m-d\TH:i:s.vP"),
-            'constant_provider_id' => 11,
-            'deskripsi' => 'Cancel bet befor place bet' ,
-          ]);
-          $data = [
-            "status" => '0000',
-            "balance" => $creditMember,
-            "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
-          ];
-          $datas = $data;
+          //update balance member
+          $betBeforeCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                        ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->first();
+          if ($betBeforeCancel) {
+            //update type bet
+            BetModel::query()->where('bet_id', '=', $tokenRaw->platformTxId)
+            ->where('platform', $tokenRaw->platform)
+            ->update([
+              'type' => 'Cancel'
+            ]);
+            //update balance member
+            $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                          ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
+            MembersModel::where('id', $tokenRaw->userId)->update([
+                'credit' => $creditMember + $betAfterCancel->bet
+            ]);
+            $balanceUpdate =  MembersModel::where('id', $tokenRaw->userId)->first();
+            $data = [
+              "status" => '0000',
+              "balance" => $balanceUpdate->credit,
+              "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+            ];
+            $datas = $data;
+          } else {
+            $betAfterCancel = BetModel::where('bet_id', '=', $tokenRaw->platformTxId)
+                          ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
+            if ($betAfterCancel) {
+              $bets = BetModel::create([
+                'platform'  => $tokenRaw->platform,
+                'created_by' => $tokenRaw->userId,
+                'bet_id' => $tokenRaw->platformTxId,
+                'game_info' => 'live_casino',
+                'game_id' => $tokenRaw->gameCode,
+                'round_id' => $tokenRaw->roundId,
+                'credit' => $creditMember + $betAfterCancel->bet,
+                'type' => 'Cancel',
+                'bet' => 0,
+                'created_at' => Carbon::now()->format("Y-m-d\TH:i:s.vP"),
+                'constant_provider_id' => 11,
+                'deskripsi' => 'Cancel bet before place bet' ,
+              ]);
+              $data = [
+                "status" => '0000',
+                "balance" => $creditMember,
+                "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+              ];
+              $datas = $data;
+            } else {
+              $bets = BetModel::create([
+                'platform'  => $tokenRaw->platform,
+                'created_by' => $tokenRaw->userId,
+                'bet_id' => $tokenRaw->platformTxId,
+                'game_info' => 'live_casino',
+                'game_id' => $tokenRaw->gameCode,
+                'round_id' => $tokenRaw->roundId,
+                'credit' => $creditMember,
+                'type' => 'Cancel',
+                'bet' => 0,
+                'created_at' => Carbon::now()->format("Y-m-d\TH:i:s.vP"),
+                'constant_provider_id' => 11,
+                'deskripsi' => 'Cancel bet only',
+              ]);
+              $data = [
+                "status" => '0000',
+                "balance" => $creditMember,
+                "balanceTs"   => Carbon::now()->format("Y-m-d\TH:i:s.vP")
+              ];
+              $datas = $data;
+            }
+          }
         }
       }
+      return response()->json($datas);
+    } catch (\Throwable $th) {
+      $data = [
+        "status" => 'error',
+        "message" => 'Internal Server Error',
+      ];
+      return response()->json($data, 500);
     }
-    return response()->json($datas);
   }
 
   public function VoidBet()
