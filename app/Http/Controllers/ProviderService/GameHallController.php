@@ -95,6 +95,10 @@ class GameHallController extends Controller
         return $this->UnSettle();
         break;
 
+      case 'resettle':
+        return $this->ReSettle();
+        break;
+
       case 'cancelBet':
         return $this->CancelBet();
         break;
@@ -675,6 +679,66 @@ class GameHallController extends Controller
       "balance" => $amount,
       "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
     ];
+  }
+
+  public function ReSettle()
+  {
+    try {
+      $token = $this->betInformation();
+      foreach ($token->data->txns as $tokenRaw) {
+  
+        $bets = BetModel::where('bet_id', $tokenRaw->platformTxId)
+          ->where('platform', $tokenRaw->platform)
+          ->where('type', 'Settle')
+          ->first();
+  
+        $member =  MembersModel::where('id', $tokenRaw->userId)->first();
+
+        $newAmountWin = $tokenRaw->winAmount;
+        $oldAmountWin = $bets->win;
+        $creditMember = $member->credit;
+        $amount = $creditMember + $newAmountWin - $oldAmountWin;    
+  
+        // update credit to table member
+        $member->update([
+          'credit' => $amount,
+          'updated_at' => Carbon::now(),
+        ]);
+  
+        // check win / lose (settle)
+        if ($tokenRaw->gameInfo->status == 'WIN') {
+            $bets->update([
+              'type' => 'Settle',
+              'win' => $newAmountWin,
+              'deskripsi' => 'Game win' . ' : ' . $newAmountWin,
+              'updated_by' => $member->id,
+              'updated_at' => Carbon::now(),
+              'created_at' => Carbon::now(),
+              'credit' => $amount
+            ]);
+        } else {
+          $bets->update([
+            'type' => 'Settle',
+            'deskripsi' => 'Game Lose' . ' : ' . $tokenRaw->betAmount,
+            'updated_by' => $member->id,
+            'updated_at' => Carbon::now(),
+            'created_at' => Carbon::now(),
+            'credit' => $amount
+          ]);
+        }
+      }
+  
+      return [
+        "status" => '0000',
+        "balance" => $amount,
+        "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
+      ];
+    } catch (\Throwable $th) {
+      return [
+        "status" => 'error',
+        "message" => 'Internal Server Error!.',
+      ];
+    }
   }
 
   public function UnSettle()
