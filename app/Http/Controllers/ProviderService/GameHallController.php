@@ -156,7 +156,7 @@ class GameHallController extends Controller
     try {
       // call betInformation
       $token = $this->betInformation();
-      $datas;
+      $datas = [];
       foreach ($token->data->txns as $tokenRaw) {
         $member =  MembersModel::where('id', $tokenRaw->userId)->first();
         $amountbet = $tokenRaw->betAmount;
@@ -166,6 +166,7 @@ class GameHallController extends Controller
         if ($creditMember < $amountbet) {
           return response()->json([
             "status" => '1018',
+            "desc" => '	Not Enough Balance',
             "balance" => intval($creditMember),
             "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
             ]);
@@ -177,12 +178,13 @@ class GameHallController extends Controller
                           ->where('platform', $tokenRaw->platform)->where('type', 'Cancel')->first();
   
           if ($BetAlready || $betAfterCancel) {
+            $member =  MembersModel::where('id', $tokenRaw->userId)->first();
             $data = [
               "status" => '0000',
-              "balance" => intval($creditMember),
+              "balance" => intval($member->credit),
               "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
             ];
-            $datas = $data;
+            $datas[] = $data;
           } else {
             if (count($token->data->txns) < 2) {
               // update credit to table member
@@ -227,10 +229,10 @@ class GameHallController extends Controller
   
               $data = [
                 "status" => '0000',
-                "balance" => intval($amount),
+                "balance" => intval($member->credit),
                 "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
               ];
-              $datas = $data;
+              $datas[] = $data;
             } else {
               // $checkMulti = BetModel::selectRaw('Count(id) as total, created_at')->where('created_by', $tokenRaw->userId)
               //               ->where('platform', $tokenRaw->platform)->where('type', 'Bet')->whereDate('created_at', now())
@@ -332,16 +334,16 @@ class GameHallController extends Controller
   
                 $data = [
                   "status" => '0000',
-                  "balance" => intval($amount),
+                  "balance" => intval($member->credit),
                   "balanceTs"   => now()->format("Y-m-d\TH:i:s.vP")
                 ];
-                $datas = $data;
+                $datas[] = $data;
               // }
             }
           }
         }
-      }
-      return response()->json($datas, 200);
+      }      
+      return response()->json(end($datas));
     } catch (\Throwable $th) {
       return response()->json($th->getMessage(), 500);
     }
