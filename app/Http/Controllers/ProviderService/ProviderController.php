@@ -763,7 +763,7 @@ class ProviderController extends Controller
                         'created_by' => $member->id,
                     ];
                     # set to queue (entry)
-                    ProccessPragmatic::dispatch($bet);
+                    ProccessPragmatic::dispatch($bet)->afterResponse();
                     // $this->insertBet($bet);
                     $bets = BetModel::where('bet_id', $data->code)->first();
                     $betsAssumsi = BetModel::where('constant_provider_id', 1)->orderBy('created_at', 'desc')->first();
