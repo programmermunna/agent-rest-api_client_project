@@ -1,4 +1,4 @@
-name: Deploy Agent Rest API Staging 
+name: Deploy Member API Staging 
 
 on:
   push:
@@ -34,10 +34,10 @@ jobs:
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:
-          SLACK_FOOTER: "Efforts don't betray the results"
+          SLACK_FOOTER: "Efforts don't betray the results!"
           SLACK_USERNAME: "CikaTech"
           SLACK_ICON_EMOJI: ':cuddle:'
           SLACK_LINK_NAMES: true
-          SLACK_MESSAGE: ':gas: Agent Rest API Staging deployed successfully @backdev-team'
+          SLACK_MESSAGE: ':gas: Member API Staging deployed successfully @backdev-team'
           SLACK_TITLE:   ${{ github.event.head_commit.message }}
           SLACK_WEBHOOK: ${{ secrets.SLACK}}
