@@ -741,12 +741,14 @@ class ProviderController extends Controller
                         "amount" => $creditMember,
                     ];
                 } else {
-                    $member->update([
-                        'credit' => $amount,
-                        'created_at' => Carbon::now(),
-                        // not use for referal provider (referal just for togel)
-                        // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
-                    ]);
+                    dispatch(function () use ($member, $amount) {
+                        $member->update([
+                            'credit' => $amount,
+                            'created_at' => Carbon::now(),
+                            // not use for referal provider (referal just for togel)
+                            // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
+                        ]);
+                    })->afterResponse();
                     $bet = [
                         'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : ($data->provider === 'Playtech' ? 6 : '')),
                         'bet_id' => $data->code,
