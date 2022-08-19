@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\ProviderService;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\ProccessPragmatic;
 use App\Models\AppSetting;
 use App\Models\BetModel;
 use App\Models\CancelBetModel;
@@ -710,7 +709,7 @@ class ProviderController extends Controller
             $this->token = $request->token;
             $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
             $user_id = $data->userId;
-            $member = MembersModel::where('id', $user_id)->first();
+            $member = MembersModel::select('id', 'credit')->where('id', $user_id)->first();
             if (!$member) {
                 $res = [
                     "success" => false,
@@ -732,7 +731,7 @@ class ProviderController extends Controller
                 ];
                 return Response::json($res);
             } else {
-                $bets = BetModel::where('bet_id', $data->code)->first();
+                $bets = BetModel::select('id')->where('bet_id', $data->code)->first();
                 if ($bets) {
                     $success = [
                         "id" => $bets->id,
@@ -741,37 +740,37 @@ class ProviderController extends Controller
                         "amount" => $creditMember,
                     ];
                 } else {
-                    dispatch(function () use ($member, $amount, $amountbet, $data) {
-                        $member->update([
-                            'credit' => $amount,
-                            'created_at' => Carbon::now(),
-                            // not use for referal provider (referal just for togel)
-                            // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
-                        ]);
+                    // dispatch(function () use ($member, $amount, $amountbet, $data) {
+                    $member->update([
+                        'credit' => $amount,
+                        'created_at' => Carbon::now(),
+                        // not use for referal provider (referal just for togel)
+                        // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
+                    ]);
 
-                        $bet = [
-                            'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : ($data->provider === 'Playtech' ? 6 : '')),
-                            'bet_id' => $data->code,
-                            'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
-                            'round_id' => $data->roundId,
-                            'type' => 'Lose',
-                            // not use for referal provider (referal just for togel)
-                            // 'bonus_daily_referal' => $data->provider === 'Pragmatic' ? $bonus[7] * $data->amount : ($data->provider === 'Habanero' ? $bonus[9] * $data->amount : ($data->provider === 'Joker Gaming' ? $bonus[11] * $data->amount : ($data->provider === 'Spade Gaming' ? $bonus[10] * $data->amount : ($data->provider === 'Pg Soft' ? $bonus[13] * $data->amount : ($data->provider === 'Playtech' ? $bonus[12] * $data->amount : ''))))),
-                            'game_id' => $data->gameId,
-                            'bet' => $amountbet,
-                            'game_info' => $data->type,
-                            'created_at' => Carbon::now(),
-                            'credit' => $amount,
-                            'created_by' => $member->id,
-                        ];
+                    $bet = [
+                        'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : ($data->provider === 'Playtech' ? 6 : '')),
+                        'bet_id' => $data->code,
+                        'deskripsi' => 'Game Bet/Lose' . ' : ' . $amountbet,
+                        'round_id' => $data->roundId,
+                        'type' => 'Lose',
+                        // not use for referal provider (referal just for togel)
+                        // 'bonus_daily_referal' => $data->provider === 'Pragmatic' ? $bonus[7] * $data->amount : ($data->provider === 'Habanero' ? $bonus[9] * $data->amount : ($data->provider === 'Joker Gaming' ? $bonus[11] * $data->amount : ($data->provider === 'Spade Gaming' ? $bonus[10] * $data->amount : ($data->provider === 'Pg Soft' ? $bonus[13] * $data->amount : ($data->provider === 'Playtech' ? $bonus[12] * $data->amount : ''))))),
+                        'game_id' => $data->gameId,
+                        'bet' => $amountbet,
+                        'game_info' => $data->type,
+                        'created_at' => Carbon::now(),
+                        'credit' => $amount,
+                        'created_by' => $member->id,
+                    ];
 
-                        ProccessPragmatic::dispatch($bet);
-                    })->afterResponse();
-                    // $this->insertBet($bet);
-                    $bets = BetModel::where('bet_id', $data->code)->first();
-                    $betsAssumsi = BetModel::where('constant_provider_id', 1)->orderBy('created_at', 'desc')->first();
+                    // ProccessPragmatic::dispatch($bet);
+                    // })->afterResponse();
+                    $this->insertBet($bet);
+                    $bets = BetModel::select('id')->where('bet_id', $data->code)->first();
+                    // $betsAssumsi = BetModel::where('constant_provider_id', 1)->orderBy('created_at', 'desc')->first();
                     $success = [
-                        "id" => $bets->id ?? $betsAssumsi->id + 1,
+                        "id" => $bets->id,
                         "success" => true,
                         "code" => 0,
                         "amount" => $amount,
@@ -804,11 +803,11 @@ class ProviderController extends Controller
         $this->token = $request->token;
         $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
         $user_id = $data->userId;
-        $member = MembersModel::where('id', $user_id)->first();
+        $member = MembersModel::select('id', 'credit')->where('id', $user_id)->first();
         $creditMember = $member->credit;
         $amount = $member->credit + $data->amount;
 
-        $result = BetModel::where('bet_id', $data->code)->first();
+        $result = BetModel::select('id')->where('bet_id', $data->code)->first();
         if ($result) {
             $res = [
                 "id" => $result->id,
@@ -820,7 +819,7 @@ class ProviderController extends Controller
                 'credit' => $amount,
             ]);
             $win = [
-                'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Habanero' ? 2 : ($data->provider === 'Joker Gaming' && $data->type === 'slot' ? 3 : ($data->provider === 'Spade Gaming' ? 4 : ($data->provider === 'Pg Soft' ? 5 : ($data->provider === 'Playtech' ? 6 : ($data->provider === 'Joker Gaming' && $data->type === 'fish' ? 13 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : ''))))))),
+                'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : ($data->provider === 'Playtech' ? 6 : '')),
                 'bet_id' => $data->code,
                 'round_id' => $data->roundId,
                 'deskripsi' => 'Game Win' . ' : ' . $data->amount,
@@ -835,7 +834,7 @@ class ProviderController extends Controller
                 'created_by' => $member->id,
             ];
             $this->insertWin($win);
-            $result = BetModel::where('bet_id', $data->code)->first();
+            $result = BetModel::select('id')->where('bet_id', $data->code)->first();
             $res = [
                 "id" => $result->id,
                 "success" => true,
