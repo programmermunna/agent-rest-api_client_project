@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\ProviderService;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\ProccessPragmatic;
 use App\Models\AppSetting;
 use App\Models\BetModel;
 use App\Models\CancelBetModel;
@@ -743,15 +742,8 @@ class ProviderController extends Controller
                     return Response::json($success);
                 } else {
                     try {
-                        $member->update([
-                            'credit' => $amount,
-                            'created_at' => Carbon::now(),
-                            // not use for referal provider (referal just for togel)
-                            // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
-                        ]);
-                        $betsAssumsi = BetModel::orderBy('created_at', 'desc')->first();
                         $success = [
-                            "id" => $betsAssumsi->id + 1,
+                            "id" => $bets->id ?? $betsAssumsi->id + 1,
                             "success" => true,
                             "code" => 0,
                             "amount" => $amount,
@@ -759,6 +751,13 @@ class ProviderController extends Controller
                         return Response::json($success);
                     } finally {
                         dispatch(function () use ($member, $amount, $amountbet, $data) {
+                            $member->update([
+                                'credit' => $amount,
+                                'created_at' => Carbon::now(),
+                                // not use for referal provider (referal just for togel)
+                                // 'bonus_referal' => $data->provider === 'Pragmatic' ? $member->bonus_referal + ($bonus[7] * $data->amount) : ($data->provider === 'Habanero' ? $member->bonus_referal + ($bonus[9] * $data->amount) : ($data->provider === 'Joker Gaming' ? $member->bonus_referal + ($bonus[11] * $data->amount) : ($data->provider === 'Spade Gaming' ? $member->bonus_referal + ($bonus[10] * $data->amount) : ($data->provider === 'Pg Soft' ? $member->bonus_referal + ($bonus[13] * $data->amount) : '')))),
+                            ]);
+
                             $bet = [
                                 'constant_provider_id' => $data->provider === 'Pragmatic' && $data->type === 'slot' ? 1 : ($data->provider === 'Pragmatic' && $data->type === 'live_casino' ? 10 : ($data->provider === 'Playtech' ? 6 : '')),
                                 'bet_id' => $data->code,
@@ -778,6 +777,15 @@ class ProviderController extends Controller
                             ProccessPragmatic::dispatch($bet);
                         })->afterResponse();
                     }
+                    // $this->insertBet($bet);
+                    // $bets = BetModel::where('bet_id', $data->code)->first();
+                    // $betsAssumsi = BetModel::where('constant_provider_id', 1)->orderBy('created_at', 'desc')->first();
+                    // $success = [
+                    //     "id" => $bets->id ?? $betsAssumsi->id + 1,
+                    //     "success" => true,
+                    //     "code" => 0,
+                    //     "amount" => $amount,
+                    // ];
                     // not use for referal provider (referal just for togel)
                     // if ($member->referrer_id) {
                     //     BonusHistoryModel::create([
@@ -788,7 +796,6 @@ class ProviderController extends Controller
                     //     ]);
                     // }
                 }
-                // return Response::json($success);
             }
         } catch (\Throwable$th) {
             $res = [
