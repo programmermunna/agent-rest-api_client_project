@@ -744,7 +744,8 @@ class ProviderController extends Controller
                 } else {
                     try {
                         $success = [
-                            "id" => $bets->id ?? $betsAssumsi->id + 1,
+                            // "id" => $bets->id ?? $betsAssumsi->id + 1,
+                            "id" => strtotime(now()),
                             "success" => true,
                             "code" => 0,
                             "amount" => $amount,
