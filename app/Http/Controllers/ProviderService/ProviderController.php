@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\ProviderService;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProccessPragmatic;
 use App\Models\AppSetting;
 use App\Models\BetModel;
 use App\Models\CancelBetModel;
