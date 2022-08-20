@@ -214,61 +214,61 @@ class ProviderController extends Controller
         $this->token = $request->token;
         $data = JWT::decode($this->token, 'diosjiodAJSDIOJIOsdiojaoijASDJ', array('HS256'));
         if ($data->provider === 'Joker Gaming') {
-            $member = MembersModel::where('id', $data->userId)->first();
-            $bets = BetModel::where('bet_id', $data->betId)->first();
-            $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-                ->where('bet_id', $data->betId)->first();
-            $condition = CancelBetModel::where('cancel_id', $data->cancelId)->orWhere('bet_id', $data->betId)->first();
-            if (!$bets) {
-                CancelBetModel::create([
-                    'cancel_id' => $data->cancelId,
-                    'bet_id' => $data->betId,
-                    'created_by' => $data->userId,
-                    'created_at' => Carbon::now(),
-                ]);
-                $res = [
-                    "success" => false,
-                    "amount" => $member->credit,
-                ];
-                return Response::json($res);
-            }
-            if ($condition) {
-                $res = [
-                    "message" => "The CancelBet already existed",
-                    "success" => true,
-                    "amount" => $member->credit,
-                ];
-                return Response::json($res);
-            } else {
-                $cancelCredit = $member->credit + $bets->bet;
-                $member->update([
-                    'credit' => $cancelCredit,
-                ]);
-                CancelBetModel::create([
-                    'cancel_id' => $data->cancelId,
-                    'bet_id' => $data->betId,
-                    'created_by' => $data->userId,
-                    'created_at' => Carbon::now(),
-                ]);
-                $res = [
-                    "message" => "Success",
-                    "success" => true,
-                    "amount" => $cancelCredit,
-                ];
-                UserLogModel::logMemberActivity(
-                    'Cancel bet',
-                    $member,
-                    $bets,
-                    [
-                        'target' => $member->username,
-                        'activity' => 'Cancel bet',
-                        'device' => $member->device,
-                        'ip' => $member->last_login_ip,
-                    ],
-                    "$member->username . ' Cancel on ' . $nameProvider->constant_provider_name . ' type ' .  $nameProvider->game_info . ' idr '. $nameProvider->bet"
-                );
-                return Response::json($res);
-            }
+            // $member = MembersModel::where('id', $data->userId)->first();
+            // $bets = BetModel::where('bet_id', $data->betId)->first();
+            // $nameProvider = BetModel::leftJoin('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+            //     ->where('bet_id', $data->betId)->first();
+            // $condition = CancelBetModel::where('cancel_id', $data->cancelId)->orWhere('bet_id', $data->betId)->first();
+            // if (!$bets) {
+            //     CancelBetModel::create([
+            //         'cancel_id' => $data->cancelId,
+            //         'bet_id' => $data->betId,
+            //         'created_by' => $data->userId,
+            //         'created_at' => Carbon::now(),
+            //     ]);
+            //     $res = [
+            //         "success" => false,
+            //         "amount" => $member->credit,
+            //     ];
+            //     return Response::json($res);
+            // }
+            // if ($condition) {
+            //     $res = [
+            //         "message" => "The CancelBet already existed",
+            //         "success" => true,
+            //         "amount" => $member->credit,
+            //     ];
+            //     return Response::json($res);
+            // } else {
+            //     $cancelCredit = $member->credit + $bets->bet;
+            //     $member->update([
+            //         'credit' => $cancelCredit,
+            //     ]);
+            //     CancelBetModel::create([
+            //         'cancel_id' => $data->cancelId,
+            //         'bet_id' => $data->betId,
+            //         'created_by' => $data->userId,
+            //         'created_at' => Carbon::now(),
+            //     ]);
+            //     $res = [
+            //         "message" => "Success",
+            //         "success" => true,
+            //         "amount" => $cancelCredit,
+            //     ];
+            //     UserLogModel::logMemberActivity(
+            //         'Cancel bet',
+            //         $member,
+            //         $bets,
+            //         [
+            //             'target' => $member->username,
+            //             'activity' => 'Cancel bet',
+            //             'device' => $member->device,
+            //             'ip' => $member->last_login_ip,
+            //         ],
+            //         "$member->username . ' Cancel on ' . $nameProvider->constant_provider_name . ' type ' .  $nameProvider->game_info . ' idr '. $nameProvider->bet"
+            //     );
+            //     return Response::json($res);
+            // }
         } else {
             $member = MembersModel::where('id', $data->userId)->first();
             // $bets = BetModel::where('bet_id', $data->betId)->first();
