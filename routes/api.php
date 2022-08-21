@@ -1,17 +1,17 @@
 <?php
 
+use App\Http\Controllers\Api\v1\MemberController;
 use App\Http\Controllers\Api\v2\BetsTogelController;
 use App\Http\Controllers\Api\v2\OutResult;
-use App\Http\Controllers\Api\v1\MemberController;
 use App\Http\Controllers\ProviderService\GameHallController;
 use App\Http\Controllers\ProviderService\IONXController;
-use App\Http\Controllers\ProviderService\QueenmakerController;
 use App\Http\Controllers\ProviderService\ProviderController;
+use App\Http\Controllers\ProviderService\QueenmakerController;
 use App\Http\Controllers\TogelDreamsBookController;
 use App\Http\Controllers\TogelPeraturanGame;
 use App\Http\Controllers\TogelSettingGameController;
-use App\Models\TogelGame;
 use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
 |
-*/
+ */
 Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function () {
     Route::post('/member/login', 'JWTAuthController@authenticate');
     Route::post('/member/register', 'JWTAuthController@register')->name('registerJwt');
@@ -43,7 +43,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::post('/change-password', 'JWTAuthController@changePassword');
         Route::get('/bonus-referal', 'MemberController@bonusReferal');
 
-        // Probation        
+        // Probation
         Route::post('/updateAccount', 'JWTAuthController@probationUpdateAccount');
         Route::post('/deleteAccount', 'JWTAuthController@probationDeleteAccount');
         Route::get('/accountList', 'JWTAuthController@probationAccountList');
@@ -66,7 +66,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/detail/{id}', 'MemoController@detail');
         });
 
-         // statement slot-fish
+        // statement slot-fish
         Route::get('/statement', 'MemberController@getStatement');
         Route::get('/bonus', 'MemberController@bonusTurnover');
         //statement depo-wd
@@ -90,9 +90,8 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/list', 'ReferralController@list');
         });
 
-
     });
-            // cashback
+    // cashback
     Route::get('/cashback', 'MemberController@cashbackSlot');
 
     // daily referal
@@ -155,23 +154,35 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         });
     });
 });
-    // api for integration
+// api for integration
 Route::group(['prefix' => 'endpoint'], function () {
-    Route::post('bet',  [ProviderController::class, 'bet']);
-    Route::post('betSpade',  [ProviderController::class, 'betSpade']);
-    Route::post('cancel-bet',  [ProviderController::class, 'cancelBet']);
-    Route::post('get_history_pragmatic',  [ProviderController::class, 'gameHistoryPragmatic']);
-    Route::post('round',  [ProviderController::class, 'getGameRound']);
-    Route::post('bet_pragmatic',  [ProviderController::class, 'betPragmatic']);
-    Route::post('bet_joker',  [ProviderController::class, 'betJoker']);
-    Route::post('result_pragmatic',  [ProviderController::class, 'resultPragmatic']);
+    Route::post('bet', [ProviderController::class, 'bet']);
+    Route::post('betSpade', [ProviderController::class, 'betSpade']);
+    Route::post('get_history_pragmatic', [ProviderController::class, 'gameHistoryPragmatic']);
+    Route::post('round', [ProviderController::class, 'getGameRound']);
+    Route::post('bet_pragmatic', [ProviderController::class, 'betPragmatic']);
+    Route::post('result_pragmatic', [ProviderController::class, 'resultPragmatic']);
+    Route::post('cancel_bet_pragmatic', [ProviderController::class, 'cancelBetPragmatic']);
+
+    Route::post('result_habanero', [ProviderController::class, 'resultHabanero']);
+
+    # Joker Gaming Slot
+    Route::post('bet_joker', [ProviderController::class, 'betJoker']);
+    Route::post('settle_bet_joker', [ProviderController::class, 'settleBetJoker']);
+    Route::post('cancel_bet_joker', [ProviderController::class, 'cancelBetJoker']);
+
     Route::post('balance', [ProviderController::class, 'balance']);
     Route::post('result', [ProviderController::class, 'result']);
     Route::post('transaction_joker', [ProviderController::class, 'transaction']);
     Route::post('withdraw_joker', [ProviderController::class, 'withdraw']);
     Route::post('deposit_joker', [ProviderController::class, 'deposit']);
     Route::post('resultSpade', [ProviderController::class, 'resultSpade']);
+
+    # Playtech
+    Route::post('bet_playtech', [ProviderController::class, 'betPlaytech']);
+    Route::post('cancel_bet_playtech', [ProviderController::class, 'cancelBetPlaytech']);
     Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
+
     Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
 
     /**
@@ -180,42 +191,41 @@ Route::group(['prefix' => 'endpoint'], function () {
     /* Route::post('transfer-in-out', [ProviderController::class, 'resultPgSoft']); */
     Route::post('transfer-in-out', [ProviderController::class, 'PgSoftTransaction']);
     # Game Gall
-    Route::post("bet_gameHall" , [GameHallController::class , "listenTransaction"]);
-    Route::post("result_gameHall" , [GameHallController::class , "resultGameHall"]);
+    Route::post("bet_gameHall", [GameHallController::class, "listenTransaction"]);
+    Route::post("result_gameHall", [GameHallController::class, "resultGameHall"]);
 
     #Queenmaker api route
-    Route::post("debit" , [QueenmakerController::class , "getDebitQueenMaker"]);
-    Route::post("credit" , [QueenmakerController::class , "getCreditQueenMaker"]);
+    Route::post("debit", [QueenmakerController::class, "getDebitQueenMaker"]);
+    Route::post("credit", [QueenmakerController::class, "getCreditQueenMaker"]);
 
-
-	# Togel
-  Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
-	Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
-	Route::match(['get', 'post'],"sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
-	Route::get('provider', [OutResult::class, 'getResultByProvider']);
-	Route::get('paitoEight', [OutResult::class, 'paitoEight']);
-    Route::match(['get', 'post'],"paitoAll", [OutResult::class, 'paitoAll']);
-    Route::match(['get', 'post'],"paitoTest", [OutResult::class, 'paitoTestAll']);
-	Route::get('shio' , [OutResult::class , 'getShioTables']);
-	Route::get('list_out_result', [OutResult::class, 'getAllResult']);
-	Route::get('pasaran', [OutResult::class, 'getPasaran']);
-	Route::get('allPasaran', [OutResult::class, 'getAllPasaran']);
-	Route::get('dreamBooks', [TogelDreamsBookController::class, 'getDreamsBook']);
-	Route::get('globalSetting' , [TogelSettingGameController::class , 'getGlobalSettingGame']);
-	Route::get('rules' , [TogelPeraturanGame::class , 'getPeraturanGame']);
-	Route::get('getDetailTransaksi' , [OutResult::class , 'getDetailTransaksi']);
-	Route::get('getDetailTransaksiTogel/{id}' , [MemberController::class , 'detailDataTogel']);
-	# Togel Must Secure when betting
-	Route::middleware(['jwt.verify'])->group(function () {
-		Route::post('storeTogel', [BetsTogelController::class, 'store']);
-	});
+    # Togel
+    Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
+    Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
+    Route::match(['get', 'post'], "sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
+    Route::get('provider', [OutResult::class, 'getResultByProvider']);
+    Route::get('paitoEight', [OutResult::class, 'paitoEight']);
+    Route::match(['get', 'post'], "paitoAll", [OutResult::class, 'paitoAll']);
+    Route::match(['get', 'post'], "paitoTest", [OutResult::class, 'paitoTestAll']);
+    Route::get('shio', [OutResult::class, 'getShioTables']);
+    Route::get('list_out_result', [OutResult::class, 'getAllResult']);
+    Route::get('pasaran', [OutResult::class, 'getPasaran']);
+    Route::get('allPasaran', [OutResult::class, 'getAllPasaran']);
+    Route::get('dreamBooks', [TogelDreamsBookController::class, 'getDreamsBook']);
+    Route::get('globalSetting', [TogelSettingGameController::class, 'getGlobalSettingGame']);
+    Route::get('rules', [TogelPeraturanGame::class, 'getPeraturanGame']);
+    Route::get('getDetailTransaksi', [OutResult::class, 'getDetailTransaksi']);
+    Route::get('getDetailTransaksiTogel/{id}', [MemberController::class, 'detailDataTogel']);
+    # Togel Must Secure when betting
+    Route::middleware(['jwt.verify'])->group(function () {
+        Route::post('storeTogel', [BetsTogelController::class, 'store']);
+    });
 });
 
-Route::group(['prefix' => 'ionx'], function (){
-    Route::post("deduct-player-balance" , [IONXController::class , "deductPlayerBalance"]);
-    Route::post("get-player-balance" , [IONXController::class , "getPlayerBalance"]);
-    Route::post("rollback-player-balance" , [IONXController::class , "rollbackPlayerBalance"]);
-    Route::post("Insert-running-bet" , [IONXController::class , "InsertRunningBet"]);
-    Route::post("settle-bet" , [IONXController::class , "SettleBet"]);
-    Route::post("insert-game-announcement" , [IONXController::class , "insertGameAnnouncement"]);
+Route::group(['prefix' => 'ionx'], function () {
+    Route::post("deduct-player-balance", [IONXController::class, "deductPlayerBalance"]);
+    Route::post("get-player-balance", [IONXController::class, "getPlayerBalance"]);
+    Route::post("rollback-player-balance", [IONXController::class, "rollbackPlayerBalance"]);
+    Route::post("Insert-running-bet", [IONXController::class, "InsertRunningBet"]);
+    Route::post("settle-bet", [IONXController::class, "SettleBet"]);
+    Route::post("insert-game-announcement", [IONXController::class, "insertGameAnnouncement"]);
 });
