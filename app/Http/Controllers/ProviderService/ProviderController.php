@@ -703,7 +703,7 @@ class ProviderController extends Controller
                 //     ]);
                 // }
             }
-            // return Response::json($success);
+            return Response::json($success);
         }
     }
 
@@ -898,7 +898,7 @@ class ProviderController extends Controller
 
                     // ProccessPragmatic::dispatch($bet);
                     // })->afterResponse();
-                    $this->insertBet($bet);
+                    dd($this->insertBet($bet));
                     $bets = BetModel::select('id')->where('bet_id', $data->code)->first();
                     // $betsAssumsi = BetModel::where('constant_provider_id', 1)->orderBy('created_at', 'desc')->first();
                     $success = [
@@ -923,7 +923,7 @@ class ProviderController extends Controller
             $res = [
                 "success" => false,
                 "code" => 100,
-                "message" => 'Internal Server Error!.',
+                "message" => 'Internal Server Error!.' . $th->getMessage(),
             ];
             return Response::json($res);
         }
