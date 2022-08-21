@@ -898,7 +898,7 @@ class ProviderController extends Controller
 
                     // ProccessPragmatic::dispatch($bet);
                     // })->afterResponse();
-                    dd($this->insertBet($bet));
+                    $this->insertBet($bet);
                     $bets = BetModel::select('id')->where('bet_id', $data->code)->first();
                     // $betsAssumsi = BetModel::where('constant_provider_id', 1)->orderBy('created_at', 'desc')->first();
                     $success = [
@@ -923,7 +923,7 @@ class ProviderController extends Controller
             $res = [
                 "success" => false,
                 "code" => 100,
-                "message" => 'Internal Server Error!.' . $th->getMessage(),
+                "message" => 'Internal Server Error!.',
             ];
             return Response::json($res);
         }
