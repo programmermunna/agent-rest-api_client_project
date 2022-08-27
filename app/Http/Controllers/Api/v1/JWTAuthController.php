@@ -4,39 +4,36 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
-use App\Models\BetsTogel;
+use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
-use App\Models\ImageContent;
+use App\Models\FreeBetModel;
 use App\Models\MembersModel;
-use App\Models\MemoModel;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
-use App\Models\FreeBetModel;
-use App\Models\BonusHistoryModel;
 use App\Models\TurnoverModel;
 use App\Models\UserLogModel;
-use App\Models\RekeningTujuanDepo;
-use App\Rules\IsValidPassword;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-
 use Illuminate\Support\Facades\Validator;
-use JWTAuth;            # pagination pake ini
-use Livewire\WithPagination;              # pagination pake ini
-use Tymon\JWTAuth\Exceptions\JWTException; # pagination pake ini
+use JWTAuth; # pagination pake ini
+use Livewire\WithPagination; # pagination pake ini
+use Tymon\JWTAuth\Exceptions\JWTException;
+
+# pagination pake ini
 
 class JWTAuthController extends ApiController
 {
     use WithPagination;
     public $perPage = 20;
     public $history = [];
-    public function authenticate(Request $request){
+    public function authenticate(Request $request)
+    {
 
         $input = $request->all();
 
@@ -69,21 +66,21 @@ class JWTAuthController extends ApiController
         }
 
         $member = MembersModel::where('email', $input['user_account'])
-                                ->orWhere('username', $input['user_account'])
-                                ->first();
+            ->orWhere('username', $input['user_account'])
+            ->first();
         if ($member) {
-            if ($member->status == 0){
+            if ($member->status == 0) {
                 return $this->errorResponse('Akun anda telah di blokir', 401);
-            } elseif ($member->status == 2){
+            } elseif ($member->status == 2) {
                 return $this->errorResponse('Akun anda telah di tangguhkan', 401);
-            } elseif ($member->status == 1){
+            } elseif ($member->status == 1) {
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
             }
 
             \Config::set('auth.defaults.guard', 'api');
             try {
                 $token = auth('api')->attempt($credentials);
-                if (! $token) {
+                if (!$token) {
                     return $this->errorResponse('Password anda salah', 401);
                 }
             } catch (JWTException $e) {
@@ -106,7 +103,7 @@ class JWTAuthController extends ApiController
                 [
                     'target' => $user->username,
                     'activity' => 'Logged In',
-                    'ip' => $request->ip ?? $ipPublic,
+                    'ip_member' => $request->ip ?? $ipPublic,
                 ],
                 'Successfully'
             );
@@ -120,14 +117,14 @@ class JWTAuthController extends ApiController
             try {
                 auth('api')->setToken($item->token)->invalidate();
                 $item->delete();
-            } catch (\Exception $exception) {
+            } catch (\Exception$exception) {
                 //handle exception
             }
             $item->delete();
         });
 
         auth('api')->user()->authTokens()->create([
-            'token' => $token
+            'token' => $token,
         ]);
         return $this->createNewToken($token);
     }
@@ -136,14 +133,14 @@ class JWTAuthController extends ApiController
     {
         try {
             $member = auth('api')->user();
-            if (! $member) {
+            if (!$member) {
                 return $this->errorResponse('Member tidak ditemukan', 404);
             }
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
             return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
+        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
             return $this->errorResponse('Token absent', 500);
         }
 
@@ -285,7 +282,7 @@ class JWTAuthController extends ApiController
             // }
 
             return $this->successResponse($lastBet);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -343,8 +340,8 @@ class JWTAuthController extends ApiController
                             ORDER BY created_at DESC
                             LIMIT 1
                         ");
-                return $this->successResponse($lastWin);
-        } catch (\Throwable $th) {
+            return $this->successResponse($lastWin);
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -353,26 +350,26 @@ class JWTAuthController extends ApiController
         try {
             $date = Carbon::now()->subDays(7);
             $history = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-            ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-            ->select([
-                'bets.id as betsId',
-                'bets.constant_provider_id',
-                'bets.bet_id',
-                'bets.game_id',
-                'bets.credit',
-                'bets.deskripsi',
-                'bets.created_by',
-                'bets.bet',
-                'bets.win',
-                'bets.created_at',
-                'bets.player_wl',
-                'members.id as memberId',
-                'members.username',
-                'constant_provider.constant_provider_name',
-            ])
-            ->orderBy('bets.created_at', 'desc')
-            ->where('bets.created_by', auth('api')->user()->id)
-            ->where('bets.created_at', '>=', $date);
+                ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
+                ->select([
+                    'bets.id as betsId',
+                    'bets.constant_provider_id',
+                    'bets.bet_id',
+                    'bets.game_id',
+                    'bets.credit',
+                    'bets.deskripsi',
+                    'bets.created_by',
+                    'bets.bet',
+                    'bets.win',
+                    'bets.created_at',
+                    'bets.player_wl',
+                    'members.id as memberId',
+                    'members.username',
+                    'constant_provider.constant_provider_name',
+                ])
+                ->orderBy('bets.created_at', 'desc')
+                ->where('bets.created_by', auth('api')->user()->id)
+                ->where('bets.created_at', '>=', $date);
             $this->history = $history->get()->toArray();
             $arrHistory = $this->paginate($this->history, $this->perPage);
             if ($arrHistory != null) {
@@ -380,7 +377,7 @@ class JWTAuthController extends ApiController
             } else {
                 return $this->successResponse('Tidak ada histori', 204);
             }
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -391,6 +388,7 @@ class JWTAuthController extends ApiController
 
         try {
             $user = auth('api')->user();
+            $ip = auth('api')->user()->last_login_ip;
 
             JWTAuth::parseToken()->invalidate($token);
 
@@ -401,21 +399,22 @@ class JWTAuthController extends ApiController
                 [
                     'target' => $user->username,
                     'activity' => 'Logged Out',
+                    'ip_member' => $ip,
                 ],
                 'Successfully'
             );
             auth('api')->user()->update([
                 'remember_token' => null,
                 'active' => 0,
-                'last_login_ip' => $request->ip,
+                // 'last_login_ip' => $request->ip,
             ]);
 
             return $this->successResponse(null, 'Member berhasil logout.', 200);
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
             return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
+        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
             return $this->errorResponse('Token absent', 500);
         }
     }
@@ -516,7 +515,6 @@ class JWTAuthController extends ApiController
                 //     'rekening_id_tujuan_depo14' => $bankAgent[13] == [] ? Null : $bankAgent[13]['id'],
                 // ]);
 
-
                 $user = MembersModel::create([
                     'username' => $request->username,
                     'email' => $request->email,
@@ -572,56 +570,56 @@ class JWTAuthController extends ApiController
                 //     'rekening_id_tujuan_depo14' => $bankAgent[13] == [] ? Null : $bankAgent[13]['id'],
                 // ]);
 
-                    $user = MembersModel::create([
-                        'username' => $request->username,
-                        'email' => $request->email,
-                        'password' => bcrypt($request->password),
-                        'referrer_id' => $referal->id,
-                        // 'constant_rekening_id' => $request->bank_name,
-                        // 'nomor_rekening' => $request->account_number,
-                        // 'nama_rekening' => $request->account_name,
-                        'phone' => $request->phone,
-                        // 'info_dari' => $request->provider,
-                        // 'referrer_id' => $referrer ? $referrer->id : '',
-                        // 'referrer_id' => $request->referral,
-                        'bonus_referal' => 0,
-                        // 'rekening_tujuan_depo_id' => $dataRekening->id,
-                        'rekening_tujuan_depo_id' => null,
+                $user = MembersModel::create([
+                    'username' => $request->username,
+                    'email' => $request->email,
+                    'password' => bcrypt($request->password),
+                    'referrer_id' => $referal->id,
+                    // 'constant_rekening_id' => $request->bank_name,
+                    // 'nomor_rekening' => $request->account_number,
+                    // 'nama_rekening' => $request->account_name,
+                    'phone' => $request->phone,
+                    // 'info_dari' => $request->provider,
+                    // 'referrer_id' => $referrer ? $referrer->id : '',
+                    // 'referrer_id' => $request->referral,
+                    'bonus_referal' => 0,
+                    // 'rekening_tujuan_depo_id' => $dataRekening->id,
+                    'rekening_tujuan_depo_id' => null,
+                ]);
+                // $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
+                // $updateRek->update([
+                //     'created_by' => $user->id
+                // ]);
+                $rekMember = RekMemberModel::create([
+                    'username_member' => $request->username,
+                    'rekening_id' => $rekeningDepoMember->id,
+                    'constant_rekening_id' => $request->bank_name,
+                    'nomor_rekening' => $request->account_number,
+                    'nama_rekening' => $request->account_name,
+                    'is_depo' => 1,
+                    'is_default' => 1,
+                    'is_wd' => 1,
+                    'created_by' => $user->id,
+                ]);
+                MembersModel::where('username', $request->username)
+                    ->update([
+                        'rek_member_id' => $rekMember->id,
                     ]);
-                    // $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
-                    // $updateRek->update([
-                    //     'created_by' => $user->id
-                    // ]);
-                    $rekMember = RekMemberModel::create([
-                        'username_member' => $request->username,
-                        'rekening_id' => $rekeningDepoMember->id,
-                        'constant_rekening_id' => $request->bank_name,
-                        'nomor_rekening' => $request->account_number,
-                        'nama_rekening' => $request->account_name,
-                        'is_depo' => 1,
-                        'is_default' => 1,
-                        'is_wd' => 1,
-                        'created_by' => $user->id,
-                    ]);
-                    MembersModel::where('username', $request->username)
-                        ->update([
-                            'rek_member_id' => $rekMember->id,
-                        ]);
-                    TurnoverModel::create([
-                        'created_by' => $user->id,
-                    ]);
-                }
-                $freeBet = FreeBetModel::get();
-                foreach ($freeBet as $value) {
-                    BonusHistoryModel::create([
-                        'free_bet_id' => $value->id,
-                        'constant_bonus_id' => 4,
-                        'type' => 'uang',
-                        'is_use' => 0,
-                        'created_by' => $user->id,
-                        'created_at' => Carbon::now(),
-                    ]);
-                }
+                TurnoverModel::create([
+                    'created_by' => $user->id,
+                ]);
+            }
+            $freeBet = FreeBetModel::get();
+            foreach ($freeBet as $value) {
+                BonusHistoryModel::create([
+                    'free_bet_id' => $value->id,
+                    'constant_bonus_id' => 4,
+                    'type' => 'uang',
+                    'is_use' => 0,
+                    'created_by' => $user->id,
+                    'created_at' => Carbon::now(),
+                ]);
+            }
 
             $user->update([
                 // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
@@ -636,14 +634,14 @@ class JWTAuthController extends ApiController
                     'target' => $user->username,
                     'activity' => 'Registered',
                     // 'ip' => $request->ip ?? request()->getClientIp(),
-                    'ip' => $request->ip,
+                    'ip_member' => $request->ip,
                 ],
                 'Successfully'
             );
 
             return $this->successResponse(null, 'Member berhasil didaftar.', 201);
 
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -654,22 +652,22 @@ class JWTAuthController extends ApiController
             $validator = Validator::make(
                 $request->all(),
                 [
-                'old_password' => 'required',
-                'new_password' => 'required|min:6|regex:/^\S*$/u',
-                // 'new_password' => [
-                //     'required',
-                //     'string',
-                //     new IsValidPassword(),
-                // ],
-                'confirm_password' => ['same:new_password'],
-            ],
+                    'old_password' => 'required',
+                    'new_password' => 'required|min:6|regex:/^\S*$/u',
+                    // 'new_password' => [
+                    //     'required',
+                    //     'string',
+                    //     new IsValidPassword(),
+                    // ],
+                    'confirm_password' => ['same:new_password'],
+                ],
                 [
-                'old_password.required' => 'Password lama tidak boleh kosong.',
-                'new_password.required' => 'Password baru tidak boleh kosong.',
-                'new_password.min' => 'Minimal password harus  6 karakter.',
-                'new_password.regex' => 'Password baru tidak boleh menggunakan spasi.',
-                'confirm_password.same' => 'Konfirmasi password dan password baru harus sama.',
-            ]
+                    'old_password.required' => 'Password lama tidak boleh kosong.',
+                    'new_password.required' => 'Password baru tidak boleh kosong.',
+                    'new_password.min' => 'Minimal password harus  6 karakter.',
+                    'new_password.regex' => 'Password baru tidak boleh menggunakan spasi.',
+                    'confirm_password.same' => 'Konfirmasi password dan password baru harus sama.',
+                ]
             );
 
             if ($validator->fails()) {
@@ -687,6 +685,7 @@ class JWTAuthController extends ApiController
                     [
                         'target' => $user->username,
                         'activity' => 'Password Change',
+                        'ip_member' => auth('api')->user()->last_login_ip,
                     ],
                     'Berhasil Ganti Password.'
                 );
@@ -698,7 +697,7 @@ class JWTAuthController extends ApiController
             } else {
                 return $this->errorResponse('Password lama yang anda masukan salah', 400);
             }
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -736,15 +735,15 @@ class JWTAuthController extends ApiController
         }
 
         $member = MembersModel::where('email', $input['user_account'])
-                                ->orWhere('username', $input['user_account'])
-                                ->first();
+            ->orWhere('username', $input['user_account'])
+            ->first();
 
         if ($member) {
-            if ($member->status == 0){
+            if ($member->status == 0) {
                 return $this->errorResponse('Member has been banned', 401);
-            } elseif ($member->status == 2){
+            } elseif ($member->status == 2) {
                 return $this->errorResponse('Member has been suspend', 401);
-            } elseif ($member->status == 1){
+            } elseif ($member->status == 1) {
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
             }
 
@@ -752,7 +751,7 @@ class JWTAuthController extends ApiController
 
             try {
                 $token = auth('api')->attempt($credentials);
-                if (! $token) {
+                if (!$token) {
                     return $this->errorResponse('Password is wrong', 401);
                 }
             } catch (JWTException $e) {
@@ -766,14 +765,14 @@ class JWTAuthController extends ApiController
         auth('api')->user()->authTokens->each(function ($item) {
             try {
                 auth('api')->setToken($item->token)->invalidate();
-            } catch (\Exception $exception) {
+            } catch (\Exception$exception) {
                 //handle exception
             }
             $item->delete();
         });
 
         auth('api')->user()->authTokens()->create([
-            'token' => $token
+            'token' => $token,
         ]);
         return $this->createNewToken($token);
     }
@@ -791,19 +790,19 @@ class JWTAuthController extends ApiController
             $validator = Validator::make(
                 $request->all(),
                 [
-            'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
-            'email' => 'required|email|max:100|unique:members',
-            'password' => 'required|min:6|regex:/^\S*$/u',
-            'bank_name' => 'required',
-            'account_number' => 'required',
-            'account_name' => 'required',
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
-            ],
+                    'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
+                    'email' => 'required|email|max:100|unique:members',
+                    'password' => 'required|min:6|regex:/^\S*$/u',
+                    'bank_name' => 'required',
+                    'account_number' => 'required',
+                    'account_name' => 'required',
+                    'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
+                ],
                 [
-                'password.required' => 'Password tidak boleh kosong.',
-                'password.min' => 'Password harus minimal 6 karakter.',
-                'password.regex' => 'Password tidak boleh menggunakan spasi.',
-            ]
+                    'password.required' => 'Password tidak boleh kosong.',
+                    'password.min' => 'Password harus minimal 6 karakter.',
+                    'password.regex' => 'Password tidak boleh menggunakan spasi.',
+                ]
             );
 
             if ($validator->fails()) {
@@ -870,7 +869,7 @@ class JWTAuthController extends ApiController
                 MembersModel::where('username', $request->username)
                     ->update([
                         'rek_member_id' => $rekMember->id,
-                ]);
+                    ]);
                 TurnoverModel::create([
                     'created_by' => $user->id,
                 ]);
@@ -878,7 +877,7 @@ class JWTAuthController extends ApiController
 
             return $this->successResponse(null, 'Member successfully registered.', 201);
 
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -904,7 +903,7 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse($validator->errors()->first(), 400);
             }
             $checkEmailUser = MembersModel::where('email', $request->email)->whereNotIn('id', [$request->id])->first();
-            if ($checkEmailUser){
+            if ($checkEmailUser) {
                 return $this->errorResponse('The email has already been taken', 400);
             }
             $checkUser = MembersModel::find($request->id);
@@ -919,20 +918,20 @@ class JWTAuthController extends ApiController
             }
             $checkUser->update([
 //                         'username' => $request->username,
-                        'email' => $request->email,
-                        // 'password' => bcrypt($request->password),
+                'email' => $request->email,
+                // 'password' => bcrypt($request->password),
 //                         'referrer_id' => $referal == null ? "" : $referal->id,
-                        'phone' => $request->phone,
-                    ]);
+                'phone' => $request->phone,
+            ]);
             $rekMember = RekMemberModel::where('created_by', $request->id)->update([
-                    'rekening_id' => $rekeningDepoMember->id,
-                    'constant_rekening_id' => $request->bank_name,
-                    // 'nomor_rekening' => $request->account_number,
-                    // 'nama_rekening' => $request->account_name,
-                ]);
+                'rekening_id' => $rekeningDepoMember->id,
+                'constant_rekening_id' => $request->bank_name,
+                // 'nomor_rekening' => $request->account_number,
+                // 'nama_rekening' => $request->account_name,
+            ]);
             return $this->successResponse(null, 'Member successfully updated', 201);
 
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -946,14 +945,14 @@ class JWTAuthController extends ApiController
             }
             $user = $checkUser->id;
             $member = MembersModel::find($user);
-            if($member){
+            if ($member) {
                 $rekMember = RekMemberModel::find($member->rek_member_id);
                 $member->delete();
                 $rekMember->delete();
                 return $this->successResponse(null, 'account deleted successfully', 200);
             }
             return $this->errorResponse('account not found!', 400);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -981,7 +980,7 @@ class JWTAuthController extends ApiController
                 return $this->successResponse($data, 'account list successfully displayed', 200);
             }
             return $this->successResponse('account list does not exist', 200);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
