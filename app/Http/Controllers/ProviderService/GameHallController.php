@@ -222,9 +222,9 @@ class GameHallController extends Controller
                   'target' => $nameProvider->username,
                   'activity' => 'Bet',
                   'device' => $nameProvider->device,
-                  'ip' => $nameProvider->last_login_ip,
+                  'ip_member' => $nameProvider->last_login_ip,
                 ],
-                "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+                $nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet
               );
   
               $data = [
@@ -327,9 +327,9 @@ class GameHallController extends Controller
                     'target' => $nameProvider->username,
                     'activity' => 'Bet',
                     'device' => $nameProvider->device,
-                    'ip' => $nameProvider->last_login_ip,
+                    'ip_member' => $nameProvider->last_login_ip,
                   ],
-                  "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+                  $nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet
                 );
   
                 $data = [
@@ -903,9 +903,9 @@ class GameHallController extends Controller
             'target' => $member->username,
             'activity' => 'Credit Bonus',
             'device' => $member->device,
-            'ip' => $member->last_login_ip,
+            'ip_member' => $member->last_login_ip,
           ],
-          "$member->username Received Bonus On $tokenRaw->platform . ' idr '. $bonusAmount"
+          $member->username.' Received Bonus On '.$tokenRaw->platform . ' idr '. $bonusAmount
         );
       }
     }
@@ -974,9 +974,9 @@ class GameHallController extends Controller
               'target' => $nameProvider->username,
               'activity' => 'Tip',
               'device' => $nameProvider->device,
-              'ip' => $nameProvider->last_login_ip,
+              'ip_member' => $nameProvider->last_login_ip,
             ],
-            "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+            $nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet
           );
         }
       }
@@ -1148,9 +1148,9 @@ class GameHallController extends Controller
                 'target' => $nameProvider->username,
                 'activity' => 'Bet',
                 'device' => $nameProvider->device,
-                'ip' => $nameProvider->last_login_ip,
+                'ip_member' => $nameProvider->last_login_ip,
               ],
-              "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet"
+              $nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $nameProvider->bet
             );
 
             BetModel::where('game_id', $tokenRaw->gameCode)->first();

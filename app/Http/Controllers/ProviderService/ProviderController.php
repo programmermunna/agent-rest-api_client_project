@@ -262,9 +262,9 @@ class ProviderController extends Controller
                     'target' => $member->username,
                     'activity' => 'Refund bet',
                     'device' => $member->device,
-                    'ip' => $member->last_login_ip,
+                    'ip_member' => $member->last_login_ip,
                 ],
-                "$member->username . ' Refund on ' . $bets->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $bets->bet"
+                $member->username . ' Refund on ' . $bets->constant_provider_name . ' type ' . $bets->game_info . ' idr ' . $bets->bet
             );
             return Response::json($res);
         }
@@ -323,9 +323,9 @@ class ProviderController extends Controller
                     'target' => $member->username,
                     'activity' => 'Cancel bet',
                     'device' => $member->device,
-                    'ip' => $member->last_login_ip,
+                    'ip_member' => $member->last_login_ip,
                 ],
-                "$member->username . ' Cancel on ' . $bets->constant_provider_name . ' type ' .  $bets->game_info . ' idr '. $bets->bet"
+                $member->username . ' Cancel on ' . $bets->constant_provider_name . ' type ' . $bets->game_info . ' idr ' . $bets->bet
             );
             return Response::json($res);
         }
@@ -529,9 +529,9 @@ class ProviderController extends Controller
                 'target' => $member->username,
                 'activity' => 'Bet',
                 'device' => $member->device,
-                'ip' => $member->last_login_ip,
+                'ip_member' => $member->last_login_ip,
             ],
-            "$member->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bet->game_info . ' idr '. $nameProvider->bet"
+            $member->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' . $bet->game_info . ' idr ' . number_format($nameProvider->bet)
         );
 
         // activity('create_bet')->causedBy($bet)
@@ -560,9 +560,9 @@ class ProviderController extends Controller
                 'target' => $nameProvider->username,
                 'activity' => 'Win',
                 'device' => $nameProvider->device,
-                'ip' => $nameProvider->last_login_ip,
+                'ip_member' => $nameProvider->last_login_ip,
             ],
-            "$nameProvider->username . ' Win on ' . $nameProvider->constant_provider_name . ' type ' .  $win->game_info . ' idr '. $nameProvider->win"
+            $nameProvider->username . ' Win on ' . $nameProvider->constant_provider_name . ' type ' . $win->game_info . ' idr ' . $nameProvider->win
         );
         // activity('create_bet')->causedBy($win)
         // ->performedOn($win)
@@ -820,9 +820,9 @@ class ProviderController extends Controller
                         'target' => $member->username,
                         'activity' => 'Cancel bet',
                         'device' => $member->device,
-                        'ip' => $member->last_login_ip,
+                        'ip_member' => $member->last_login_ip,
                     ],
-                    "$member->username . ' Cancel on ' . $nameProvider->constant_provider_name . ' type ' .  $nameProvider->game_info . ' idr '. $nameProvider->bet"
+                    $member->username . ' Cancel on ' . $nameProvider->constant_provider_name . ' type ' . $nameProvider->game_info . ' idr ' . $nameProvider->bet
                 );
                 return Response::json($res);
             }
