@@ -85,10 +85,7 @@ class BetsTogelController extends ApiController
     # Loop the validated data and take key data and remapping the key
     
     try {
-      
-      DB::beginTransaction();
 
-      
       $payAmount = collect($this->checkBlokednumber($request, $provider))->sum('pay_amount');
       $checkMember = MembersModel::where('id', auth('api')->user()->id)->first();
       if( $payAmount > (float)$checkMember['credit']){
@@ -103,6 +100,7 @@ class BetsTogelController extends ApiController
       try {
         return response()->json(['message' => 'success', 'code' => 200]);
       } finally {
+        DB::beginTransaction();
         foreach ($this->checkBlokednumber($request, $provider) as $togel) {    
           # definition of bonus referal
           $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
@@ -177,9 +175,9 @@ class BetsTogelController extends ApiController
           ],
           $member->username . ' Bet on Pasaran ' . $pasaran->name . ' in Game ' . $game->name . ' idr ' . number_format($payAmount)
         );
-      }                
 
-      DB::commit();
+        DB::commit();
+      }                
 
     } catch (Throwable $error) {
       DB::rollBack();
