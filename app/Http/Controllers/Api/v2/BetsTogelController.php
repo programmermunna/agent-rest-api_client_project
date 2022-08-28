@@ -16,6 +16,7 @@ use App\Models\BetTogelLimitLineSettingsModel;
 use App\Models\BetTogelLimitLineTransactionsModel;
 use App\Models\MembersModel;
 use App\Models\BonusHistoryModel;
+use App\Models\UserLogModel;
 use Carbon\Carbon;
 use Exception as NewException;
 use Illuminate\Database\Eloquent\Builder;
