@@ -166,6 +166,7 @@ class BetsTogelController extends ApiController
         return response()->json(['message' => 'success', 'code' => 200]);
       } finally {
         $member =  MembersModel::where('id', auth('api')->user()->id)->first();
+        $bet = BetsTogel::first();
         UserLogModel::logMemberActivity(
           'create bet togel',
           $member,
