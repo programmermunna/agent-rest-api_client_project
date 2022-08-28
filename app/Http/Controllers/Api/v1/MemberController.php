@@ -1641,7 +1641,7 @@ class MemberController extends ApiController
                 'bets_togel_id' => $value->id,
                 'pasaran' => $value->Pasaran,
                 'description' => 'Bet : ' . $value->Game,
-                'debit' => $value->Bet, #bet
+                'debit' => $value->Bayar, #pay amount
                 'kredit' => $value->winTogel, #win
                 'balance' => $value->balance,
                 'created_by' => auth('api')->user()->username,
