@@ -644,158 +644,158 @@ class MemberController extends ApiController
 
                 # History deposit, withdraw and bonus
                 $allProBet = DB::select(\DB::raw("SELECT
-                  'Deposit' as Tables,
-                  NULL as betsBet,
-                  NULL as betsWin,
-                  NULL as betsGameInfo,
-                  NULL as betsBetId,
-                  NULL as betsGameId,
-                  NULL as betsDeskripsi,
-                  NULL as betsCredit,
-                  a.created_at as created_at,
-                  NULL as betsProviderName,
-                  NULL as betsTogelHistoryId,
-                  NULL as betsTogelHistoryPasaran,
-                  NULL as betsTogelHistorDeskripsi,
-                  NULL as betsTogelHistoryDebit,
-                  NULL as betsTogelHistoryKredit,
-                  NULL as betsTogelHistoryBalance,
-                  NULL as betsTogelHistoryCreatedBy,
-                  a.credit as depositCredit,
-                  a.jumlah as depositJumlah,
-                  a.approval_status as depositStatus,
-                  if (
-                    a.approval_status = 0
-                      , 'Pending'
-                      , if (
-                          a.approval_status = 1
-                          , 'Success'
-                          , if (
-                              a.approval_status = 2
-                              , 'Rejected'
-                              , 'nulled'
-                          )
-                      )
-                  ) as 'depositDescription',
-                  NULL as withdrawCredit,
-                  NULL as withdrawJumlah,
-                  NULL as withdrawStatus,
-                  NULL as withdrawDescription,
-                  NULL as bonusHistoryNamaBonus,
-                  NULL as bonusHistoryType,
-                  NULL as bonusHistoryJumlah,
-                  NULL as bonusHistoryHadiah,
-                  NULL as bonusHistoryCreatedBy,
-                  NULL as activityDeskripsi,
-                  NULL as activityName,
-                  NULL as detail
-              FROM
-                  deposit as a
-              LEFT JOIN members as b ON b.id = a.created_by
-              WHERE
-                  a.created_by = $id
-                  AND a.created_at BETWEEN '$fromDate' AND '$toDate'
-              UNION ALL
-              SELECT
-                  'Withdraw' as Tables,
-                  NULL as betsBet,
-                  NULL as betsWin,
-                  NULL as betsGameInfo,
-                  NULL as betsBetId,
-                  NULL as betsGameId,
-                  NULL as betsDeskripsi,
-                  NULL as betsCredit,
-                  a.created_at as created_at,
-                  NULL as betsProviderName,
-                  NULL as betsTogelHistoryId,
-                  NULL as betsTogelHistoryPasaran,
-                  NULL as betsTogelHistorDeskripsi,
-                  NULL as betsTogelHistoryDebit,
-                  NULL as betsTogelHistoryKredit,
-                  NULL as betsTogelHistoryBalance,
-                  NULL as betsTogelHistoryCreatedBy,
-                  NULL as depositCredit,
-                  NULL as depositJumlah,
-                  NULL as depositStatus,
-                  NULL as depositDescription,
-                  a.credit as withdrawCredit,
-                  a.jumlah as withdrawJumlah,
-                  a.approval_status as withdrawStatus,
-                  if (
-                    a.approval_status = 0
-                      , 'Pending'
-                      , if (
-                          a.approval_status = 1
-                          , 'Success'
-                          , if (
-                              a.approval_status = 2
-                              , 'Rejected'
-                              , 'nulled'
-                          )
-                      )
-                  ) as 'withdrawDescription',
-                  NULL as bonusHistoryNamaBonus,
-                  NULL as bonusHistoryType,
-                  NULL as bonusHistoryJumlah,
-                  NULL as bonusHistoryHadiah,
-                  NULL as bonusHistoryCreatedBy,
-                  NULL as activityDeskripsi,
-                  NULL as activityName,
-                  NULL as detail
-              FROM
-                  withdraw as a
-              LEFT JOIN members as b ON b.id = a.created_by
-              WHERE
-                  a.created_by = $id
-                  AND a.created_at BETWEEN '$fromDate' AND '$toDate'
-              UNION ALL
-              SELECT
-                  'Bonus History' as Tables,
-                  NULL as betsBet,
-                  NULL as betsWin,
-                  NULL as betsGameInfo,
-                  NULL as betsBetId,
-                  NULL as betsGameId,
-                  NULL as betsDeskripsi,
-                  NULL as betsCredit,
-                  if(
-                        a.constant_bonus_id = 4
-                        , a.updated_at
-                        , a.created_at
-                  ) as created_at,
-                  NULL as betsProviderName,
-                  NULL as betsTogelHistoryId,
-                  NULL as betsTogelHistoryPasaran,
-                  NULL as betsTogelHistorDeskripsi,
-                  NULL as betsTogelHistoryDebit,
-                  NULL as betsTogelHistoryKredit,
-                  NULL as betsTogelHistoryBalance,
-                  NULL as betsTogelHistoryCreatedBy,
-                  NULL as depositCredit,
-                  NULL as depositJumlah,
-                  NULL as depositStatus,
-                  NULL as depositDescription,
-                  NULL as withdrawCredit,
-                  NULL as withdrawJumlah,
-                  NULL as withdrawStatus,
-                  NULL as withdrawDescription,
-                  b.nama_bonus as bonusHistoryNamaBonus,
-                  a.type as bonusHistoryType,
-                  a.jumlah as bonusHistoryJumlah,
-                  a.hadiah as bonusHistoryHadiah,
-                  a.created_by as bonusHistoryCreatedBy,
-                  NULL as activityDeskripsi,
-                  NULL as activityName,
-                  NULL as detail
-              FROM
-                  bonus_history as a
-              LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id
-              WHERE
-                  a.created_at BETWEEN '$fromDate' AND '$toDate'
-                  AND a.member_id = $id
-                  AND is_send = 1
-                  AND a.deleted_at IS NULL
-              ORDER BY created_at DESC"));
+                    'Deposit' as Tables,
+                    NULL as betsBet,
+                    NULL as betsWin,
+                    NULL as betsGameInfo,
+                    NULL as betsBetId,
+                    NULL as betsGameId,
+                    NULL as betsDeskripsi,
+                    NULL as betsCredit,
+                    a.created_at as created_at,
+                    NULL as betsProviderName,
+                    NULL as betsTogelHistoryId,
+                    NULL as betsTogelHistoryPasaran,
+                    NULL as betsTogelHistorDeskripsi,
+                    NULL as betsTogelHistoryDebit,
+                    NULL as betsTogelHistoryKredit,
+                    NULL as betsTogelHistoryBalance,
+                    NULL as betsTogelHistoryCreatedBy,
+                    a.credit as depositCredit,
+                    a.jumlah as depositJumlah,
+                    a.approval_status as depositStatus,
+                    if (
+                        a.approval_status = 0
+                        , 'Pending'
+                        , if (
+                            a.approval_status = 1
+                            , 'Success'
+                            , if (
+                                a.approval_status = 2
+                                , 'Rejected'
+                                , 'nulled'
+                            )
+                        )
+                    ) as 'depositDescription',
+                    NULL as withdrawCredit,
+                    NULL as withdrawJumlah,
+                    NULL as withdrawStatus,
+                    NULL as withdrawDescription,
+                    NULL as bonusHistoryNamaBonus,
+                    NULL as bonusHistoryType,
+                    NULL as bonusHistoryJumlah,
+                    NULL as bonusHistoryHadiah,
+                    NULL as bonusHistoryCreatedBy,
+                    NULL as activityDeskripsi,
+                    NULL as activityName,
+                    NULL as detail
+                FROM
+                    deposit as a
+                LEFT JOIN members as b ON b.id = a.created_by
+                WHERE
+                    a.created_by = $id
+                    AND a.created_at BETWEEN '$fromDate' AND '$toDate'
+                UNION ALL
+                SELECT
+                    'Withdraw' as Tables,
+                    NULL as betsBet,
+                    NULL as betsWin,
+                    NULL as betsGameInfo,
+                    NULL as betsBetId,
+                    NULL as betsGameId,
+                    NULL as betsDeskripsi,
+                    NULL as betsCredit,
+                    a.created_at as created_at,
+                    NULL as betsProviderName,
+                    NULL as betsTogelHistoryId,
+                    NULL as betsTogelHistoryPasaran,
+                    NULL as betsTogelHistorDeskripsi,
+                    NULL as betsTogelHistoryDebit,
+                    NULL as betsTogelHistoryKredit,
+                    NULL as betsTogelHistoryBalance,
+                    NULL as betsTogelHistoryCreatedBy,
+                    NULL as depositCredit,
+                    NULL as depositJumlah,
+                    NULL as depositStatus,
+                    NULL as depositDescription,
+                    a.credit as withdrawCredit,
+                    a.jumlah as withdrawJumlah,
+                    a.approval_status as withdrawStatus,
+                    if (
+                        a.approval_status = 0
+                        , 'Pending'
+                        , if (
+                            a.approval_status = 1
+                            , 'Success'
+                            , if (
+                                a.approval_status = 2
+                                , 'Rejected'
+                                , 'nulled'
+                            )
+                        )
+                    ) as 'withdrawDescription',
+                    NULL as bonusHistoryNamaBonus,
+                    NULL as bonusHistoryType,
+                    NULL as bonusHistoryJumlah,
+                    NULL as bonusHistoryHadiah,
+                    NULL as bonusHistoryCreatedBy,
+                    NULL as activityDeskripsi,
+                    NULL as activityName,
+                    NULL as detail
+                FROM
+                    withdraw as a
+                LEFT JOIN members as b ON b.id = a.created_by
+                WHERE
+                    a.created_by = $id
+                    AND a.created_at BETWEEN '$fromDate' AND '$toDate'
+                UNION ALL
+                SELECT
+                    'Bonus History' as Tables,
+                    NULL as betsBet,
+                    NULL as betsWin,
+                    NULL as betsGameInfo,
+                    NULL as betsBetId,
+                    NULL as betsGameId,
+                    NULL as betsDeskripsi,
+                    NULL as betsCredit,
+                    if(
+                            a.constant_bonus_id = 4
+                            , a.updated_at
+                            , a.created_at
+                    ) as created_at,
+                    NULL as betsProviderName,
+                    NULL as betsTogelHistoryId,
+                    NULL as betsTogelHistoryPasaran,
+                    NULL as betsTogelHistorDeskripsi,
+                    NULL as betsTogelHistoryDebit,
+                    NULL as betsTogelHistoryKredit,
+                    NULL as betsTogelHistoryBalance,
+                    NULL as betsTogelHistoryCreatedBy,
+                    NULL as depositCredit,
+                    NULL as depositJumlah,
+                    NULL as depositStatus,
+                    NULL as depositDescription,
+                    NULL as withdrawCredit,
+                    NULL as withdrawJumlah,
+                    NULL as withdrawStatus,
+                    NULL as withdrawDescription,
+                    b.nama_bonus as bonusHistoryNamaBonus,
+                    a.type as bonusHistoryType,
+                    a.jumlah as bonusHistoryJumlah,
+                    a.hadiah as bonusHistoryHadiah,
+                    a.created_by as bonusHistoryCreatedBy,
+                    NULL as activityDeskripsi,
+                    NULL as activityName,
+                    NULL as detail
+                FROM
+                    bonus_history as a
+                LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id
+                WHERE
+                    a.created_at BETWEEN '$fromDate' AND '$toDate'
+                    AND a.member_id = $id
+                    AND is_send = 1
+                    AND a.deleted_at IS NULL
+                ORDER BY created_at DESC"));
 
                 # Histori Login/Logout
                 $activity_members = DB::select("SELECT
@@ -887,7 +887,7 @@ class MemberController extends ApiController
                         'betsTogelHistoryId' => $value['id'],
                         'betsTogelHistoryPasaran' => $value['Pasaran'],
                         'betsTogelHistorDeskripsi' => 'Bet : (' . $value['Game'] . ' => ' . $value['Nomor'] . ')',
-                        'betsTogelHistoryDebit' => $value['Bet'],
+                        'betsTogelHistoryDebit' => $value['Bayar'],
                         'betsTogelHistoryKredit' => $value['winTogel'],
                         'betsTogelHistoryBalance' => $value['balance'],
                         'betsTogelHistoryCreatedBy' => $value['created_by'],
@@ -1335,10 +1335,10 @@ class MemberController extends ApiController
                           )
                       )
                   ) as 'Nomor'
-                  , bets_togel.bet_amount as 'Bet'
-                  , bets_togel.pay_amount as 'Bayar'
-                  , bets_togel.win_nominal as 'winTogel'
-                  , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'disc/kei'
+                  , SUM(bets_togel.bet_amount) as 'Bet'
+                  , SUM(bets_togel.pay_amount) as 'Bayar'
+                  , SUM(bets_togel.win_nominal) as 'winTogel'
+                  , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'discKei'
 
 
                   , if (
@@ -2009,7 +2009,7 @@ class MemberController extends ApiController
             , SUM(bets_togel.bet_amount) as 'Bet'
             , SUM(bets_togel.pay_amount) as 'Bayar'
             , SUM(bets_togel.win_nominal) as 'winTogel'
-            , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'disc/kei'
+            , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'discKei'
 
 
             , if (
