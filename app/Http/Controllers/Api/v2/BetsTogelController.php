@@ -161,7 +161,23 @@ class BetsTogelController extends ApiController
       // $milliseconds = round($hasil * 1000);
       // $seconds = $milliseconds / 1000;
       // return response()->json(['message' => 'success, milliseconds : '. $milliseconds .'ms, seconds : '. $seconds .' s', 'code' => 200], 200);
-      return response()->json(['message' => 'success', 'code' => 200], 200);
+      try {
+        return response()->json(['message' => 'success', 'code' => 200]);
+      } finally {
+        $member =  MembersModel::where('id', auth('api')->user()->id)->first();
+        UserLogModel::logMemberActivity(
+          'create bet togel',
+          $member,
+          $bet,
+          [
+              'target' => $member->username,
+              'activity' => 'Bet Togel',
+              'device' => $member->device,
+              'ip_member' => $member->last_login_ip,
+          ],
+          $member->username . ' Bet on Pasaran ' . $pasaran->name . ' in Game ' . $game->name . ' idr ' . number_format($payAmount)
+        );
+      }
 
     } catch (Throwable $error) {
       DB::rollBack();
