@@ -2,24 +2,22 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Http\Controllers\ApiController;
 use App\Models\MemoModel;
 use App\Models\UserLogModel;
-use Illuminate\Http\Request;
-use App\Models\MembersModel;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection; # pagination pake ini
+use Illuminate\Support\Facades\Log; # pagination pake ini
+use Illuminate\Support\Facades\Validator; # pagination pake ini
 use Livewire\WithPagination;
-use App\Http\Controllers\ApiController;
-use Illuminate\Support\Facades\Validator;
-use App\Http\Resources\Api\v1\MemoResource;
-use Illuminate\Pagination\Paginator;            # pagination pake ini
-use Illuminate\Support\Collection;              # pagination pake ini
-use Illuminate\Pagination\LengthAwarePaginator; # pagination pake ini
-use Illuminate\Support\Facades\Log;
 
 class MemoController extends ApiController
 {
     use WithPagination;
-    public $perPage=20;
+    public $perPage = 20;
     public $memoId;
     public $memoData = [];
     public $inbox = [];
@@ -58,16 +56,17 @@ class MemoController extends ApiController
                 [
                     'target' => "memo {$memo->subject}",
                     'activity' => 'Create',
+                    'ip_member' => auth('api')->user()->last_login_ip,
                 ],
                 "$user->username Created a Memo"
             );
-            auth('api')->user()->update([
-                'last_login_ip' => $request->ip,
-            ]);
+            // auth('api')->user()->update([
+            //     'last_login_ip' => $request->ip,
+            // ]);
 
             // MemoModel::insert($create);
             return $this->successResponse(null, 'Berhasil membuat memo', 200);
-        } catch (\Exception $e) {
+        } catch (\Exception$e) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -76,24 +75,25 @@ class MemoController extends ApiController
     {
         try {
             $memo = MemoModel::where('member_id', auth('api')->user()->id)
-            ->where('is_reply', 1)
-            ->orderBy('id', 'desc')
-            ->where('memo_id', null)
-            ->with(['subMemos'])
+                ->where('is_reply', 1)
+                ->orderBy('id', 'desc')
+                ->where('memo_id', null)
+                ->with(['subMemos'])
             // ->whereHas('subMemos', function($q){
             //     $q->whereNotNull('id');
             // })
-            ->get();
+                ->get();
             $this->inbox = $memo->toArray();
             // dd($this->inbox);
-            $inbox = $this->paginate($this->inbox,$this->perPage);
+            $inbox = $this->paginate($this->inbox, $this->perPage);
             return $this->successResponse($inbox, 200);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
 
-    public function paginate($items, $perPage, $page = null, $options = []){
+    public function paginate($items, $perPage, $page = null, $options = [])
+    {
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $items = $items instanceof Collection ? $items : Collection::make($items);
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
@@ -102,15 +102,15 @@ class MemoController extends ApiController
     {
         try {
             $memo = MemoModel::where('member_id', auth('api')->user()->id)
-            ->orderBy('id', 'desc')
-            ->where('is_sent', 1)
-            ->where('memo_id', null)
-            ->with(['subMemos'])
-            ->get();
+                ->orderBy('id', 'desc')
+                ->where('is_sent', 1)
+                ->where('memo_id', null)
+                ->with(['subMemos'])
+                ->get();
             $this->inbox = $memo->toArray();
-            $inbox = $this->paginate($this->inbox,$this->perPage);
+            $inbox = $this->paginate($this->inbox, $this->perPage);
             return $this->successResponse($inbox, 200);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
 
@@ -123,16 +123,16 @@ class MemoController extends ApiController
                 'id' => 'required',
             ]);
             MemoModel::where('id', $request->id)->orWhere('memo_id', $request->id)
-            ->update([
-                'is_read' => 1,
-            ]);
+                ->update([
+                    'is_read' => 1,
+                ]);
 
             if ($validator->fails()) {
                 return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
             }
 
             return $this->successResponse($request->id);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
 
@@ -161,9 +161,9 @@ class MemoController extends ApiController
                 'created_at' => Carbon::now(),
             ]);
             MemoModel::where('id', $request->memoId)
-            ->update([
-                'is_sent' => 1,
-            ]);
+                ->update([
+                    'is_sent' => 1,
+                ]);
 
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
@@ -173,6 +173,7 @@ class MemoController extends ApiController
                 [
                     'target' => "memo {$memo->subject}",
                     'activity' => 'Replied to a memo',
+                    'ip_member' => auth('api')->user()->last_login_ip,
                 ],
                 "$user->username Replied a Memo"
             );
@@ -181,7 +182,7 @@ class MemoController extends ApiController
             ]);
             // MemoModel::insert($create);
             return $this->successResponse(null, 'Berhasil membalas memo', 200);
-        } catch (\Exception $e) {
+        } catch (\Exception$e) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -194,14 +195,14 @@ class MemoController extends ApiController
         $this->memoData = $dataMemo;
         // dd($this->memoData);
         $this->modMemberId = $dataMemo->member->id;
-        $this->subject = 'RE: '.$dataMemo['subject'];
+        $this->subject = 'RE: ' . $dataMemo['subject'];
 
         $data = [
             'memoId' => $this->memoId,
             'subject' => $this->subject,
-            'memoData' =>  $this->memoData,
-            'modMemberId' =>  $this->modMemberId
+            'memoData' => $this->memoData,
+            'modMemberId' => $this->modMemberId,
         ];
-        return $this->successResponse($data , 'Detail memo', 201);
+        return $this->successResponse($data, 'Detail memo', 201);
     }
 }

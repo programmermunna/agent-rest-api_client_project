@@ -46,9 +46,9 @@ class ProccessPragmatic implements ShouldQueue
                 'target' => $nameProvider->username,
                 'activity' => 'Bet',
                 'device' => $nameProvider->device,
-                'ip' => $nameProvider->last_login_ip,
+                'ip_member' => $nameProvider->last_login_ip,
             ],
-            "$nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bet->game_info . ' idr '. $nameProvider->bet"
+            $nameProvider->username . ' Bet on ' . $nameProvider->constant_provider_name . ' type ' .  $bet->game_info . ' idr '. $nameProvider->bet
         );
 
         return true;

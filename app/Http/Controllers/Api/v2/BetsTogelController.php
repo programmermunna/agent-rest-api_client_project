@@ -16,6 +16,7 @@ use App\Models\BetTogelLimitLineSettingsModel;
 use App\Models\BetTogelLimitLineTransactionsModel;
 use App\Models\MembersModel;
 use App\Models\BonusHistoryModel;
+use App\Models\UserLogModel;
 use Carbon\Carbon;
 use Exception as NewException;
 use Illuminate\Database\Eloquent\Builder;
@@ -152,7 +153,22 @@ class BetsTogelController extends ApiController
             'jumlah' => $calculateReferal,
           ]);
         }
-      }    
+      }
+
+      # activity log
+      $bet = BetsTogel::first();
+      UserLogModel::logMemberActivity(
+        'create bet togel',
+        $checkMember,
+        $bet,
+        [
+            'target' => $checkMember->username,
+            'activity' => 'Bet Togel',
+            'device' => $checkMember->device,
+            'ip_member' => $checkMember->last_login_ip,
+        ],
+        $checkMember->username . ' Bet on Pasaran ' . $pasaran->name . ' in Game ' . $game->name . ' idr ' . number_format($payAmount)
+      );
 
       DB::commit();
 
@@ -161,7 +177,7 @@ class BetsTogelController extends ApiController
       // $milliseconds = round($hasil * 1000);
       // $seconds = $milliseconds / 1000;
       // return response()->json(['message' => 'success, milliseconds : '. $milliseconds .'ms, seconds : '. $seconds .' s', 'code' => 200], 200);
-      return response()->json(['message' => 'success', 'code' => 200], 200);
+      return response()->json(['message' => 'success', 'code' => 200]);
 
     } catch (Throwable $error) {
       DB::rollBack();

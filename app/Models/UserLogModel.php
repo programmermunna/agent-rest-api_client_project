@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Jenssegers\Agent\Agent;
-use App\Models\MembersModel;
 
 class UserLogModel extends Model
 {
@@ -39,10 +38,10 @@ class UserLogModel extends Model
     protected $guarded = ['id'];
 
     /**
-    * The attributes that are mass assignable.
-    *
-    * @var array
-    */
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [];
 
     public static function getCasuserName($id, $type)
@@ -110,25 +109,25 @@ class UserLogModel extends Model
         if ($userAgent->isMobile()) {
             $userPlatform = "(Mobile) Brand name: {$userAgent->device()}. Model: {$userAgent->deviceType()}";
             $performedOn->update([
-                'device' => $userPlatform
+                'device' => $userPlatform,
             ]);
         }
         if ($userAgent->isDesktop()) {
             $userPlatform = "{$userAgent->browser()}";
             $performedOn->update([
-                'device' => $userPlatform
+                'device' => $userPlatform,
             ]);
         }
 
-        if (! isset($properties['device'])) {
-            if (! is_null($userPlatform)) {
+        if (!isset($properties['device'])) {
+            if (!is_null($userPlatform)) {
                 $properties['device'] = $userPlatform;
                 $performedOn->update([
-                    'device' => $userPlatform
+                    'device' => $userPlatform,
                 ]);
             }
         }
-        if (! isset($properties['ip'])) {
+        if (!isset($properties['ip'])) {
             // $properties['ip'] = request()->ip ?? request()->getClientIp();
             $properties['ip'] = request()->ip();
         }
