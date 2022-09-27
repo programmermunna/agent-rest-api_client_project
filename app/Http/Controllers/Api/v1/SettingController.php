@@ -58,7 +58,6 @@ class SettingController extends ApiController
             $itempropName = "";
             $itempropDescription = "";
             $itempropImage = "";
-            dd($metaTag->value);
             if($metaTag->value){
                 $dom = new \DOMdocument();
                 $dom->loadhtml($metaTag->value);
