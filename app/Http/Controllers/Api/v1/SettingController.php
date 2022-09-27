@@ -43,12 +43,25 @@ class SettingController extends ApiController
             $keyword = "";
             $description = "";
             $googleSiteVerification = "";
+            $geoRegion = "";
+            $geoCountry = "";
+            $language = "";
+            $googlebot = "";
+            $robots = "";
+            $distribution = "";
+            $geoPlacename = "";
+            $author = "";
+            $publisher = "";
+            $ogType = "";
+            $ogLocale = "";
+            $ogLocaleAlternate = "";
             $itempropName = "";
             $itempropDescription = "";
             $itempropImage = "";
+            dd($metaTag->value);
             if($metaTag->value){
                 $dom = new \DOMdocument();
-                $dom->loadhtml($metaTag->value);       
+                $dom->loadhtml($metaTag->value);
                 if ($dom->getelementsbytagname('meta')) {
                     $datas = [];
                     foreach($dom->getelementsbytagname('meta') as $meta) {
@@ -58,9 +71,45 @@ class SettingController extends ApiController
                         if($meta->getattribute('name') == 'description' && $meta->getattribute('content')) {
                             $description = $meta->getattribute('content');
                         }
+                        if($meta->getattribute('name') == 'geo.region' && $meta->getattribute('content')) {
+                            $geoRegion = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'geo.country' && $meta->getattribute('content')) {
+                            $geoCountry = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'language' && $meta->getattribute('content')) {
+                            $language = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'googlebot' && $meta->getattribute('content')) {
+                            $googlebot = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'robots' && $meta->getattribute('content')) {
+                            $robots = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'distribution' && $meta->getattribute('content')) {
+                            $distribution = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'geo.placename' && $meta->getattribute('content')) {
+                            $geoPlacename = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'author' && $meta->getattribute('content')) {
+                            $author = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('name') == 'publisher' && $meta->getattribute('content')) {
+                            $publisher = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('property') == 'og:type' && $meta->getattribute('content')) {
+                            $ogType = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('property') == 'og:locale' && $meta->getattribute('content')) {
+                            $ogLocale = $meta->getattribute('content');
+                        }
+                        if($meta->getattribute('property') == 'og:locale:alternate' && $meta->getattribute('content')) {
+                            $ogLocaleAlternate = $meta->getattribute('content');
+                        }
                         if($meta->getattribute('name') == 'google-site-verification' && $meta->getattribute('content')) {
                             $googleSiteVerification = $meta->getattribute('content');
-                            $datas[] = $googleSiteVerification;                            
+                            $datas[] = $googleSiteVerification;
                         }
                         if($meta->getattribute('itemprop') == 'name' && $meta->getattribute('content')) {
                             $itempropName = $meta->getattribute('content');
@@ -72,14 +121,14 @@ class SettingController extends ApiController
                             $itempropImage = $meta->getattribute('content');
                         }
                     }
-                }              
-                if ($dom->getelementsbytagname('link')) {               
+                }
+                if ($dom->getelementsbytagname('link')) {
                     foreach($dom->getelementsbytagname('link') as $link) {
                         if($link->getattribute('rel') == 'canonical' && $link->getattribute('href')) {
                             $linkcanonical = $link->getattribute('href');
                         }
                     }
-                }        
+                }
             }
             $googleSiteVerificationArr = [];
             foreach ($datas as $data){
@@ -93,15 +142,63 @@ class SettingController extends ApiController
                 [
                     'name' => "keywords",
                     'content' => $keyword
-                ],                        
+                ],
+                [
+                    'name' => "geo.region",
+                    'content' => $geoRegion
+                ],
+                [
+                    'name' => "geo.country",
+                    'content' => $geoCountry
+                ],
+                [
+                    'name' => "language",
+                    'content' => $language
+                ],
+                [
+                    'name' => "googlebot",
+                    'content' => $googlebot
+                ],
+                [
+                    'name' => "robots",
+                    'content' => $robots
+                ],
+                [
+                    'name' => "distribution",
+                    'content' => $distribution
+                ],
+                [
+                    'name' => "geo.placename",
+                    'content' => $geoPlacename
+                ],
+                [
+                    'name' => "author",
+                    'content' => $author
+                ],
+                [
+                    'name' => "publisher",
+                    'content' => $publisher
+                ],
+                [
+                    'property' => "og:type",
+                    'content' => $ogType
+                ],
+                [
+                    'property' => "og:locale",
+                    'content' => $ogLocale
+                ],
+                [
+                    'property' => "og:locale:alternate",
+                    'content' => $ogLocaleAlternate
+                ],
                 [
                     'itemprop' => "name",
                     'content' => $itempropName
-                ],                            
+                ],
                 [
                     'itemprop' => "description",
                     'content' => $itempropDescription
-                ],                            
+                ],
                 [
                     'itemprop' => "image",
                     'content' => $itempropImage
@@ -113,17 +210,16 @@ class SettingController extends ApiController
                     'status' => 'success',
                     'data' => [
                         'meta' => $meta,
-                        'googleSiteVerification' => $googleSiteVerificationArr,    
                         'link' => [
                             'rel'  => 'canonical',
                             'href' => $linkcanonical,
                         ]
                     ]
-                ], 200);                
+                ], 200);
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {            
+        } catch (\Throwable $th) {
             // return $this->errorResponse($th->getMessage(), 500);
             return response()->json([
                 'status' => 'error',
@@ -143,7 +239,7 @@ class SettingController extends ApiController
     {
         try {
             $referral_game = AppSetting::select('name', 'value')->where('type', 'game')->get();
-          
+
             if ($referral_game && $type == 'slot') {
                 return $this->successResponse($referral_game->toArray());
             }
