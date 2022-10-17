@@ -137,7 +137,7 @@ class BetsTogelController extends ApiController
                 # check if any referrer
                 if ($member->referrer_id) {
                     // calculate bonus have referrer
-                    // $referal = MembersModel::where('id', $member->referrer_id)->first();
+                    $referal = MembersModel::where('id', $member->referrer_id)->first();
                     MembersModel::where('id', $member->referrer_id)->update([
                         'updated_at' => Carbon::now(),
                         'credit' => $referal->credit + $calculateReferal,
