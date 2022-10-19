@@ -126,6 +126,12 @@ class UserLogModel extends Model
                     'device' => $userPlatform,
                 ]);
             }
+            if (is_null($userPlatform)) {
+                $properties['device'] = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+                $performedOn->update([
+                    'device' => 'Unknown',
+                ]);
+            }
         }
         if (!isset($properties['ip'])) {
             // $properties['ip'] = request()->ip ?? request()->getClientIp();
