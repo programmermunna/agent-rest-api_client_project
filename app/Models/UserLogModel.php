@@ -129,7 +129,7 @@ class UserLogModel extends Model
             if (is_null($userPlatform)) {
                 $properties['device'] = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
                 $performedOn->update([
-                    'device' => 'Unknown',
+                    'device' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
                 ]);
             }
         }
