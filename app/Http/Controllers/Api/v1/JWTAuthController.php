@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator; # pagination pake ini
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -740,10 +741,7 @@ class JWTAuthController extends ApiController
                 ->post($maintenanceUrl, $requestCikatechMaster)->json();
 
             if ($res['data']['status'] == 1) {
-                MembersModel::whereNotIn('id', [2, 3])->update([
-                    'active' => 0,
-                    'remember_token' => null,
-                ]);
+                Artisan::call('jwt:secret -f');
             }
 
             return $this->successResponse('Success force logout all members');
