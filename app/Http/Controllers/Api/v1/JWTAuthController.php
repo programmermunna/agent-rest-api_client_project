@@ -728,22 +728,22 @@ class JWTAuthController extends ApiController
     public function forceLogout()
     {
         try {
-            $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
-            $headers = [
-                'secret' => config('cikatechMaster.secret_url'),
-            ];
-            $requestCikatechMaster = [
-                'agent_name' => config('cikatechMaster.agent_name'),
-                'ip' => config('cikatechMaster.agent_ip'),
-            ];
-            $res = Http::asForm()
-                ->withHeaders($headers)
-                ->post($maintenanceUrl, $requestCikatechMaster)->json();
+            // $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
+            // $headers = [
+            //     'secret' => config('cikatechMaster.secret_url'),
+            // ];
+            // $requestCikatechMaster = [
+            //     'agent_name' => config('cikatechMaster.agent_name'),
+            //     'ip' => config('cikatechMaster.agent_ip'),
+            // ];
+            // $res = Http::asForm()
+            //     ->withHeaders($headers)
+            //     ->post($maintenanceUrl, $requestCikatechMaster)->json();
 
-            if ($res['data']['status'] == 1) {
-                Artisan::call('jwt:secret -f');
-                return $this->successResponse('Success force logout all members');
-            }
+            // if ($res['data']['status'] == 1) {
+            Artisan::call('jwt:secret -f');
+            return $this->successResponse('Success force logout all members');
+            // }
 
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Error Server!.', 500);
