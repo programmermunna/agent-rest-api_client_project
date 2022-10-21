@@ -2,29 +2,31 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use Carbon\Carbon;
-use GuzzleHttp\Client;
+use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
+use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
 use App\Models\MembersModel;
-use App\Models\UserLogModel;
-use Illuminate\Http\Request;
 use App\Models\RekeningModel;
-use App\Models\TurnoverModel;
 use App\Models\RekMemberModel;
-use App\Models\BonusHistoryModel;
+use App\Models\TurnoverModel;
+use App\Models\UserLogModel;
+use Carbon\Carbon;
+use GuzzleHttp\Client;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator; # pagination pake ini
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use JWTAuth; # pagination pake ini
-use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Validator;
+use JWTAuth;
+use Livewire\WithPagination;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Livewire\WithPagination; # pagination pake ini
+
+# pagination pake ini
 
 # pagination pake ini
 
@@ -738,7 +740,7 @@ class JWTAuthController extends ApiController
                 ->post($maintenanceUrl, $requestCikatechMaster)->json();
 
             if ($res['data']['status'] == 1) {
-                MembersModel::whereIn('id', [2, 3])->update([
+                MembersModel::whereNotIn('id', [2, 3])->update([
                     'active' => 0,
                     'remember_token' => null,
                 ]);
