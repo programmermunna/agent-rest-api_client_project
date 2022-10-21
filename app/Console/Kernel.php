@@ -28,10 +28,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         # Cron for Force Logout All Member if in cikatech master Maintenance
-        $schedule->call(function () {
-            $controller = new \App\Http\Controllers\Api\v1\JWTAuthController();
-            $controller->forceLogout();
-        })->everyMinute();
+        // $schedule->call(function () {
+        //     $controller = new \App\Http\Controllers\Api\v1\JWTAuthController();
+        //     $controller->forceLogout();
+        // })->everyMinute();
     }
 
     /**

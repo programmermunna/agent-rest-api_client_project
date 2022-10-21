@@ -742,9 +742,9 @@ class JWTAuthController extends ApiController
 
             if ($res['data']['status'] == 1) {
                 Artisan::call('jwt:secret -f');
+                return $this->successResponse('Success force logout all members');
             }
 
-            return $this->successResponse('Success force logout all members');
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Error Server!.', 500);
         }
