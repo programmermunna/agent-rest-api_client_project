@@ -74,7 +74,6 @@ class JWTAuthController extends ApiController
         if ($member) {
             # check maintenance
             $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
-            dd($maintenanceUrl);
             $headers = [
                 'secret' => config('cikatechMaster.secret_url'),
             ];
