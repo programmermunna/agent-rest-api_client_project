@@ -2,28 +2,29 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Http\Controllers\ApiController;
+use Carbon\Carbon;
+use GuzzleHttp\Client;
 use App\Models\BetModel;
-use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
 use App\Models\MembersModel;
-use App\Models\RekeningModel;
-use App\Models\RekMemberModel;
-use App\Models\TurnoverModel;
 use App\Models\UserLogModel;
-use Carbon\Carbon;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
+use App\Models\RekeningModel;
+use App\Models\TurnoverModel;
+use App\Models\RekMemberModel;
+use App\Models\BonusHistoryModel;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use JWTAuth; # pagination pake ini
-use Livewire\WithPagination; # pagination pake ini
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\ApiController;
+use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Livewire\WithPagination; # pagination pake ini
 
 # pagination pake ini
 
@@ -69,6 +70,24 @@ class JWTAuthController extends ApiController
             ->orWhere('username', $input['user_account'])
             ->first();
         if ($member) {
+            # check maintenance
+            $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
+            $headers = [
+                'secret' => config('cikatechMaster.secret_url'),
+            ];
+            $requestCikatechMaster = [
+                'agent_name' => config('cikatechMaster.agent_name'),
+                'ip' => config('cikatechMaster.agent_ip'),
+            ];
+            $res = Http::asForm()
+                ->withHeaders($headers)
+                ->post($maintenanceUrl, $requestCikatechMaster)->json();
+
+            if ($res['data']['status'] == 1) {
+                if (!in_array($member->id, [2, 3])) {
+                    return $this->errorResponse('Maaf kita sedang Maintenance!.', 503);
+                }
+            }
             if ($member->status == 0) {
                 return $this->errorResponse('Akun anda telah di blokir', 401);
             } elseif ($member->status == 2) {
