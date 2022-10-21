@@ -725,28 +725,13 @@ class JWTAuthController extends ApiController
     }
 
     # Force Logout All Member if in cikateck master Maintenance
-    public function forceLogout()
+    public function forceLogout(Request $request)
     {
         try {
-            // $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
-            // $headers = [
-            //     'secret' => config('cikatechMaster.secret_url'),
-            // ];
-            // $requestCikatechMaster = [
-            //     'agent_name' => config('cikatechMaster.agent_name'),
-            //     'ip' => config('cikatechMaster.agent_ip'),
-            // ];
-            // $res = Http::asForm()
-            //     ->withHeaders($headers)
-            //     ->post($maintenanceUrl, $requestCikatechMaster)->json();
-
-            // if ($res['data']['status'] == 1) {
             Artisan::call('jwt:secret -f');
             return $this->successResponse('Success force logout all members');
-            // }
 
         } catch (\Throwable$th) {
-            dd($th->getMessage);
             return $this->errorResponse('Internal Error Server!.', 500);
         }
     }
@@ -960,16 +945,16 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse('User does not exist', 400);
             }
 
-//             $referal = MembersModel::where('username', $request->referral)->first();
+            // $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_wd', '=', 1)->first();
             if ($rekeningDepoMember == null) {
                 return $this->errorResponse('Bank not found', 400);
             }
             $checkUser->update([
-//                         'username' => $request->username,
+                // 'username' => $request->username,
                 'email' => $request->email,
                 // 'password' => bcrypt($request->password),
-//                         'referrer_id' => $referal == null ? "" : $referal->id,
+                // 'referrer_id' => $referal == null ? "" : $referal->id,
                 'phone' => $request->phone,
             ]);
             $rekMember = RekMemberModel::where('created_by', $request->id)->update([
