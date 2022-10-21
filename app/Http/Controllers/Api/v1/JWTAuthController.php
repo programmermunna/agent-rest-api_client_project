@@ -746,6 +746,7 @@ class JWTAuthController extends ApiController
             // }
 
         } catch (\Throwable$th) {
+            dd($th->getMessage);
             return $this->errorResponse('Internal Error Server!.', 500);
         }
     }
