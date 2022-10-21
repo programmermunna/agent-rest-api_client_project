@@ -721,6 +721,35 @@ class JWTAuthController extends ApiController
         }
     }
 
+    # Force Logout All Member if in cikateck master Maintenance
+    public function forceLogout()
+    {
+        try {
+            $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
+            $headers = [
+                'secret' => config('cikatechMaster.secret_url'),
+            ];
+            $requestCikatechMaster = [
+                'agent_name' => config('cikatechMaster.agent_name'),
+                'ip' => config('cikatechMaster.agent_ip'),
+            ];
+            $res = Http::asForm()
+                ->withHeaders($headers)
+                ->post($maintenanceUrl, $requestCikatechMaster)->json();
+
+            if ($res['data']['status'] == 1) {
+                MembersModel::whereIn('id', [2, 3])->update([
+                    'active' => 0,
+                    'remember_token' => null,
+                ]);
+            }
+
+            return $this->successResponse('Success force logout all members');
+        } catch (\Throwable$th) {
+            return $this->errorResponse('Internal Error Server!.', 500);
+        }
+    }
+
     // pagination
     public function paginate($items, $perPage, $page = null, $options = [])
     {
