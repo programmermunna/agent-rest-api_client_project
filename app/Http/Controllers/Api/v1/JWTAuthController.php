@@ -736,7 +736,7 @@ class JWTAuthController extends ApiController
             $projectDir = base_path();
 
             //$commandResult = exec("cd $projectDir && php artisan jwt:secret -f");
-            $commandResult = exec("bash ~/memberapi.sh");
+            $commandResult = exec("bash ~/logallmemberout.sh");//
             Log::info($commandResult);
 //            Artisan::call('jwt:secret -f');
 //            Artisan::call('optimize');
