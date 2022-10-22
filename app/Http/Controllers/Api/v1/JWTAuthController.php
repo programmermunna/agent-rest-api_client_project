@@ -733,7 +733,10 @@ class JWTAuthController extends ApiController
     {
         try {
             MemberToken::truncate();
-            exec('php artisan jwt:secret -f');
+            $projectDir = base_path();
+
+            $commandResult = exec("cd $projectDir && php artisan jwt:secret -f");
+            Log::info($commandResult);
 //            Artisan::call('jwt:secret -f');
 //            Artisan::call('optimize');
             return $this->successResponse('Success force logout all members');
