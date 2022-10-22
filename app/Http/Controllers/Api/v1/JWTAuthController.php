@@ -8,6 +8,7 @@ use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
 use App\Models\MembersModel;
+use App\Models\MemberToken;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
 use App\Models\TurnoverModel;
@@ -308,6 +309,7 @@ class JWTAuthController extends ApiController
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
+
     public function lastWin()
     {
         try {
@@ -367,6 +369,7 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
+
     public function history()
     {
         try {
@@ -728,7 +731,9 @@ class JWTAuthController extends ApiController
     public function forceLogout(Request $request)
     {
         try {
+            MemberToken::truncate();
             Artisan::call('jwt:secret -f');
+            Artisan::call('optimize');
             return $this->successResponse('Success force logout all members');
 
         } catch (\Throwable$th) {
