@@ -750,7 +750,7 @@ class JWTAuthController extends ApiController
     public function forceLogout2(Request $request)
     {
         try {
-            MembersModel::update([
+            MembersModel::query()->update([
                 'remember_token' => null,
                 'active' => 0,
             ]);
