@@ -738,7 +738,7 @@ class JWTAuthController extends ApiController
             return $this->successResponse('Success force logout all members');
 
         } catch (\Throwable$th) {
-            Log::info($th);
+            Log::error($th);
             return $this->errorResponse('Internal Error Server!.', 500);
         }
     }
