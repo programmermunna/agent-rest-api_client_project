@@ -19,7 +19,6 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator; # pagination pake ini
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -737,14 +736,28 @@ class JWTAuthController extends ApiController
 
             //$commandResult = exec("cd $projectDir && php artisan jwt:secret -f");
             //$commandResult = exec("bash ~/logallmemberout.sh");//
-            $commandResult = exec("sudo php artisan jwt:secret -f");//
+            $commandResult = exec("sudo php artisan jwt:secret -f"); //
             Log::info($commandResult);
-//            Artisan::call('jwt:secret -f');
-//            Artisan::call('optimize');
+            //    Artisan::call('jwt:secret -f');
+            //    Artisan::call('optimize');
             return $this->successResponse('Success force logout all members');
 
         } catch (\Throwable$th) {
             Log::error($th);
+            return $this->errorResponse('Internal Error Server!.', 500);
+        }
+    }
+    public function forceLogout2(Request $request)
+    {
+        try {
+            MembersModel::update([
+                'remember_token' => null,
+                'active' => 0,
+            ]);
+            MemberToken::truncate();
+            return $this->successResponse('Success force logout all members');
+
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Error Server!.', 500);
         }
     }

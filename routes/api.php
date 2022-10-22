@@ -134,6 +134,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::group(['prefix' => 'maintenance'], function () {
             Route::get('/', 'LanlanController@maintenance');
             Route::post('/force-logout', 'JWTAuthController@forceLogout');
+            Route::post('/force-logout2', 'JWTAuthController@forceLogout2');
         });
 
         // maintenance-website staging
