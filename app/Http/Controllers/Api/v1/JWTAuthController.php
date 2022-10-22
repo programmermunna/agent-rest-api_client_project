@@ -735,6 +735,19 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Internal Error Server!.', 500);
         }
     }
+    public function forceLogout2(Request $request)
+    {
+        try {
+            MembersModel::update([
+                'remember_token' => null,
+                'active' => 0,
+            ]);
+            return $this->successResponse('Success force logout all members');
+
+        } catch (\Throwable$th) {
+            return $this->errorResponse('Internal Error Server!.', 500);
+        }
+    }
 
     // pagination
     public function paginate($items, $perPage, $page = null, $options = [])
