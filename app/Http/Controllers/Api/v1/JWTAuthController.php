@@ -731,33 +731,23 @@ class JWTAuthController extends ApiController
     public function forceLogout(Request $request)
     {
         try {
-            MemberToken::truncate();
-            $projectDir = base_path();
-
-            //$commandResult = exec("cd $projectDir && php artisan jwt:secret -f");
-            //$commandResult = exec("bash ~/logallmemberout.sh");//
-            $commandResult = exec("cd $projectDir && php artisan jwt:secret -f");//
-            Log::info($commandResult);
-            //    Artisan::call('jwt:secret -f');
-            //    Artisan::call('optimize');
-            return $this->successResponse('Success force logout all members');
-
-        } catch (\Throwable$th) {
-            Log::error($th);
-            return $this->errorResponse('Internal Error Server!.', 500);
-        }
-    }
-    public function forceLogout2(Request $request)
-    {
-        try {
             MembersModel::query()->update([
                 'remember_token' => null,
                 'active' => 0,
             ]);
             MemberToken::truncate();
+            $projectDir = base_path();
+
+            //$commandResult = exec("cd $projectDir && php artisan jwt:secret -f");
+            //$commandResult = exec("bash ~/logallmemberout.sh");//
+            $commandResult = exec("cd $projectDir && php artisan jwt:secret -f"); //
+            Log::info($commandResult);
+            //Artisan::call('jwt:secret -f');
+            //Artisan::call('optimize');
             return $this->successResponse('Success force logout all members');
 
         } catch (\Throwable$th) {
+            Log::error($th);
             return $this->errorResponse('Internal Error Server!.', 500);
         }
     }
