@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Livewire\WithPagination;
@@ -737,6 +738,7 @@ class JWTAuthController extends ApiController
             return $this->successResponse('Success force logout all members');
 
         } catch (\Throwable$th) {
+            Log::info($th);
             return $this->errorResponse('Internal Error Server!.', 500);
         }
     }
