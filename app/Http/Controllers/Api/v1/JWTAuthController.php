@@ -88,8 +88,8 @@ class JWTAuthController extends ApiController
                 ->post($maintenanceUrl, $requestCikatechMaster)->json();
 
             if ($res['data']['status'] == 1) {
-                if (!in_array($member->id, [2, 3])) {
-                    return $this->errorResponse('Maaf kita sedang Maintenance!.', 503);
+                if (!in_array($member->id, [2, 3, 21])) {
+                    return $this->errorResponse('Maaf, kita sedang Maintenance!.', 503);
                 }
             }
             if ($member->status == 0) {
