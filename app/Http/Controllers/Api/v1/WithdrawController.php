@@ -65,7 +65,7 @@ class WithdrawController extends ApiController
 
                 # update balance member
                 $member = MembersModel::find(auth('api')->user()->id);
-                $member->update([
+                MembersModel::where('id', auth('api')->user()->id)->update([
                     'credit' => $member->credit - $jumlah,
                 ]);
 

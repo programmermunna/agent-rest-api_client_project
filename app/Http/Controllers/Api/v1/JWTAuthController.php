@@ -8,6 +8,7 @@ use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
 use App\Models\MembersModel;
+use App\Models\MemberToken;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
 use App\Models\TurnoverModel;
@@ -16,14 +17,18 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
+use Illuminate\Pagination\Paginator; # pagination pake ini
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use JWTAuth; # pagination pake ini
-use Livewire\WithPagination; # pagination pake ini
+use JWTAuth;
+use Livewire\WithPagination;
 use Tymon\JWTAuth\Exceptions\JWTException;
+
+# pagination pake ini
 
 # pagination pake ini
 
@@ -69,6 +74,24 @@ class JWTAuthController extends ApiController
             ->orWhere('username', $input['user_account'])
             ->first();
         if ($member) {
+            # check maintenance
+            $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
+            $headers = [
+                'secret' => config('cikatechMaster.secret_url'),
+            ];
+            $requestCikatechMaster = [
+                'agent_name' => config('cikatechMaster.agent_name'),
+                'ip' => config('cikatechMaster.agent_ip'),
+            ];
+            $res = Http::asForm()
+                ->withHeaders($headers)
+                ->post($maintenanceUrl, $requestCikatechMaster)->json();
+
+            if ($res['data']['status'] == 1) {
+                if (!in_array($member->id, [2, 3])) {
+                    return $this->errorResponse('Maaf kita sedang Maintenance!.', 503);
+                }
+            }
             if ($member->status == 0) {
                 return $this->errorResponse('Akun anda telah di blokir', 401);
             } elseif ($member->status == 2) {
@@ -286,6 +309,7 @@ class JWTAuthController extends ApiController
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
+
     public function lastWin()
     {
         try {
@@ -345,6 +369,7 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
+
     public function history()
     {
         try {
@@ -702,6 +727,31 @@ class JWTAuthController extends ApiController
         }
     }
 
+    # Force Logout All Member if in cikateck master Maintenance
+    public function forceLogout(Request $request)
+    {
+        try {
+            MembersModel::query()->update([
+                'remember_token' => null,
+                'active' => 0,
+            ]);
+            MemberToken::truncate();
+            $projectDir = base_path();
+
+            //$commandResult = exec("cd $projectDir && php artisan jwt:secret -f");
+            //$commandResult = exec("bash ~/logallmemberout.sh");//
+            $commandResult = exec("cd $projectDir && php artisan jwt:secret -f"); //
+            Log::info($commandResult);
+            //Artisan::call('jwt:secret -f');
+            //Artisan::call('optimize');
+            return $this->successResponse('Success force logout all members');
+
+        } catch (\Throwable$th) {
+            Log::error($th);
+            return $this->errorResponse('Internal Error Server!.', 500);
+        }
+    }
+
     // pagination
     public function paginate($items, $perPage, $page = null, $options = [])
     {
@@ -911,16 +961,16 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse('User does not exist', 400);
             }
 
-//             $referal = MembersModel::where('username', $request->referral)->first();
+            // $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_wd', '=', 1)->first();
             if ($rekeningDepoMember == null) {
                 return $this->errorResponse('Bank not found', 400);
             }
             $checkUser->update([
-//                         'username' => $request->username,
+                // 'username' => $request->username,
                 'email' => $request->email,
                 // 'password' => bcrypt($request->password),
-//                         'referrer_id' => $referal == null ? "" : $referal->id,
+                // 'referrer_id' => $referal == null ? "" : $referal->id,
                 'phone' => $request->phone,
             ]);
             $rekMember = RekMemberModel::where('created_by', $request->id)->update([

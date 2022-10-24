@@ -144,8 +144,8 @@ class MemberController extends ApiController
             $properties = [];
             foreach ($activity_members as $activity) {
                 $array = json_decode($activity->properties, true);
-                if (array_push($array) == 3) {
-                    $device = Arr::add($array, 'device', null);
+                if (!array_key_exists('device',$array) && !array_key_exists('created_at',$array)) {
+                    $device = Arr::add($array, 'device', 'Unknown');
                     $properties[] = Arr::add($device, 'created_at', $activity->created_at);
                 } else {
                     $properties[] = Arr::add($array, 'created_at', $activity->created_at);
@@ -811,8 +811,8 @@ class MemberController extends ApiController
                 $properties = [];
                 foreach ($activity_members as $activity) {
                     $array = json_decode($activity->properties, true);
-                    if (array_push($array) == 3) {
-                        $device = Arr::add($array, 'device', null);
+                    if (!array_key_exists('device',$array) && !array_key_exists('created_at',$array)) {
+                        $device = Arr::add($array, 'device', 'Unknown');
                         $properties[] = Arr::add($device, 'created_at', $activity->created_at);
                     } else {
                         $properties[] = Arr::add($array, 'created_at', $activity->created_at);

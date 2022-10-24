@@ -128,9 +128,9 @@ class BetsTogelController extends ApiController
                     }
                 }
                 # update member
-                $member->update([
+                MembersModel::where('id', $member->id)->update([
                     'credit' => $member->credit - $payBetTogel,
-                    'update_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
                     'bonus_referal' => $member->bonus_referal + $calculateReferal,
                 ]);
 
@@ -138,8 +138,8 @@ class BetsTogelController extends ApiController
                 if ($member->referrer_id) {
                     // calculate bonus have referrer
                     $referal = MembersModel::where('id', $member->referrer_id)->first();
-                    $referal->update([
-                        'update_at' => Carbon::now(),
+                    MembersModel::where('id', $member->referrer_id)->update([
+                        'updated_at' => Carbon::now(),
                         'credit' => $referal->credit + $calculateReferal,
                     ]);
 

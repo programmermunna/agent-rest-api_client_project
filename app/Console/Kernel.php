@@ -4,9 +4,6 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use DB;
-use App\Helpers\BcaHelper;
-use Carbon\Carbon;
 
 /**
  * Class Kernel.
@@ -30,61 +27,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('activitylog:clean')->daily();
-
+        # Cron for Force Logout All Member if in cikatech master Maintenance
         // $schedule->call(function () {
-        //     $controller = new \App\Http\Controllers\Backend\BcaController();
-        //     $controller->cronMutasi();
+        //     $controller = new \App\Http\Controllers\Api\v1\JWTAuthController();
+        //     $controller->forceLogout();
         // })->everyMinute();
-
-        # mau pakai di bawah ini jg jalan
-        // $schedule->call(function(){
-        //     $this->cronBcaMutasi();
-        // })->everyMinute();
-
-        // $schedule->call(function () {
-        //     $controller = new \App\Http\Controllers\Api\v1\MemberController();
-        //     $controller->setBonusNextDeposit();
-        // })->dailyAt('23:59');
-
-        // $schedule->call('\App\Http\Controllers\Api\v1\MemberController@bonus')->weekly()->mondays()->at('13:00');
-
-        #update is cash (is_cash ==  0 ? belum dapat cashback : sudah dapat cashback)
-
-        ## ->weeklyOn(1, '8:00'); #Run the task every week on Monday at 8:00
-        ## this one works:
-        // $schedule->call('down')->weeklyOn(3, '16:48')->timezone('Asia/Jakarta');
-
-        ## ->weeklyOn(1, '8:00'); #Run the task every week on Monday at 8:00
-        ## ->monthlyOn(4, '15:00'); #Run the task every month on the 4th at 15:00
-
-        #reset is_cash to be 0
-        $schedule->call(function () {
-            $controller = new \App\Http\Controllers\Backend\BonusController();
-            $controller->updateIsCash();
-        })
-        ->weeklyOn(1, '00:05')->timezone('Asia/Jakarta');
-
-        #bonus cashback
-        $schedule->call(function () {
-            $controller = new \App\Http\Controllers\Backend\BonusController();
-            $controller->bonusCashback();
-        })
-        ->weeklyOn(1, '8:00')->timezone('Asia/Jakarta');
-
-        #reset is_turnover to be 0
-        $schedule->call(function () {
-            $controller = new \App\Http\Controllers\Backend\BonusController();
-            $controller->updateIsTurnover();
-        })
-        ->monthlyOn(1, '00:05')->timezone('Asia/Jakarta');
-
-        // #bonus turnover
-        $schedule->call(function () {
-            $controller = new \App\Http\Controllers\Backend\BonusController();
-            $controller->bonusTurnover();
-        })
-        ->monthlyOn(1, '15:00')->timezone('Asia/Jakarta');
     }
 
     /**
@@ -94,7 +41,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
@@ -121,8 +68,6 @@ class Kernel extends ConsoleKernel
         //     # Can insert up to 20K, use raw :) // rey
         //     DB::table('mutasi_bca')->insert($mutasiData);
         // }
-
-        
 
         // $setting = DB::table('orchardpools_settings')->first();
         // // $todayDate = date('Y-m-d');
@@ -156,7 +101,7 @@ class Kernel extends ConsoleKernel
         //             DB::table('orchardpools_consolation')->insert($dataConsolation);
         //             DB::table('orchardpools_starter')->insert($dataStarter);
         //             DB::table('orchardpools_winner')->insert($dataWinner);
-                
+
         //             $consolations = DB::table('orchardpools_consolation')->where('draw_id', $draw_no)->orderBy('id', 'desc')->get();
         //             $starter = DB::table('orchardpools_starter')->where('draw_id', $draw_no)->orderBy('id', 'desc')->get();
         //             $winner = DB::table('orchardpools_winner')->where('draw_id', $draw_no)->orderBy('id', 'desc')->get();
@@ -206,7 +151,7 @@ class Kernel extends ConsoleKernel
         //         DB::table('orchardpools_consolation')->insert($dataConsolation);
         //         DB::table('orchardpools_starter')->insert($dataStarter);
         //         DB::table('orchardpools_winner')->insert($dataWinner);
-        
+
         //         $consolations = DB::table('orchardpools_consolation')->where('draw_id', $draw_no)->orderBy('id', 'desc')->get();
         //         $starter = DB::table('orchardpools_starter')->where('draw_id', $draw_no)->orderBy('id', 'desc')->get();
         //         $winner = DB::table('orchardpools_winner')->where('draw_id', $draw_no)->orderBy('id', 'desc')->get();
