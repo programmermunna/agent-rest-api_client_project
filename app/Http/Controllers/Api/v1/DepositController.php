@@ -23,6 +23,7 @@ class DepositController extends ApiController
                     'jumlah' => 'required|integer',
                     'note' => 'sometimes|nullable',
                     'rekening_member_id' => 'required|integer',
+                    'is_bonus_freebet' => 'required',
                 ]
             );
             if ($validator->fails()) {
@@ -41,6 +42,7 @@ class DepositController extends ApiController
                 'members_id' => auth('api')->user()->id,
                 'rekening_id' => $request->rekening_id,
                 'jumlah' => $request->jumlah,
+                'is_bonus_freebet' => $request->is_bonus_freebet,
                 'note' => $request->note,
                 'created_by' => auth('api')->user()->id,
                 'created_at' => Carbon::now(),
