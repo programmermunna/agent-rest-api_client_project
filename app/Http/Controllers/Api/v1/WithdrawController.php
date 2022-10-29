@@ -64,14 +64,67 @@ class WithdrawController extends ApiController
                     ->where('status_bonus_freebet', 0)
                     ->whereBetween('approval_status_at', [$today, $todayend])->first();
 
-                $check_member_play_fish_casino = BetModel::whereIn('game_info', ['fish', 'live_casino'])
-                    ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
-                    ->where('created_by', auth('api')->user()->id)->first();
-
-                $check_member_play_togel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
-                    ->where('created_by', auth('api')->user()->id)->first();
                 # check member if claim bonus freebet
-                if ($Check_deposit_claim_bonus_freebet && $check_member_play_fish_casino == null && $check_member_play_togel == null) {
+                if ($Check_deposit_claim_bonus_freebet) {
+
+                    $check_member_play_fish_casino = BetModel::whereIn('game_info', ['fish', 'live_casino'])
+                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
+                        ->where('created_by', auth('api')->user()->id)->first();
+
+                    $check_member_play_togel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
+                        ->where('created_by', auth('api')->user()->id)->first();
+
+                    if ($check_member_play_fish_casino || $check_member_play_togel) {
+                        if ($check_member_play_fish_casino && $check_member_play_togel) {
+                            $reason = 'Member telah memainkan game fish/casino dan game togel';
+                        }
+                        if ($check_member_play_fish_casino == null && $check_member_play_togel) {
+                            $reason = 'Member telah memainkan game togel';
+                        }
+                        if ($check_member_play_fish_casino && $check_member_play_togel == null) {
+                            $reason = 'Member telah memainkan game fish/casino';
+                        }
+                        DepositModel::where('id', $Check_deposit_claim_bonus_freebet->id)->update([
+                            'status_bonus_freebet' => 1,
+                            'reason_bonus_freebet' => $reason,
+                        ]);
+
+                        $payload = [
+                            'members_id' => $memberId,
+                            'rekening_id' => $bankAsalTransferForWd->id,
+                            'rek_member_id' => $rekMember->id,
+                            'jumlah' => $jumlah,
+                            'note' => $request->note,
+                            'created_by' => $memberId,
+                            'created_at' => Carbon::now(),
+                        ];
+                        $withdrawal = WithdrawModel::create($payload);
+
+                        # update balance member
+                        $member = MembersModel::find(auth('api')->user()->id);
+                        MembersModel::where('id', auth('api')->user()->id)->update([
+                            'credit' => $member->credit - $jumlah,
+                        ]);
+
+                        # activity Log
+                        $user = auth('api')->user();
+                        UserLogModel::logMemberActivity(
+                            'Withdrawal Created',
+                            $user,
+                            $withdrawal,
+                            [
+                                'target' => 'Withdrawal',
+                                'activity' => 'Create',
+                                'ip_member' => auth('api')->user()->last_login_ip,
+                            ],
+                            "$user->username Created a Withdrawal with amount {$withdrawal->jumlah}"
+                        );
+                        auth('api')->user()->update([
+                            'last_login_ip' => $request->ip,
+                        ]);
+
+                        return $this->successResponse(null, 'Berhasil request withdraw');
+                    }
 
                     $TOMember = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
@@ -125,21 +178,6 @@ class WithdrawController extends ApiController
                     return $this->successResponse(null, 'Berhasil request withdraw');
 
                 } else {
-                    if ($Check_deposit_claim_bonus_freebet && $check_member_play_fish_casino || $check_member_play_togel) {
-                        if ($check_member_play_fish_casino && $check_member_play_togel) {
-                            $reason = 'Member telah memainkan game fish/casino dan game togel';
-                        }
-                        if ($check_member_play_fish_casino == null && $check_member_play_togel) {
-                            $reason = 'Member telah memainkan game togel';
-                        }
-                        if ($check_member_play_fish_casino && $check_member_play_togel == null) {
-                            $reason = 'Member telah memainkan game fish/casino';
-                        }
-                        DepositModel::where('id', $Check_deposit_claim_bonus_freebet->id)->update([
-                            'status_bonus_freebet' => 1,
-                            'reason_bonus_freebet' => $reason,
-                        ]);
-                    }
                     $payload = [
                         'members_id' => $memberId,
                         'rekening_id' => $bankAsalTransferForWd->id,
