@@ -50,6 +50,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
 
         // Deposit
         Route::post('/deposit/create', 'DepositController@create');
+        Route::get('/setting-bonus-freebet', 'DepositController@dataBonusFreebet');
 
         //Withdraw
         Route::post('/withdraw/create', 'WithdrawController@create');
