@@ -62,16 +62,13 @@ class WithdrawController extends ApiController
                     ->where('approval_status', 1)
                     ->where('is_bonus_freebet', 1)->whereBetween('approval_status_at', [$today, $todayend])->first();
 
-                if ($Check_deposit_claim_bonus_freebet) {
-                    $check_member_play_fish_casino = BetModel::whereIn('game_info', ['fish', 'live_casino'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
-                        ->where('created_by', auth('api')->user()->id)->first();
-                    $check_member_play_togel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
-                        ->where('created_by', auth('api')->user()->id)->first();
+                $check_member_play_fish_casino = BetModel::whereIn('game_info', ['fish', 'live_casino'])
+                    ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
+                    ->where('created_by', auth('api')->user()->id)->first();
+                $check_member_play_togel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
+                    ->where('created_by', auth('api')->user()->id)->first();
 
-                    if ($check_member_play_fish_casino || $check_member_play_togel) {
-                        return $this->errorResponse('Maaf, Bonus anda tidak memenuhi persyaratan, Anda telah memainkan game selain slot!.', 400);
-                    }
+                if ($Check_deposit_claim_bonus_freebet && ($check_member_play_fish_casino == null && $check_member_play_togel == null)) {
 
                     $TOMember = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
@@ -81,7 +78,8 @@ class WithdrawController extends ApiController
                     $formula_bonus_freebet = BonusFreebetModel::first();
                     $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
                     $turnover_x = $formula_bonus_freebet->turnover_x;
-                    $depoPlus50K = $total_depo + 50000;
+                    $bonus_amount = $formula_bonus_freebet->bonus_amount;
+                    $depoPlus50K = $total_depo + $bonus_amount;
                     $TO = $depoPlus50K * $turnover_x;
 
                     if ($TOMember < $TO) {
