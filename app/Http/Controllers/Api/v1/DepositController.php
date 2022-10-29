@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
-use App\Models\AppSetting;
 use App\Models\BonusFreebetModel;
 use App\Models\DepositModel;
 use App\Models\RekMemberModel;
@@ -93,6 +92,16 @@ class DepositController extends ApiController
             // ]);
 
             return $this->successResponse(null, 'Deposit berhasil');
+        } catch (\Throwable$th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+
+    public function dataBonusFreebet()
+    {
+        try {
+            $data = BonusFreebetModel::first();
+            return $this->successResponse($data, 'Setting Bonus Freebet berhasil ditampilkan');
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
