@@ -60,7 +60,9 @@ class WithdrawController extends ApiController
                 $todayend = Carbon::now()->format('Y-m-d 23:59:59');
                 $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)
                     ->where('approval_status', 1)
-                    ->where('is_bonus_freebet', 1)->whereBetween('approval_status_at', [$today, $todayend])->first();
+                    ->where('is_bonus_freebet', 1)
+                    ->where('status_bonus_freebet', 0)
+                    ->whereBetween('approval_status_at', [$today, $todayend])->first();
 
                 $check_member_play_fish_casino = BetModel::whereIn('game_info', ['fish', 'live_casino'])
                     ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
@@ -68,7 +70,7 @@ class WithdrawController extends ApiController
 
                 $check_member_play_togel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $todayend])
                     ->where('created_by', auth('api')->user()->id)->first();
-
+                # check member if claim bonus freebet
                 if ($Check_deposit_claim_bonus_freebet && $check_member_play_fish_casino == null && $check_member_play_togel == null) {
 
                     $TOMember = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
