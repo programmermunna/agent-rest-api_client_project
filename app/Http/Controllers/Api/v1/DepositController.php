@@ -47,7 +47,7 @@ class DepositController extends ApiController
                 ->whereBetween('approval_status_at', [$today, $todayend])->first();
             if ($request->is_bonus_freebet == 1) {
                 if ($check_claim_bonus) {
-                    return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali !.", 400);
+                    return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
                 }
                 if ($request->jumlah < $check_minimal_depo_bonus_freebet->min_depo) {
                     return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet minimal " . number_format($check_minimal_depo_bonus_freebet->min_depo) . ".", 400);
