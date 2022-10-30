@@ -147,6 +147,7 @@ class WithdrawController extends ApiController
                         'rek_member_id' => $rekMember->id,
                         'jumlah' => $jumlah,
                         'note' => $request->note,
+                        'is_claim_bonus_freebet' => 1,
                         'created_by' => $memberId,
                         'created_at' => Carbon::now(),
                     ];
