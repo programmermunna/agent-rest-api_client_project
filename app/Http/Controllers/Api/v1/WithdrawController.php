@@ -141,11 +141,6 @@ class WithdrawController extends ApiController
                         return $this->errorResponse('Maaf, Bonus anda tidak memenuhi persyaratan, Turnover anda belum tercapai, Turnover anda saat ini sebesar Rp. ' . number_format($TOMember) . ', Turnover yang harus anda capai sebesar Rp. ' . number_format($TO), 400);
                     }
 
-                    DepositModel::where('id', $Check_deposit_claim_bonus_freebet->id)->update([
-                        'status_bonus_freebet' => 2,
-                        'reason_bonus_freebet' => 'Member Claim Bonus Freebet.',
-                    ]);
-
                     $payload = [
                         'members_id' => $memberId,
                         'rekening_id' => $bankAsalTransferForWd->id,
