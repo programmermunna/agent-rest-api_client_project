@@ -39,8 +39,19 @@ class DepositController extends ApiController
             }
 
             $check_minimal_depo_bonus_freebet = BonusFreebetModel::select('min_depo')->first();
-            if ($request->is_bonus_freebet == 1 && $request->jumlah < $check_minimal_depo_bonus_freebet->min_depo) {
-                return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet minimal " . number_format($check_minimal_depo_bonus_freebet->min_depo) . ".", 400);
+            $today = Carbon::now()->format('Y-m-d 00:00:00');
+            $todayend = Carbon::now()->format('Y-m-d H:m:s');
+            $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
+                ->where('approval_status', 1)
+                ->where('is_bonus_freebet', 1)
+                ->whereBetween('approval_status_at', [$today, $todayend])->first();
+            if ($request->is_bonus_freebet == 1) {
+                if ($check_claim_bonus) {
+                    return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali !.", 400);
+                }
+                if ($request->jumlah < $check_minimal_depo_bonus_freebet->min_depo) {
+                    return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet minimal " . number_format($check_minimal_depo_bonus_freebet->min_depo) . ".", 400);
+                }
             };
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id], ['is_depo', 1]])->first();
 
