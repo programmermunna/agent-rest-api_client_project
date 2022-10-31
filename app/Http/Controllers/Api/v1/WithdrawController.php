@@ -85,7 +85,7 @@ class WithdrawController extends ApiController
                             $reason = 'Member telah memainkan game fish/casino';
                         }
                         DepositModel::where('id', $Check_deposit_claim_bonus_freebet->id)->update([
-                            'status_bonus_freebet' => 1,
+                            'status_bonus_freebet' => 2,
                             'reason_bonus_freebet' => $reason,
                         ]);
 
