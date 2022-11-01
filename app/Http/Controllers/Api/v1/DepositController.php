@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
+use App\Models\BonusFreebetModel;
 use App\Models\DepositModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
@@ -23,17 +24,34 @@ class DepositController extends ApiController
                     'jumlah' => 'required|integer',
                     'note' => 'sometimes|nullable',
                     'rekening_member_id' => 'required|integer',
+                    'is_bonus_freebet' => 'sometimes',
                 ]
             );
             if ($validator->fails()) {
                 return $this->errorResponse($validator->errors()->first(), 422);
             }
+
             $cek_status_depo = DepositModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status', 0)
                 ->first();
             if ($cek_status_depo) {
                 return $this->errorResponse("Maaf Anda masih ada transaksi Deposit yang belum selesai.", 400);
             }
+
+            $check_minimal_depo_bonus_freebet = BonusFreebetModel::select('min_depo')->first();
+            $today = Carbon::now()->format('Y-m-d');
+            $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
+                ->where('approval_status', 1)
+                ->where('is_bonus_freebet', 1)
+                ->whereDate('approval_status_at', $today)->first();
+            if ($request->is_bonus_freebet == 1) {
+                if ($check_claim_bonus) {
+                    return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
+                }
+                if ($request->jumlah < $check_minimal_depo_bonus_freebet->min_depo) {
+                    return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet minimal " . number_format($check_minimal_depo_bonus_freebet->min_depo) . ".", 400);
+                }
+            };
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id], ['is_depo', 1]])->first();
 
             $payload = [
@@ -41,6 +59,7 @@ class DepositController extends ApiController
                 'members_id' => auth('api')->user()->id,
                 'rekening_id' => $request->rekening_id,
                 'jumlah' => $request->jumlah,
+                'is_bonus_freebet' => $request->is_bonus_freebet ?? 0,
                 'note' => $request->note,
                 'created_by' => auth('api')->user()->id,
                 'created_at' => Carbon::now(),
@@ -83,6 +102,16 @@ class DepositController extends ApiController
             // ]);
 
             return $this->successResponse(null, 'Deposit berhasil');
+        } catch (\Throwable$th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+
+    public function dataBonusFreebet()
+    {
+        try {
+            $data = BonusFreebetModel::first();
+            return $this->successResponse($data, 'Setting Bonus Freebet berhasil ditampilkan');
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
