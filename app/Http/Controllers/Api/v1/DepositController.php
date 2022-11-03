@@ -39,12 +39,14 @@ class DepositController extends ApiController
                 return $this->errorResponse("Maaf Anda masih ada transaksi Deposit yang belum selesai.", 400);
             }
 
-            $check_bonus_freebet = BonusFreebetModel::select('min_depo', 'max_depo', 'status_bonus')->first();
-            $today = Carbon::now()->format('Y-m-d');
+            $check_bonus_freebet = BonusFreebetModel::select('min_depo', 'max_depo', 'status_bonus', 'durasi_bonus_promo')->first();
+            $durasiBonus = $check_bonus_freebet->durasi_bonus_promo;
+            $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+            $today = Carbon::now()->format('Y-m-d 23:59:59');
             $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status', 1)
                 ->where('is_bonus_freebet', 1)
-                ->whereDate('approval_status_at', $today)->first();
+                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
             if ($request->is_bonus_freebet == 1 && $check_bonus_freebet->status_bonus == 1) {
                 if ($check_claim_bonus) {
                     return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
