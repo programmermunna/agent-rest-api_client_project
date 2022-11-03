@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\BonusFreebetModel;
+use App\Models\ConstantProvider;
 use App\Models\DepositModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
@@ -113,6 +114,7 @@ class DepositController extends ApiController
     public function dataBonusFreebet()
     {
         try {
+            $userId = auth('api')->user()->id;
             $dataSetting = BonusFreebetModel::select(
                 'id',
                 'min_depo',
@@ -129,12 +131,13 @@ class DepositController extends ApiController
             $dataBonusSetting = [];
             foreach ($dataSetting as $key => $item) {
                 $provider_id = explode(',', $item->provider_id);
-                $togel = [
-                    ['id' => 16, 'name' => 'Game Togel'],
-                ];
                 $providers = [];
                 foreach ($provider_id as $key => $value) {
-                    $providers[] = ConstantProvider::select('id', 'constant_provider_name as name')->find($value);
+                    if ($value != 16) {
+                        $providers[] = ConstantProvider::select('id', 'constant_provider_name as name')->find($value);
+                    } else {
+                        $providers[] = ['id' => 16, 'name' => 'Game Togel'];
+                    }
                 }
                 $durasiBonus = $item->durasi_bonus_promo;
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
@@ -155,8 +158,8 @@ class DepositController extends ApiController
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
-                    'is_bonus_freebet' => $check_claim_bonus ? 1 : 0,
-                    'provider_id' => array_merge($providers, $togel),
+                    'is_bonus_freebet' => $checkKlaimBonus ? 1 : 0,
+                    'provider_id' => $item->provider_id ? $providers : [],
                 ];
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus Freebet berhasil ditampilkan');
