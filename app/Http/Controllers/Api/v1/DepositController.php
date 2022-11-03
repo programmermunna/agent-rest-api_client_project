@@ -39,21 +39,21 @@ class DepositController extends ApiController
                 return $this->errorResponse("Maaf Anda masih ada transaksi Deposit yang belum selesai.", 400);
             }
 
-            $check_minimal_depo_bonus_freebet = BonusFreebetModel::select('min_depo', 'max_depo')->first();
+            $check_bonus_freebet = BonusFreebetModel::select('min_depo', 'max_depo', 'status_bonus')->first();
             $today = Carbon::now()->format('Y-m-d');
             $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status', 1)
                 ->where('is_bonus_freebet', 1)
                 ->whereDate('approval_status_at', $today)->first();
-            if ($request->is_bonus_freebet == 1) {
+            if ($request->is_bonus_freebet == 1 && $check_bonus_freebet->status_bonus == 1) {
                 if ($check_claim_bonus) {
                     return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
                 }
-                if ($request->jumlah < $check_minimal_depo_bonus_freebet->min_depo) {
-                    return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet sebesar " . number_format($check_minimal_depo_bonus_freebet->min_depo) . ".", 400);
+                if ($request->jumlah < $check_bonus_freebet->min_depo) {
+                    return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet sebesar " . number_format($check_bonus_freebet->min_depo) . ".", 400);
                 }
-                if ($request->jumlah > $check_minimal_depo_bonus_freebet->max_depo) {
-                    return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus freebet sebesar " . number_format($check_minimal_depo_bonus_freebet->max_depo) . ".", 400);
+                if ($request->jumlah > $check_bonus_freebet->max_depo) {
+                    return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus freebet sebesar " . number_format($check_bonus_freebet->max_depo) . ".", 400);
                 }
             };
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id], ['is_depo', 1]])->first();
