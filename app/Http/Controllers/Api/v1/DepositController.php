@@ -136,6 +136,15 @@ class DepositController extends ApiController
                 foreach ($provider_id as $key => $value) {
                     $providers[] = ConstantProvider::select('id', 'constant_provider_name as name')->find($value);
                 }
+                $durasiBonus = $item->durasi_bonus_promo;
+                $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+                $today = Carbon::now()->format('Y-m-d 23:59:59');
+                $checkKlaimBonus = DepositModel::select('bonus_freebet_amount', 'is_bonus_freebet', 'status_bonus_freebet')
+                    ->where('is_bonus_freebet', 1)
+                    ->where('status_bonus_freebet', 0)
+                    ->where('approval_status', 1)
+                    ->where('members_id', $userId)
+                    ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
                 $dataBonusSetting[] = [
                     'id' => $item->id,
                     'min_depo' => (float) $item->min_depo,
@@ -146,6 +155,7 @@ class DepositController extends ApiController
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
+                    'is_bonus_freebet' => $check_claim_bonus ? 1 : 0,
                     'provider_id' => array_merge($providers, $togel),
                 ];
             }
