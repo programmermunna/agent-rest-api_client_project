@@ -131,12 +131,13 @@ class DepositController extends ApiController
             $dataBonusSetting = [];
             foreach ($dataSetting as $key => $item) {
                 $provider_id = explode(',', $item->provider_id);
-                $togel = [
-                    ['id' => 16, 'name' => 'Game Togel'],
-                ];
                 $providers = [];
                 foreach ($provider_id as $key => $value) {
-                    $providers[] = ConstantProvider::select('id', 'constant_provider_name as name')->find($value);
+                    if ($value != 16) {
+                        $providers[] = ConstantProvider::select('id', 'constant_provider_name as name')->find($value);
+                    } else {
+                        $providers[] = ['id' => 16, 'name' => 'Game Togel'];
+                    }
                 }
                 $durasiBonus = $item->durasi_bonus_promo;
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
@@ -158,7 +159,7 @@ class DepositController extends ApiController
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
                     'is_bonus_freebet' => $checkKlaimBonus ? 1 : 0,
-                    'provider_id' => array_merge($providers, $togel),
+                    'provider_id' => $item->provider_id ? $providers : [],
                 ];
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus Freebet berhasil ditampilkan');
