@@ -38,7 +38,7 @@ class DepositController extends ApiController
                 return $this->errorResponse("Maaf Anda masih ada transaksi Deposit yang belum selesai.", 400);
             }
 
-            $check_minimal_depo_bonus_freebet = BonusFreebetModel::select('min_depo')->first();
+            $check_minimal_depo_bonus_freebet = BonusFreebetModel::select('min_depo', 'max_depo')->first();
             $today = Carbon::now()->format('Y-m-d');
             $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status', 1)
@@ -49,7 +49,10 @@ class DepositController extends ApiController
                     return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
                 }
                 if ($request->jumlah < $check_minimal_depo_bonus_freebet->min_depo) {
-                    return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet minimal " . number_format($check_minimal_depo_bonus_freebet->min_depo) . ".", 400);
+                    return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet sebesar " . number_format($check_minimal_depo_bonus_freebet->min_depo) . ".", 400);
+                }
+                if ($request->jumlah > $check_minimal_depo_bonus_freebet->max_depo) {
+                    return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus freebet sebesar " . number_format($check_minimal_depo_bonus_freebet->max_depo) . ".", 400);
                 }
             };
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id], ['is_depo', 1]])->first();
@@ -110,8 +113,43 @@ class DepositController extends ApiController
     public function dataBonusFreebet()
     {
         try {
-            $data = BonusFreebetModel::first();
-            return $this->successResponse($data, 'Setting Bonus Freebet berhasil ditampilkan');
+            $dataSetting = BonusFreebetModel::select(
+                'id',
+                'min_depo',
+                'max_depo',
+                'bonus_amount',
+                'turnover_x',
+                'turnover_amount',
+                'info',
+                'status_bonus',
+                'durasi_bonus_promo',
+                'provider_id',
+            )->get();
+
+            $dataBonusSetting = [];
+            foreach ($dataSetting as $key => $item) {
+                $provider_id = explode(',', $item->provider_id);
+                $togel = [
+                    ['id' => 16, 'name' => 'Game Togel'],
+                ];
+                $providers = [];
+                foreach ($provider_id as $key => $value) {
+                    $providers[] = ConstantProvider::select('id', 'constant_provider_name as name')->find($value);
+                }
+                $dataBonusSetting[] = [
+                    'id' => $item->id,
+                    'min_depo' => (float) $item->min_depo,
+                    'max_depo' => (float) $item->max_depo,
+                    'bonus_amount' => (int) $item->bonus_amount,
+                    'turnover_x' => $item->turnover_x,
+                    'turnover_amount' => (float) $item->turnover_amount,
+                    'info' => $item->info,
+                    'status_bonus' => $item->status_bonus,
+                    'durasi_bonus_promo' => $item->durasi_bonus_promo,
+                    'provider_id' => array_merge($providers, $togel),
+                ];
+            }
+            return $this->successResponse($dataBonusSetting, 'Setting Bonus Freebet berhasil ditampilkan');
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
