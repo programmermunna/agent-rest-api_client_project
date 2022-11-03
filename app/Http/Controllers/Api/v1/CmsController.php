@@ -4,8 +4,14 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Resources\Api\v1\WebsiteContentResource;
+use App\Models\BetModel;
+use App\Models\BetsTogel;
+use App\Models\BonusFreebetModel;
+use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\WebSiteContent;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class CmsController extends ApiController
 {
@@ -105,4 +111,60 @@ class CmsController extends ApiController
         }
     }
 
+    public function freebetBonus()
+    {
+        try {
+            $bonus_freebet = BonusFreebetModel::first();
+            $durasiBonus = $bonus_freebet->durasi_bonus_promo;
+            $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+            $today = Carbon::now()->format('Y-m-d 23:59:59');
+            $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)
+                ->where('approval_status', 1)
+                ->where('is_bonus_freebet', 1)
+                ->where('status_bonus_freebet', 0)
+                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
+            if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
+                $providerId = explode(',', $bonus_freebet->provider_id);
+                if (!in_array(16, $providerId)) {
+                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                        ->where('created_by', auth('api')->user()->id)
+                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
+
+                    $TOMember = $TOSlotCasinoFish + $TOTogel;
+                } else {
+                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                        ->where('created_by', auth('api')->user()->id)
+                        ->where('game_info', 'slot')->sum('bet');
+                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+
+                    $TOMember = $TOSlotCasinoFish + $TOTogel;
+                }
+
+                $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
+                $turnover_x = $bonus_freebet->turnover_x;
+                $bonus_amount = $bonus_freebet->bonus_amount;
+                $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
+                $TO = $depoPlusBonus * $turnover_x;
+
+                $data = [
+                    'turnover' => $TO,
+                    'turnover_member' => $TOMember,
+                    'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
+                ];
+            } else {
+                $data = [
+                    'turnover' => 0,
+                    'turnover_member' => 0,
+                    'durasi_bonus_promo' => 0,
+                ];
+            }
+            return $this->successResponse($data, 'Datanya ada', 200);
+        } catch (\Throwable$th) {
+            dd($th->getMessage());
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
 }

@@ -125,6 +125,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/image-contents/{type}', 'CmsController@imageContent'); //{type}=> api all , popup , mobile , slide , promotion ///
             Route::get('/game-content/{slug}', 'CmsController@gameContent');
             Route::get('/banner_promo_bonus', 'CmsController@bannerPromoBonus');
+            Route::get('/freebet-list', 'CmsController@freebetBonus');
         });
 
         Route::group(['prefix' => 'contact'], function () {
