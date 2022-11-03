@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\ApiController;
 use App\Models\BonusFreebetModel;
 use App\Models\DepositModel;
+use App\Models\ConstantProvider;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
@@ -113,6 +114,7 @@ class DepositController extends ApiController
     public function dataBonusFreebet()
     {
         try {
+            $userId = auth('api')->user()->id;
             $dataSetting = BonusFreebetModel::select(
                 'id',
                 'min_depo',
@@ -155,12 +157,13 @@ class DepositController extends ApiController
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
-                    'is_bonus_freebet' => $check_claim_bonus ? 1 : 0,
+                    'is_bonus_freebet' => $checkKlaimBonus ? 1 : 0,
                     'provider_id' => array_merge($providers, $togel),
                 ];
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus Freebet berhasil ditampilkan');
         } catch (\Throwable$th) {
+            dd($th->getMessage());
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
