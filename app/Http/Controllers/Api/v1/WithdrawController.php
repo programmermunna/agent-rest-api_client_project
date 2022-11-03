@@ -68,15 +68,24 @@ class WithdrawController extends ApiController
 
                 # check member if claim bonus freebet
                 if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
-                        ->where('game_info', 'slot')->sum('bet');
+                    $providerId = explode(',', $bonus_freebet->provider_id);
+                    if (!in_array(16, $providerId)) {
+                        $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                            ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                            ->where('created_by', auth('api')->user()->id)
+                            ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+                        $TOMember = $TOSlotCasinoFish + $TOTogel;
+                    } else {
+                        $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                            ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                            ->where('created_by', auth('api')->user()->id)
+                            ->where('game_info', 'slot')->sum('bet');
+                        $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                            ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
 
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
+                        $TOMember = $TOSlotCasinoFish + $TOTogel;
+                    }
 
                     $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
                     $turnover_x = $bonus_freebet->turnover_x;
