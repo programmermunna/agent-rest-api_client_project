@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\BonusFreebetModel;
-use App\Models\DepositModel;
 use App\Models\ConstantProvider;
+use App\Models\DepositModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
@@ -163,7 +163,6 @@ class DepositController extends ApiController
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus Freebet berhasil ditampilkan');
         } catch (\Throwable$th) {
-            dd($th->getMessage());
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
