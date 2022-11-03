@@ -152,6 +152,7 @@ class DepositController extends ApiController
                     ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
                 $dataBonusSetting[] = [
                     'id' => $item->id,
+                    'name_bonus' => 'Bonus Freebet',
                     'min_depo' => (float) $item->min_depo,
                     'max_depo' => (float) $item->max_depo,
                     'bonus_amount' => (int) $item->bonus_amount,
