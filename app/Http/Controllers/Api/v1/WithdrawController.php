@@ -75,7 +75,7 @@ class WithdrawController extends ApiController
                             ->where('created_by', auth('api')->user()->id)
                             ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
-                        $TOMember = $TOSlotCasinoFish + $TOTogel;
+                        $TOMember = $TOSlotCasinoFish;
                     } else {
                         $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                             ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
