@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Http\Controllers\ApiController;
-use App\Models\BonusFreebetModel;
-use App\Models\ConstantProvider;
-use App\Models\DepositModel;
-use App\Models\RekMemberModel;
-use App\Models\UserLogModel;
 use Carbon\Carbon;
+use App\Models\DepositModel;
+use App\Models\MembersModel;
+use App\Models\UserLogModel;
 use Illuminate\Http\Request;
+use App\Models\RekMemberModel;
+use App\Models\ConstantProvider;
+use App\Models\BonusFreebetModel;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Validator;
 
 class DepositController extends ApiController
@@ -192,5 +193,48 @@ class DepositController extends ApiController
         }
 
         DepositModel::insert($payload);
+    }
+    public function BonusFreebetGivUp(Request $request)
+    {
+        try {
+            $check_bonus_freebet = BonusFreebetModel::select('min_depo', 'max_depo', 'status_bonus', 'durasi_bonus_promo')->first();
+            if($check_bonus_freebet->status_bonus == 1){
+                $deposit = DepositModel::where('members_id', auth('api')->user()->id)
+                ->where('is_bonus_freebet', 1)
+                ->where('created_at',Carbon::now())->first();
+                if($deposit != null && $deposit->is_bonus_freebet = 1){
+                    $member = MembersModel::where('id', auth('api')->user()->id)->first();
+                    $credit = $member->credit - $deposit->bonus_freebet_amount;
+                    MembersModel::where('id', auth('api')->user()->id)
+                    ->update([
+                        'credit' => $credit,
+                        'updated_by' => auth('api')->user()->id,
+                        'updated_at' => Carbon::now()
+                    ]);
+                    UserLogModel::logMemberActivity(
+                        'Bonus FreeBet Giveup',
+                        $member,
+                        $deposit,
+                        [
+                            'target' => 'Bonus FreeBet',
+                            'activity' => 'Bonus FreeBet Giveup',
+                            'ip_member' => auth('api')->user()->last_login_ip,
+                        ],
+                        $member->username . 'Deducted Bonus FreeBet amount from member balance  ' . number_format($deposit->bonus_freebet_amount)
+                    );
+                    auth('api')->user()->update([
+                        'last_login_ip' => $request->ip,
+                    ]);
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Bonus Freebet giveup successfully.'
+                    ]);
+                }
+            }
+            return $this->errorResponse("Maaf, Bonus Freebet sudah tidak aktif atau kadaluarsa.", 400);
+
+        } catch (\Throwable$th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
     }
 }
