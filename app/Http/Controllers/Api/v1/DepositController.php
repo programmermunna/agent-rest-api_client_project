@@ -42,34 +42,34 @@ class DepositController extends ApiController
                 return $this->errorResponse("Maaf Anda masih ada transaksi Deposit yang belum selesai.", 400);
             }
 
-            $check_bonus_freebet = BonusFreebetModel::first();
-            $durasiBonus = $check_bonus_freebet->durasi_bonus_promo;
+            $bonus_freebet = BonusFreebetModel::first();
+            $durasiBonus = $bonus_freebet->durasi_bonus_promo;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
             $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status', 1)
                 ->where('is_bonus_freebet', 1)
                 ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
-            if ($request->is_bonus_freebet == 1 && $check_bonus_freebet->status_bonus == 1) {
+            if ($request->is_bonus_freebet == 1 && $bonus_freebet->status_bonus == 1) {
                 if ($check_claim_bonus) {
                     return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
                 }
-                if ($request->jumlah < $check_bonus_freebet->min_depo) {
-                    return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet sebesar " . number_format($check_bonus_freebet->min_depo) . ".", 400);
+                if ($request->jumlah < $bonus_freebet->min_depo) {
+                    return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->min_depo) . ".", 400);
                 }
-                if ($request->jumlah > $check_bonus_freebet->max_depo) {
-                    return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus freebet sebesar " . number_format($check_bonus_freebet->max_depo) . ".", 400);
+                if ($request->jumlah > $bonus_freebet->max_depo) {
+                    return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->max_depo) . ".", 400);
                 }
             };
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id], ['is_depo', 1]])->first();
-            $bonus = ($request->jumlah * $check_bonus_freebet->bonus_amount) / 100;
+            $bonus = ($request->jumlah * $bonus_freebet->bonus_amount) / 100;
             $payload = [
                 'rek_member_id' => $request->rekening_member_id,
                 'members_id' => auth('api')->user()->id,
                 'rekening_id' => $request->rekening_id,
                 'jumlah' => $request->jumlah,
                 'is_bonus_freebet' => $request->is_bonus_freebet ?? 0,
-                'bonus_freebet_amount' => $request->is_bonus_freebet == 1 && $check_bonus_freebet->status_bonus == 1 ? $bonus : 0,
+                'bonus_freebet_amount' => $request->is_bonus_freebet == 1 && $bonus_freebet->status_bonus == 1 ? $bonus : 0,
                 'note' => $request->note,
                 'created_by' => auth('api')->user()->id,
                 'created_at' => Carbon::now(),
@@ -88,7 +88,7 @@ class DepositController extends ApiController
                 ]);
             }
 
-            $deposit = DepositModel::create($payload);
+            $Check_deposit_claim_bonus_freebet = DepositModel::create($payload);
 
             // MembersModel::where('id', auth('api')->user()->id)
             //         ->update([
@@ -99,13 +99,13 @@ class DepositController extends ApiController
             UserLogModel::logMemberActivity(
                 'Deposit Created',
                 $user,
-                $deposit,
+                $Check_deposit_claim_bonus_freebet,
                 [
                     'target' => 'Deposit',
                     'activity' => 'Create Deposit',
                     'ip_member' => auth('api')->user()->last_login_ip,
                 ],
-                $user->username . ' Created a Deposit with amount ' . number_format($deposit->jumlah)
+                $user->username . ' Created a Deposit with amount ' . number_format($Check_deposit_claim_bonus_freebet->jumlah)
             );
             // auth('api')->user()->update([
             //     'last_login_ip' => $request->ip,
@@ -201,81 +201,86 @@ class DepositController extends ApiController
     {
         try {
             $memberId = auth('api')->user()->id;
-            $check_bonus_freebet = BonusFreebetModel::first();
-            if($check_bonus_freebet->status_bonus == 1){
-                $deposit = DepositModel::where('members_id', $memberId)
+            $bonus_freebet = BonusFreebetModel::first();
+            $durasiBonus = $bonus_freebet->durasi_bonus_promo;
+            $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+            $today = Carbon::now()->format('Y-m-d 23:59:59');
+            $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)
+                ->where('approval_status', 1)
                 ->where('is_bonus_freebet', 1)
-                ->where('created_at',Carbon::now())->first();
-                if($deposit != null && $deposit->is_bonus_freebet = 1){
-                    $bonus = $deposit->bonus_freebet_amount;
-                    $member = MembersModel::where('id', $memberId)->first();
-                    $credit = $member->credit - $bonus;
+                ->where('status_bonus_freebet', 0)
+                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
+                ->first();
+            if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
+                $bonus = $Check_deposit_claim_bonus_freebet->bonus_freebet_amount;
+                $member = MembersModel::where('id', $memberId)->first();
+                $credit = $member->credit - $bonus;
 
-                    # Calculate TO
-                    $total_depo = $deposit->jumlah;
-                    $turnover_x = $check_bonus_freebet->turnover_x;
-                    $bonus_amount = $check_bonus_freebet->bonus_amount;
-                    $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                    $TO = $depoPlusBonus * $turnover_x;
-                    MembersModel::where('id', $memberId)
-                    ->update([
-                        'credit' => $credit,
-                        'updated_by' => auth('api')->user()->id,
-                        'updated_at' => Carbon::now()
-                    ]);
+                # Calculate TO
+                $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
+                $turnover_x = $bonus_freebet->turnover_x;
+                $bonus_amount = $bonus_freebet->bonus_amount;
+                $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
+                $TO = $depoPlusBonus * $turnover_x;
+                MembersModel::where('id', $memberId)
+                ->update([
+                    'credit' => $credit,
+                    'updated_by' => auth('api')->user()->id,
+                    'updated_at' => Carbon::now()
+                ]);
 
-                    DepositModel::where('members_id',auth('api')->user()->id)
-                    ->update([
-                        'status_bonus_freebet' => 2,
-                        'reason_bonus_freebet' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '.$TO,
-                        'updated_by' => auth('api')->user()->id,
-                        'updated_at' => Carbon::now()
-                    ]);
+                DepositModel::where('members_id',auth('api')->user()->id)
+                ->update([
+                    'status_bonus_freebet' => 2,
+                    'reason_bonus_freebet' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '.$TO,
+                    'updated_by' => auth('api')->user()->id,
+                    'updated_at' => Carbon::now()
+                ]);
 
-                    BonusHistoryModel::create([
-                        'is_send' => 1,
-                        'is_use' => 1,
-                        'is_delete' => 0,
-                        'constant_bonus_id' => 4,
-                        'jumlah' => $bonus,
-                        'member_id' => $memberId,
-                        'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '. $TO .',  bonus sebasar Rp. '. $bonus .' kami tarik kembali, dari balance anda.',
-                        'type' => 'uang',
-                        'created_by' => 0,
-                        'created_at' => Carbon::now()
-                    ]);
+                BonusHistoryModel::create([
+                    'is_send' => 1,
+                    'is_use' => 1,
+                    'is_delete' => 0,
+                    'constant_bonus_id' => 4,
+                    'jumlah' => $bonus,
+                    'member_id' => $memberId,
+                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '. $TO .',  bonus sebasar Rp. '. $bonus .' kami tarik kembali, dari balance anda.',
+                    'type' => 'uang',
+                    'created_by' => 0,
+                    'created_at' => Carbon::now()
+                ]);
 
-                    MemoModel::create([
-                        'member_id' => $memberId,
-                        'sender_id' => 0,
-                        'send_type' => 'System',
-                        'subject' => 'Bonus Freebet',
-                        'is_replay' => 1,
-                        'is_bonus' => 1,
-                        'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Freebet, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '. $TO .',  bonus sebasar Rp. '. $bonus .' kami tarik kembali, dari balance anda.',
-                        'created_at' => Carbon::now(),
-                    ]);
+                MemoModel::create([
+                    'member_id' => $memberId,
+                    'sender_id' => 0,
+                    'send_type' => 'System',
+                    'subject' => 'Bonus Freebet',
+                    'is_replay' => 1,
+                    'is_bonus' => 1,
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Freebet, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '. $TO .',  bonus sebasar Rp. '. $bonus .' kami tarik kembali, dari balance anda.',
+                    'created_at' => Carbon::now(),
+                ]);
 
-                    UserLogModel::logMemberActivity(
-                        'Bonus FreeBet Giveup',
-                        $member,
-                        $deposit,
-                        [
-                            'target' => 'Bonus FreeBet',
-                            'activity' => 'Bonus FreeBet Giveup',
-                            'ip_member' => auth('api')->user()->last_login_ip,
-                        ],
-                        $member->username . 'Deducted Bonus FreeBet amount from member balance  ' . number_format($deposit->bonus_freebet_amount)
-                    );
-                    auth('api')->user()->update([
-                        'last_login_ip' => $request->ip,
-                    ]);
-                    return response()->json([
-                        'status' => 'success',
-                        'message' => 'Bonus Freebet giveup successfully.',
-                    ]);
-                }
+                UserLogModel::logMemberActivity(
+                    'Bonus FreeBet Giveup',
+                    $member,
+                    $Check_deposit_claim_bonus_freebet,
+                    [
+                        'target' => 'Bonus FreeBet',
+                        'activity' => 'Bonus FreeBet Giveup',
+                        'ip_member' => auth('api')->user()->last_login_ip,
+                    ],
+                    $member->username . 'Deducted Bonus FreeBet amount from member balance  ' . number_format($Check_deposit_claim_bonus_freebet->bonus_freebet_amount)
+                );
+                auth('api')->user()->update([
+                    'last_login_ip' => $request->ip,
+                ]);
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Bonus Freebet giveup successfully.',
+                ]);
             }
+
             return $this->errorResponse("Maaf, Bonus Freebet sudah tidak aktif atau kadaluarsa.", 400);
 
         } catch (\Throwable$th) {
