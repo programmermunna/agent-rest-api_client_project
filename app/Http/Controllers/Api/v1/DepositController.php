@@ -4,16 +4,16 @@ namespace App\Http\Controllers\Api\v1;
 
 use Carbon\Carbon;
 use App\Models\MemoModel;
+use App\Http\Controllers\ApiController;
+use App\Models\BonusFreebetModel;
+use App\Models\ConstantProvider;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
+use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
 use Illuminate\Http\Request;
-use App\Models\RekMemberModel;
-use App\Models\ConstantProvider;
-use App\Models\BonusFreebetModel;
 use App\Models\BonusHistoryModel;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Validator;
 
 class DepositController extends ApiController
@@ -42,7 +42,7 @@ class DepositController extends ApiController
                 return $this->errorResponse("Maaf Anda masih ada transaksi Deposit yang belum selesai.", 400);
             }
 
-            $check_bonus_freebet = BonusFreebetModel::select('min_depo', 'max_depo', 'status_bonus', 'durasi_bonus_promo')->first();
+            $check_bonus_freebet = BonusFreebetModel::first();
             $durasiBonus = $check_bonus_freebet->durasi_bonus_promo;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
@@ -62,13 +62,14 @@ class DepositController extends ApiController
                 }
             };
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id], ['is_depo', 1]])->first();
-
+            $bonus = ($request->jumlah * $check_bonus_freebet->bonus_amount) / 100;
             $payload = [
                 'rek_member_id' => $request->rekening_member_id,
                 'members_id' => auth('api')->user()->id,
                 'rekening_id' => $request->rekening_id,
                 'jumlah' => $request->jumlah,
                 'is_bonus_freebet' => $request->is_bonus_freebet ?? 0,
+                'bonus_freebet_amount' => $request->is_bonus_freebet == 1 && $check_bonus_freebet->status_bonus == 1 ? $bonus : 0,
                 'note' => $request->note,
                 'created_by' => auth('api')->user()->id,
                 'created_at' => Carbon::now(),
@@ -271,7 +272,7 @@ class DepositController extends ApiController
                     ]);
                     return response()->json([
                         'status' => 'success',
-                        'message' => 'Bonus Freebet giveup successfully.'
+                        'message' => 'Bonus Freebet giveup successfully.',
                     ]);
                 }
             }
