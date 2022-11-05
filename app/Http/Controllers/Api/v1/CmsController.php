@@ -153,12 +153,16 @@ class CmsController extends ApiController
                     'turnover' => $TO,
                     'turnover_member' => $TOMember,
                     'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
+                    'status_bonus' => $bonus_freebet->status_bonus,
+                    'is_bonus_freebet' => $Check_deposit_claim_bonus_freebet->is_bonus_freebet,
                 ];
             } else {
                 $data = [
                     'turnover' => 0,
                     'turnover_member' => 0,
                     'durasi_bonus_promo' => 0,
+                    'status_bonus' => 0,
+                    'is_bonus_freebet' => 0,
                 ];
             }
             return $this->successResponse($data, 'Datanya ada', 200);
