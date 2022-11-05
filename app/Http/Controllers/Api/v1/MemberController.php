@@ -144,7 +144,7 @@ class MemberController extends ApiController
             $properties = [];
             foreach ($activity_members as $activity) {
                 $array = json_decode($activity->properties, true);
-                if (!array_key_exists('device',$array) && !array_key_exists('created_at',$array)) {
+                if (!array_key_exists('device', $array) && !array_key_exists('created_at', $array)) {
                     $device = Arr::add($array, 'device', 'Unknown');
                     $properties[] = Arr::add($device, 'created_at', $activity->created_at);
                 } else {
@@ -187,18 +187,18 @@ class MemberController extends ApiController
             # Histori Bonus
             $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
                 ->selectRaw("
-          bonus_history.id,
-          constant_bonus.nama_bonus,
-          bonus_history.type,
-          bonus_history.jumlah,
-          bonus_history.hadiah,
-          if(
-            bonus_history.constant_bonus_id = 4
-              , bonus_history.updated_at
-              , bonus_history.created_at
-          ) as created_at,
-          bonus_history.member_id
-        ")
+                    bonus_history.id,
+                    constant_bonus.nama_bonus,
+                    bonus_history.type,
+                    bonus_history.jumlah,
+                    bonus_history.hadiah,
+                    if(
+                        bonus_history.constant_bonus_id = 4
+                        , if (bonus_history.updated_at is null, bonus_history.created_at, bonus_history.updated_at)
+                        , bonus_history.created_at
+                    ) as created_at,
+                    bonus_history.member_id
+                ")
                 ->whereBetween('bonus_history.created_at', [$fromDate, $toDate])
                 ->where('bonus_history.is_send', 1)
                 ->where('bonus_history.member_id', auth('api')->user()->id);
@@ -811,7 +811,7 @@ class MemberController extends ApiController
                 $properties = [];
                 foreach ($activity_members as $activity) {
                     $array = json_decode($activity->properties, true);
-                    if (!array_key_exists('device',$array) && !array_key_exists('created_at',$array)) {
+                    if (!array_key_exists('device', $array) && !array_key_exists('created_at', $array)) {
                         $device = Arr::add($array, 'device', 'Unknown');
                         $properties[] = Arr::add($device, 'created_at', $activity->created_at);
                     } else {

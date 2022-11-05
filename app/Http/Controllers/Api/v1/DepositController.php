@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use Carbon\Carbon;
-use App\Models\MemoModel;
 use App\Http\Controllers\ApiController;
 use App\Models\BonusFreebetModel;
+use App\Models\BonusHistoryModel;
 use App\Models\ConstantProvider;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
+use App\Models\MemoModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Models\BonusHistoryModel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
@@ -223,19 +223,19 @@ class DepositController extends ApiController
                 $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
                 $TO = $depoPlusBonus * $turnover_x;
                 MembersModel::where('id', $memberId)
-                ->update([
-                    'credit' => $credit,
-                    'updated_by' => auth('api')->user()->id,
-                    'updated_at' => Carbon::now()
-                ]);
+                    ->update([
+                        'credit' => $credit,
+                        'updated_by' => auth('api')->user()->id,
+                        'updated_at' => Carbon::now(),
+                    ]);
 
-                DepositModel::where('members_id',auth('api')->user()->id)
-                ->update([
-                    'status_bonus_freebet' => 2,
-                    'reason_bonus_freebet' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '.$TO,
-                    'updated_by' => auth('api')->user()->id,
-                    'updated_at' => Carbon::now()
-                ]);
+                DepositModel::where('members_id', auth('api')->user()->id)
+                    ->update([
+                        'status_bonus_freebet' => 2,
+                        'reason_bonus_freebet' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO,
+                        'updated_by' => auth('api')->user()->id,
+                        'updated_at' => Carbon::now(),
+                    ]);
 
                 BonusHistoryModel::create([
                     'is_send' => 1,
@@ -243,21 +243,21 @@ class DepositController extends ApiController
                     'is_delete' => 0,
                     'constant_bonus_id' => 4,
                     'jumlah' => $bonus,
-                    'member_id' => $memberId,
-                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '. $TO .',  bonus sebasar Rp. '. $bonus .' kami tarik kembali, dari balance anda.',
+                    'member_id' => auth('api')->user()->id,
+                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO . ',  bonus sebasar Rp. ' . $bonus . ' kami tarik kembali, dari balance anda.',
                     'type' => 'uang',
                     'created_by' => 0,
-                    'created_at' => Carbon::now()
+                    'created_at' => Carbon::now(),
                 ]);
 
                 MemoModel::create([
-                    'member_id' => $memberId,
+                    'member_id' => auth('api')->user()->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
                     'subject' => 'Bonus Freebet',
-                    'is_replay' => 1,
+                    'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Freebet, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '. $TO .',  bonus sebasar Rp. '. $bonus .' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Freebet, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO . ',  bonus sebasar Rp. ' . $bonus . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
