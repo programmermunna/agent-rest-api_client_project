@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use Carbon\Carbon;
+use App\Models\MemoModel;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
 use App\Models\UserLogModel;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Models\RekMemberModel;
 use App\Models\ConstantProvider;
 use App\Models\BonusFreebetModel;
+use App\Models\BonusHistoryModel;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Validator;
@@ -197,20 +199,62 @@ class DepositController extends ApiController
     public function BonusFreebetGivUp(Request $request)
     {
         try {
-            $check_bonus_freebet = BonusFreebetModel::select('min_depo', 'max_depo', 'status_bonus', 'durasi_bonus_promo')->first();
+            $memberId = auth('api')->user()->id;
+            $check_bonus_freebet = BonusFreebetModel::first();
             if($check_bonus_freebet->status_bonus == 1){
-                $deposit = DepositModel::where('members_id', auth('api')->user()->id)
+                $deposit = DepositModel::where('members_id', $memberId)
                 ->where('is_bonus_freebet', 1)
                 ->where('created_at',Carbon::now())->first();
                 if($deposit != null && $deposit->is_bonus_freebet = 1){
-                    $member = MembersModel::where('id', auth('api')->user()->id)->first();
-                    $credit = $member->credit - $deposit->bonus_freebet_amount;
-                    MembersModel::where('id', auth('api')->user()->id)
+                    $bonus = $deposit->bonus_freebet_amount;
+                    $member = MembersModel::where('id', $memberId)->first();
+                    $credit = $member->credit - $bonus;
+
+                    # Calculate TO
+                    $total_depo = $deposit->jumlah;
+                    $turnover_x = $check_bonus_freebet->turnover_x;
+                    $bonus_amount = $check_bonus_freebet->bonus_amount;
+                    $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
+                    $TO = $depoPlusBonus * $turnover_x;
+                    MembersModel::where('id', $memberId)
                     ->update([
                         'credit' => $credit,
                         'updated_by' => auth('api')->user()->id,
                         'updated_at' => Carbon::now()
                     ]);
+
+                    DepositModel::where('members_id',auth('api')->user()->id)
+                    ->update([
+                        'status_bonus_freebet' => 2,
+                        'reason_bonus_freebet' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '.$TO,
+                        'updated_by' => auth('api')->user()->id,
+                        'updated_at' => Carbon::now()
+                    ]);
+
+                    BonusHistoryModel::create([
+                        'is_send' => 1,
+                        'is_use' => 1,
+                        'is_delete' => 0,
+                        'constant_bonus_id' => 4,
+                        'jumlah' => $bonus,
+                        'member_id' => $memberId,
+                        'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '. $TO .',  bonus sebasar Rp. '. $bonus .' kami tarik kembali, dari balance anda.',
+                        'type' => 'uang',
+                        'created_by' => 0,
+                        'created_at' => Carbon::now()
+                    ]);
+
+                    MemoModel::create([
+                        'member_id' => $memberId,
+                        'sender_id' => 0,
+                        'send_type' => 'System',
+                        'subject' => 'Bonus Freebet',
+                        'is_replay' => 1,
+                        'is_bonus' => 1,
+                        'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Freebet, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. '. $TO .',  bonus sebasar Rp. '. $bonus .' kami tarik kembali, dari balance anda.',
+                        'created_at' => Carbon::now(),
+                    ]);
+
                     UserLogModel::logMemberActivity(
                         'Bonus FreeBet Giveup',
                         $member,

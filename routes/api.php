@@ -53,7 +53,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::get('/setting-bonus-freebet', 'DepositController@dataBonusFreebet');
 
         // Bonus Freebet
-        Route::get('/bonus-freebet/bonus-freebet-giveup','DepositController@BonusFreebetGivUp');
+        Route::post('/bonus-freebet/bonus-freebet-giveup','DepositController@BonusFreebetGivUp');
 
         //Withdraw
         Route::post('/withdraw/create', 'WithdrawController@create');
