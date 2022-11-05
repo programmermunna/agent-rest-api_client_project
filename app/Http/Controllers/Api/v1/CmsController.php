@@ -167,7 +167,7 @@ class CmsController extends ApiController
                     'bonus_freebet_amount' => 0
                 ];
             }
-            return $this->successResponse($data, 'Datanya ada', 200);
+            return $this->successResponse([$data], 'Datanya ada', 200);
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
