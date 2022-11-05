@@ -155,6 +155,7 @@ class CmsController extends ApiController
                     'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
                     'status_bonus' => $bonus_freebet->status_bonus,
                     'is_bonus_freebet' => $Check_deposit_claim_bonus_freebet->is_bonus_freebet,
+                    'bonus_freebet_amount' => $Check_deposit_claim_bonus_freebet->bonus_freebet_amount
                 ];
             } else {
                 $data = [
@@ -163,6 +164,7 @@ class CmsController extends ApiController
                     'durasi_bonus_promo' => 0,
                     'status_bonus' => 0,
                     'is_bonus_freebet' => 0,
+                    'bonus_freebet_amount' => 0
                 ];
             }
             return $this->successResponse($data, 'Datanya ada', 200);
