@@ -8,8 +8,11 @@ use App\Models\BetsTogel;
 use App\Models\BetsTogelQuotaLimitModel;
 use App\Models\BetTogelLimitLineSettingsModel;
 use App\Models\BetTogelLimitLineTransactionsModel;
+use App\Models\BonusFreebetModel;
 use App\Models\BonusHistoryModel;
+use App\Models\ConstantProvider;
 use App\Models\ConstantProviderTogelModel;
+use App\Models\DepositModel;
 use App\Models\MembersModel;
 use App\Models\TogelBlokAngka;
 use App\Models\TogelGame;
@@ -31,8 +34,24 @@ class BetsTogelController extends ApiController
      */
     public function store(BetsTogelRequest $request)
     {
-        // $start = microtime(true);
-
+        $bonusFreebet = BonusFreebetModel::select('status_bonus', 'provider_id', 'durasi_bonus_promo')->first();
+        $provider_id = explode(',', $bonusFreebet->provider_id);
+        $durasiBonus = $bonusFreebet->durasi_bonus_promo;
+        $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+        $today = Carbon::now()->format('Y-m-d 23:59:59');
+        $checkKlaimBonus = DepositModel::select('bonus_freebet_amount', 'is_bonus_freebet', 'status_bonus_freebet')
+            ->where('is_bonus_freebet', 1)
+            ->where('status_bonus_freebet', 0)
+            ->where('approval_status', 1)
+            ->where('members_id', auth('api')->user()->id)
+            ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
+        if ($bonusFreebet->status_bonus == 1 && $checkKlaimBonus) {
+            $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
+            $providers = implode(', ', $providers);
+            if (!in_array(16, $provider_id)) {
+                return $this->errorResponse('Anda sedang klaim Bonus Freebet, Anda hanya boleh bermain permainan dari Provider : ' . $providers, 400);
+            }
+        }
         # check if credit member 0
         if (auth('api')->user()->credit === 0) {
             return response()->json([
@@ -89,8 +108,14 @@ class BetsTogelController extends ApiController
 
             $payAmount = collect($this->checkBlokednumber($request, $provider))->sum('pay_amount');
             $checkMember = MembersModel::where('id', auth('api')->user()->id)->first();
+            $lastCredit = (float) $checkMember['credit'] - $payAmount;
             if ($payAmount > (float) $checkMember['credit']) {
                 return $this->errorResponse("Saldo anda tidak mencukupi", 400);
+            }
+            if ($bonusFreebet->status_bonus == 1 && $checkKlaimBonus) {
+                if ($lastCredit <= $checkKlaimBonus->bonus_freebet_amount) {
+                    return $this->errorResponse('Saldo anda tidak mencukupi', 400);
+                }
             }
 
             foreach ($this->checkBlokednumber($request, $provider) as $togel) {
