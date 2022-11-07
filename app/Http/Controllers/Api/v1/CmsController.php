@@ -131,7 +131,7 @@ class CmsController extends ApiController
                         ->where('created_by', auth('api')->user()->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
+                    $TOMember = $TOSlotCasinoFish;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
@@ -153,17 +153,22 @@ class CmsController extends ApiController
                     'turnover' => $TO,
                     'turnover_member' => $TOMember,
                     'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
+                    'status_bonus' => $bonus_freebet->status_bonus,
+                    'is_bonus_freebet' => $Check_deposit_claim_bonus_freebet->is_bonus_freebet,
+                    'bonus_freebet_amount' => $Check_deposit_claim_bonus_freebet->bonus_freebet_amount
                 ];
             } else {
                 $data = [
                     'turnover' => 0,
                     'turnover_member' => 0,
                     'durasi_bonus_promo' => 0,
+                    'status_bonus' => 0,
+                    'is_bonus_freebet' => 0,
+                    'bonus_freebet_amount' => 0
                 ];
             }
-            return $this->successResponse($data, 'Datanya ada', 200);
+            return $this->successResponse([$data], 'Datanya ada', 200);
         } catch (\Throwable$th) {
-            dd($th->getMessage());
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
