@@ -49,7 +49,11 @@ class BetsTogelController extends ApiController
             $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
             $providers = implode(', ', $providers);
             if (!in_array(16, $provider_id)) {
-                return $this->errorResponse('Anda sedang klaim Bonus Freebet, Anda hanya boleh bermain permainan dari Provider : ' . $providers, 400);
+                return response()->json([
+                    'status' => 'info',
+                    'message' => 'Anda sedang klaim Bonus Freebet, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
+                    'data' => null,
+                ], 100);
             }
         }
         # check if credit member 0
