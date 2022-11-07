@@ -223,7 +223,7 @@ class DepositController extends ApiController
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
 
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
+                    $TOmember = $TOSlotCasinoFish + $TOTogel;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
@@ -232,7 +232,7 @@ class DepositController extends ApiController
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
 
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
+                    $TOmember = $TOSlotCasinoFish + $TOTogel;
                 }
 
                 $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
@@ -241,8 +241,8 @@ class DepositController extends ApiController
                 $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
                 $TO = $depoPlusBonus * $turnover_x;
 
-                if ($TOMember < $TO) {
-                    return $this->errorResponse('Maaf, Bonus anda tidak memenuhi persyaratan, Turnover anda belum tercapai, Turnover anda saat ini sebesar Rp. ' . number_format($TOMember) . ', Turnover yang harus anda capai sebesar Rp. ' . number_format($TO), 400);
+                if ($TOmember > $TO) {
+                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus Freebet, silahkan Withdraw sekarang', 400);
                 }
 
                 $bonus = $Check_deposit_claim_bonus_freebet->bonus_freebet_amount;
