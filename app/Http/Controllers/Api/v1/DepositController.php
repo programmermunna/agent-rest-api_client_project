@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\v1;
 
 use Carbon\Carbon;
+use App\Models\BetModel;
+use App\Models\BetsTogel;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
 use App\Models\UserLogModel;
@@ -130,7 +132,6 @@ class DepositController extends ApiController
                 'durasi_bonus_promo',
                 'provider_id',
             )->get();
-
             $dataBonusSetting = [];
             foreach ($dataSetting as $key => $item) {
                 $provider_id = explode(',', $item->provider_id);
@@ -159,6 +160,7 @@ class DepositController extends ApiController
                     'bonus_amount' => (int) $item->bonus_amount,
                     'turnover_x' => $item->turnover_x,
                     'turnover_amount' => (float) $item->turnover_amount,
+                    'bonus_freebet_amount' => $checkKlaimBonus->bonus_freebet_amount?? 0,
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
@@ -197,12 +199,43 @@ class DepositController extends ApiController
     public function BonusFreebetGivUp(Request $request)
     {
         try {
-            $check_bonus_freebet = BonusFreebetModel::select('min_depo', 'max_depo', 'status_bonus', 'durasi_bonus_promo')->first();
+            $check_bonus_freebet = BonusFreebetModel::first();
             if($check_bonus_freebet->status_bonus == 1){
                 $deposit = DepositModel::where('members_id', auth('api')->user()->id)
                 ->where('is_bonus_freebet', 1)
                 ->where('created_at',Carbon::now())->first();
                 if($deposit != null && $deposit->is_bonus_freebet = 1){
+                    $providerId = explode(',', $check_bonus_freebet->provider_id);
+                    if (!in_array(16, $providerId)) {
+                        $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                            ->whereBetween('created_at', [$deposit->approval_status_at, now()])
+                            ->where('created_by', auth('api')->user()->id)
+                            ->whereIn('constant_provider_id', $providerId)->sum('bet');
+                        $TOTogel = BetsTogel::whereBetween('created_at', [$deposit->approval_status_at, now()])
+                            ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+
+                        $TOMember = $TOSlotCasinoFish + $TOTogel;
+                    } else {
+                        $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                            ->whereBetween('created_at', [$deposit->approval_status_at, now()])
+                            ->where('created_by', auth('api')->user()->id)
+                            ->where('game_info', 'slot')->sum('bet');
+                        $TOTogel = BetsTogel::whereBetween('created_at', [$deposit->approval_status_at, now()])
+                            ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+
+                        $TOMember = $TOSlotCasinoFish + $TOTogel;
+                    }
+
+                    $total_depo = $deposit->jumlah;
+                    $turnover_x = $check_bonus_freebet->turnover_x;
+                    $bonus_amount = $check_bonus_freebet->bonus_amount;
+                    $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
+                    $TO = $depoPlusBonus * $turnover_x;
+
+                    if ($TOMember < $TO) {
+                        return $this->errorResponse('Maaf, Bonus anda tidak memenuhi persyaratan, Turnover anda belum tercapai, Turnover anda saat ini sebesar Rp. ' . number_format($TOMember) . ', Turnover yang harus anda capai sebesar Rp. ' . number_format($TO), 400);
+                    }
+
                     $member = MembersModel::where('id', auth('api')->user()->id)->first();
                     $credit = $member->credit - $deposit->bonus_freebet_amount;
                     MembersModel::where('id', auth('api')->user()->id)
