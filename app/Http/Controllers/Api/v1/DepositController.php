@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use Carbon\Carbon;
+use App\Models\BetModel;
+use App\Models\BetsTogel;
 use App\Http\Controllers\ApiController;
 use App\Models\BonusFreebetModel;
 use App\Models\BonusHistoryModel;
@@ -11,7 +14,6 @@ use App\Models\MembersModel;
 use App\Models\MemoModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -133,7 +135,6 @@ class DepositController extends ApiController
                 'durasi_bonus_promo',
                 'provider_id',
             )->get();
-
             $dataBonusSetting = [];
             foreach ($dataSetting as $key => $item) {
                 $provider_id = explode(',', $item->provider_id);
@@ -162,6 +163,7 @@ class DepositController extends ApiController
                     'bonus_amount' => (int) $item->bonus_amount,
                     'turnover_x' => $item->turnover_x,
                     'turnover_amount' => (float) $item->turnover_amount,
+                    'bonus_freebet_amount' => $checkKlaimBonus->bonus_freebet_amount?? 0,
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
@@ -212,16 +214,41 @@ class DepositController extends ApiController
                 ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
                 ->first();
             if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
-                $bonus = $Check_deposit_claim_bonus_freebet->bonus_freebet_amount;
-                $member = MembersModel::where('id', $memberId)->first();
-                $credit = $member->credit - $bonus;
+                $providerId = explode(',', $bonus_freebet->provider_id);
+                if (!in_array(16, $providerId)) {
+                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                        ->where('created_by', auth('api')->user()->id)
+                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
+                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
 
-                # Calculate TO
+                    $TOMember = $TOSlotCasinoFish + $TOTogel;
+                } else {
+                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                        ->where('created_by', auth('api')->user()->id)
+                        ->where('game_info', 'slot')->sum('bet');
+                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+
+                    $TOMember = $TOSlotCasinoFish + $TOTogel;
+                }
+
                 $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
                 $turnover_x = $bonus_freebet->turnover_x;
                 $bonus_amount = $bonus_freebet->bonus_amount;
                 $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
                 $TO = $depoPlusBonus * $turnover_x;
+
+                if ($TOMember < $TO) {
+                    return $this->errorResponse('Maaf, Bonus anda tidak memenuhi persyaratan, Turnover anda belum tercapai, Turnover anda saat ini sebesar Rp. ' . number_format($TOMember) . ', Turnover yang harus anda capai sebesar Rp. ' . number_format($TO), 400);
+                }
+
+                $bonus = $Check_deposit_claim_bonus_freebet->bonus_freebet_amount;
+                $member = MembersModel::where('id', $memberId)->first();
+                $credit = $member->credit - $bonus;
+
                 MembersModel::where('id', $memberId)
                     ->update([
                         'credit' => $credit,
