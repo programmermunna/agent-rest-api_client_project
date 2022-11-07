@@ -53,7 +53,7 @@ class BetsTogelController extends ApiController
                     'status' => 'info',
                     'message' => 'Anda sedang klaim Bonus Freebet, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
                     'data' => null,
-                ], 100);
+                ], 400);
             }
         }
         # check if credit member 0
