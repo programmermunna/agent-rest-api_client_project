@@ -592,7 +592,7 @@ class MemberController extends ApiController
             } elseif ($request->type == 'BonusPromo') {
                 $bonusHistory = [];
                 foreach ($bonus->get() as $key => $value) {
-                    $status = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : ''));
+                    $status = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
                     $bonusHistory[] = [
                         'id' => $value->id,
                         'nama_bonus' => $value->nama_bonus,
@@ -1002,7 +1002,7 @@ class MemberController extends ApiController
                         'type_bonus' => $value->type,
                         'jumlah_bonus' => $value->jumlah,
                         'hadiah_bonus' => $value->hadiah,
-                        'status_bonus' => preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : '')),
+                        'status_bonus' => preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim')),
                         'credit_bonus' => $value->credit ?? 0,
                         'detail' => null,
                     ];

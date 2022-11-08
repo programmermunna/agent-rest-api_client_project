@@ -70,6 +70,7 @@ class DepositController extends ApiController
                 'members_id' => auth('api')->user()->id,
                 'rekening_id' => $request->rekening_id,
                 'jumlah' => $request->jumlah,
+                'credit' => MembersModel::where('id', auth('api')->user()->id)->first()->credit,
                 'is_bonus_freebet' => $request->is_bonus_freebet ?? 0,
                 'bonus_freebet_amount' => $request->is_bonus_freebet == 1 && $bonus_freebet->status_bonus == 1 ? $bonus : 0,
                 'note' => $request->note,

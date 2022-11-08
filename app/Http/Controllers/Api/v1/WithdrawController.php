@@ -102,6 +102,7 @@ class WithdrawController extends ApiController
                         'rekening_id' => $bankAsalTransferForWd->id,
                         'rek_member_id' => $rekMember->id,
                         'jumlah' => $jumlah,
+                        'credit' => $credit,
                         'note' => $request->note,
                         'is_claim_bonus_freebet' => 1,
                         'created_by' => $memberId,
@@ -140,6 +141,7 @@ class WithdrawController extends ApiController
                         'rekening_id' => $bankAsalTransferForWd->id,
                         'rek_member_id' => $rekMember->id,
                         'jumlah' => $jumlah,
+                        'credit' => $credit,
                         'note' => $request->note,
                         'created_by' => $memberId,
                         'created_at' => Carbon::now(),
@@ -165,9 +167,9 @@ class WithdrawController extends ApiController
                         ],
                         "$user->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                     );
-                    auth('api')->user()->update([
-                        'last_login_ip' => $request->ip,
-                    ]);
+                    // auth('api')->user()->update([
+                    //     'last_login_ip' => $request->ip,
+                    // ]);
 
                     return $this->successResponse(null, 'Berhasil request withdraw');
                 }
