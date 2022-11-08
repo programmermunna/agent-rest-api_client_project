@@ -653,15 +653,10 @@ class MemberController extends ApiController
                       NULL as bonusHistoryType,
                       NULL as bonusHistoryJumlah,
                       NULL as bonusHistoryHadiah,
-                      NULL as bonusHistoryCreatedBy,
+                      NULL as bonusHistoryStatus,
+                      NULL as bonusHistoryCredit,
                       NULL as activityDeskripsi,
                       NULL as activityName,
-                      NULL as nama_bonus,
-                      NULL as type_bonus,
-                      NULL as jumlah_bonus,
-                      NULL as hadiah_bonus,
-                      NULL as status_bonus,
-                      NULL as credit_bonus,
                       NULL as detail
                     ")->get()->toArray();
 
@@ -708,15 +703,10 @@ class MemberController extends ApiController
                     NULL as bonusHistoryType,
                     NULL as bonusHistoryJumlah,
                     NULL as bonusHistoryHadiah,
-                    NULL as bonusHistoryCreatedBy,
+                    NULL as bonusHistoryStatus,
+                    NULL as bonusHistoryCredit,
                     NULL as activityDeskripsi,
                     NULL as activityName,
-                    NULL as nama_bonus,
-                    NULL as type_bonus,
-                    NULL as jumlah_bonus,
-                    NULL as hadiah_bonus,
-                    NULL as status_bonus,
-                    NULL as credit_bonus,
                     NULL as detail
                 FROM
                     deposit as a
@@ -767,15 +757,10 @@ class MemberController extends ApiController
                     NULL as bonusHistoryType,
                     NULL as bonusHistoryJumlah,
                     NULL as bonusHistoryHadiah,
-                    NULL as bonusHistoryCreatedBy,
+                    NULL as bonusHistoryStatus,
+                    NULL as bonusHistoryCredit,
                     NULL as activityDeskripsi,
                     NULL as activityName,
-                    NULL as nama_bonus,
-                    NULL as type_bonus,
-                    NULL as jumlah_bonus,
-                    NULL as hadiah_bonus,
-                    NULL as status_bonus,
-                    NULL as credit_bonus,
                     NULL as detail
                 FROM
                     withdraw as a
@@ -783,59 +768,6 @@ class MemberController extends ApiController
                 WHERE
                     a.created_by = $id
                     AND a.created_at BETWEEN '$fromDate' AND '$toDate'
-                UNION ALL
-                SELECT
-                    'Bonus History' as Tables,
-                    NULL as betsBet,
-                    NULL as betsWin,
-                    NULL as betsGameInfo,
-                    NULL as betsBetId,
-                    NULL as betsGameId,
-                    NULL as betsDeskripsi,
-                    NULL as betsCredit,
-                    if(
-                            a.constant_bonus_id = 4
-                            , a.updated_at
-                            , a.created_at
-                    ) as created_at,
-                    NULL as betsProviderName,
-                    NULL as betsTogelHistoryId,
-                    NULL as betsTogelHistoryPasaran,
-                    NULL as betsTogelHistorDeskripsi,
-                    NULL as betsTogelHistoryDebit,
-                    NULL as betsTogelHistoryKredit,
-                    NULL as betsTogelHistoryBalance,
-                    NULL as betsTogelHistoryCreatedBy,
-                    NULL as depositCredit,
-                    NULL as depositJumlah,
-                    NULL as depositStatus,
-                    NULL as depositDescription,
-                    NULL as withdrawCredit,
-                    NULL as withdrawJumlah,
-                    NULL as withdrawStatus,
-                    NULL as withdrawDescription,
-                    b.nama_bonus as bonusHistoryNamaBonus,
-                    a.type as bonusHistoryType,
-                    a.jumlah as bonusHistoryJumlah,
-                    a.hadiah as bonusHistoryHadiah,
-                    a.created_by as bonusHistoryCreatedBy,
-                    NULL as activityDeskripsi,
-                    NULL as activityName,
-                    NULL as nama_bonus,
-                    NULL as type_bonus,
-                    NULL as jumlah_bonus,
-                    NULL as hadiah_bonus,
-                    NULL as status_bonus,
-                    NULL as credit_bonus,
-                    NULL as detail
-                FROM
-                    bonus_history as a
-                LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id
-                WHERE
-                    a.created_at BETWEEN '$fromDate' AND '$toDate'
-                    AND a.member_id = $id
-                    AND is_send = 1
-                    AND a.deleted_at IS NULL
                 ORDER BY created_at DESC"));
 
                 # Histori Login/Logout
@@ -901,15 +833,10 @@ class MemberController extends ApiController
                         'bonusHistoryType' => null,
                         'bonusHistoryJumlah' => null,
                         'bonusHistoryHadiah' => null,
-                        'bonusHistoryCreatedBy' => null,
+                        'bonusHistoryStatus' => null,
+                        'bonusHistoryCredit' => null,
                         'activityDeskripsi' => $value['device'] != null ? $value['activity'] . " : " . $value['device'] : $value['activity'],
                         'activityName' => $value['device'] != null ? $value['activity'] . " - " . $value['device'] : $value['activity'],
-                        'nama_bonus' => null,
-                        'type_bonus' => null,
-                        'jumlah_bonus' => null,
-                        'hadiah_bonus' => null,
-                        'status_bonus' => null,
-                        'credit_bonus' => null,
                         'detail' => null,
                     ];
                     $activitys[] = $activity;
@@ -948,15 +875,10 @@ class MemberController extends ApiController
                         'bonusHistoryType' => null,
                         'bonusHistoryJumlah' => null,
                         'bonusHistoryHadiah' => null,
-                        'bonusHistoryCreatedBy' => null,
+                        'bonusHistoryStatus' => null,
+                        'bonusHistoryCredit' => null,
                         'activityDeskripsi' => null,
                         'activityName' => null,
-                        'nama_bonus' => null,
-                        'type_bonus' => null,
-                        'jumlah_bonus' => null,
-                        'hadiah_bonus' => null,
-                        'status_bonus' => null,
-                        'credit_bonus' => null,
                         'detail' => '/endpoint/getDetailTransaksiTogel/' . $value['id'],
                     ];
                     $betTogelHistories[] = $betTogelHis;
@@ -991,19 +913,14 @@ class MemberController extends ApiController
                         'withdrawJumlah' => null,
                         'withdrawStatus' => null,
                         'withdrawDescription' => null,
-                        'bonusHistoryNamaBonus' => null,
-                        'bonusHistoryType' => null,
-                        'bonusHistoryJumlah' => null,
-                        'bonusHistoryHadiah' => null,
-                        'bonusHistoryCreatedBy' => null,
+                        'bonusHistoryNamaBonus' => $value->nama_bonus,
+                        'bonusHistoryType' => $value->type,
+                        'bonusHistoryJumlah' => $value->jumlah,
+                        'bonusHistoryHadiah' => $value->hadiah,
+                        'bonusHistoryStatus' => preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim')),
+                        'bonusHistoryCredit' => $value->credit,
                         'activityDeskripsi' => null,
                         'activityName' => null,
-                        'nama_bonus' => $value->nama_bonus,
-                        'type_bonus' => $value->type,
-                        'jumlah_bonus' => $value->jumlah,
-                        'hadiah_bonus' => $value->hadiah,
-                        'status_bonus' => preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim')),
-                        'credit_bonus' => $value->credit ?? 0,
                         'detail' => null,
                     ];
                 }
@@ -1041,15 +958,10 @@ class MemberController extends ApiController
                         'bonusHistoryType' => null,
                         'bonusHistoryJumlah' => null,
                         'bonusHistoryHadiah' => null,
-                        'bonusHistoryCreatedBy' => null,
+                        'bonusHistoryStatus' => null,
+                        'bonusHistoryCredit' => null,
                         'activityDeskripsi' => null,
                         'activityName' => null,
-                        'nama_bonus' => null,
-                        'type_bonus' => null,
-                        'jumlah_bonus' => null,
-                        'hadiah_bonus' => null,
-                        'status_bonus' => null,
-                        'credit_bonus' => null,
                         'detail' => null,
                     ];
                     $togelReferals[] = $togelReferal;
