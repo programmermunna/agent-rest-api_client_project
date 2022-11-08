@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use Carbon\Carbon;
+use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
-use App\Http\Controllers\ApiController;
 use App\Models\BonusFreebetModel;
 use App\Models\BonusHistoryModel;
 use App\Models\ConstantProvider;
@@ -14,6 +13,7 @@ use App\Models\MembersModel;
 use App\Models\MemoModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -163,7 +163,7 @@ class DepositController extends ApiController
                     'bonus_amount' => (int) $item->bonus_amount,
                     'turnover_x' => $item->turnover_x,
                     'turnover_amount' => (float) $item->turnover_amount,
-                    'bonus_freebet_amount' => $checkKlaimBonus->bonus_freebet_amount?? 0,
+                    'bonus_freebet_amount' => $checkKlaimBonus->bonus_freebet_amount ?? 0,
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
@@ -270,8 +270,9 @@ class DepositController extends ApiController
                     'is_delete' => 0,
                     'constant_bonus_id' => 4,
                     'jumlah' => $bonus,
+                    'credit' => MembersModel::where('id', $memberId)->first()->credit,
                     'member_id' => auth('api')->user()->id,
-                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO . ',  bonus sebasar Rp. ' . $bonus . ' kami tarik kembali, dari balance anda.',
+                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'type' => 'uang',
                     'created_by' => 0,
                     'created_at' => Carbon::now(),
@@ -284,7 +285,7 @@ class DepositController extends ApiController
                     'subject' => 'Bonus Freebet',
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Freebet, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO . ',  bonus sebasar Rp. ' . $bonus . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Freebet, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 

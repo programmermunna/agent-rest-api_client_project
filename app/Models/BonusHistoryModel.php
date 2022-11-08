@@ -26,6 +26,7 @@ class BonusHistoryModel extends Model
         'is_send',
         'is_delete',
         'jumlah',
+        'credit',
         'hadiah',
         'type',
         'created_by',
