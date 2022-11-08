@@ -206,7 +206,7 @@ class MemberController extends ApiController
                 ->where('bonus_history.is_send', 1)
                 ->where('bonus_history.member_id', auth('api')->user()->id);
 
-            if ($request->type == 'deposit') {
+            if ($request->type == 'depositWithdraw') {
                 $depoWD = array_merge($deposit, $withdraw);
                 $date = array_column($depoWD, 'created_at');
                 array_multisort($date, SORT_DESC, $depoWD);
