@@ -155,7 +155,9 @@ class CmsController extends ApiController
                     'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
                     'status_bonus' => $bonus_freebet->status_bonus,
                     'is_bonus_freebet' => $Check_deposit_claim_bonus_freebet->is_bonus_freebet,
-                    'bonus_freebet_amount' => $Check_deposit_claim_bonus_freebet->bonus_freebet_amount
+                    'bonus_freebet_amount' => $Check_deposit_claim_bonus_freebet->bonus_freebet_amount,
+                    'status_bonus_member' => $Check_deposit_claim_bonus_freebet->status_bonus_freebet,
+                    'last_claim_date' => $Check_deposit_claim_bonus_freebet->approval_status_at
                 ];
             } else {
                 $data = [
@@ -164,7 +166,9 @@ class CmsController extends ApiController
                     'durasi_bonus_promo' => 0,
                     'status_bonus' => 0,
                     'is_bonus_freebet' => 0,
-                    'bonus_freebet_amount' => 0
+                    'bonus_freebet_amount' => 0,
+                    'status_bonus_member' => null,
+                    'last_claim_date' => null
                 ];
             }
             return $this->successResponse([$data], 'Datanya ada', 200);
