@@ -121,7 +121,6 @@ class CmsController extends ApiController
             $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status', 1)
                 ->where('is_bonus_freebet', 1)
-                ->where('status_bonus_freebet', 0)
                 ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
             if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
                 $providerId = explode(',', $bonus_freebet->provider_id);
@@ -148,17 +147,35 @@ class CmsController extends ApiController
                 $bonus_amount = $bonus_freebet->bonus_amount;
                 $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
                 $TO = $depoPlusBonus * $turnover_x;
-
-                $data = [
-                    'turnover' => $TO,
-                    'turnover_member' => $TOMember,
-                    'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
-                    'status_bonus' => $bonus_freebet->status_bonus,
-                    'is_bonus_freebet' => $Check_deposit_claim_bonus_freebet->is_bonus_freebet,
-                    'bonus_freebet_amount' => $Check_deposit_claim_bonus_freebet->bonus_freebet_amount,
-                    'status_bonus_member' => $Check_deposit_claim_bonus_freebet->status_bonus_freebet,
-                    'last_claim_date' => $Check_deposit_claim_bonus_freebet->approval_status_at
-                ];
+                if ($Check_deposit_claim_bonus_freebet->status_bonus_freebet == 2) {
+                    $status = preg_match("/menyerah/i", $Check_deposit_claim_bonus_freebet->reason_bonus_freebet) ? 'Menyerah' : 'Gagal';
+                    $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
+                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                    $data = [
+                        'turnover' => $TO,
+                        'turnover_member' => $TOMember,
+                        'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
+                        'status_bonus' => $bonus_freebet->status_bonus,
+                        'is_bonus_freebet' => $Check_deposit_claim_bonus_freebet->is_bonus_freebet,
+                        'bonus_freebet_amount' => $Check_deposit_claim_bonus_freebet->bonus_freebet_amount,
+                        'status_bonus_member' => $status,
+                        'date_claim_again' => $dateClaim,
+                    ];
+                } else {
+                    $status = $Check_deposit_claim_bonus_freebet->status_bonus_freebet == 0 ? 'Klaim' : 'Selesai';
+                    $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
+                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                    $data = [
+                        'turnover' => $TO,
+                        'turnover_member' => $TOMember,
+                        'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
+                        'status_bonus' => $bonus_freebet->status_bonus,
+                        'is_bonus_freebet' => $Check_deposit_claim_bonus_freebet->is_bonus_freebet,
+                        'bonus_freebet_amount' => $Check_deposit_claim_bonus_freebet->bonus_freebet_amount,
+                        'status_bonus_member' => $status,
+                        'date_claim_again' => $dateClaim,
+                    ];
+                }
             } else {
                 $data = [
                     'turnover' => 0,
@@ -168,7 +185,7 @@ class CmsController extends ApiController
                     'is_bonus_freebet' => 0,
                     'bonus_freebet_amount' => 0,
                     'status_bonus_member' => null,
-                    'last_claim_date' => null
+                    'date_claim_again' => null,
                 ];
             }
             return $this->successResponse([$data], 'Datanya ada', 200);
