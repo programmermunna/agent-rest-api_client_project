@@ -18,7 +18,7 @@ use Illuminate\Support\Collection;
 use Livewire\WithPagination;
 
 /**
- * @author Hanan Asyrawi Rivai 
+ * @author Hanan Asyrawi Rivai
  */
 class OutResult extends ApiController
 {
@@ -28,8 +28,8 @@ class OutResult extends ApiController
 	use CustomPaginate, History;
 
 	/**
-	 * Get all Togel Result Number 
-	 * @return JsonResponse 
+	 * Get all Togel Result Number
+	 * @return JsonResponse
 	 */
 	public function getAllResult()
 	{
@@ -49,11 +49,11 @@ class OutResult extends ApiController
                 ) as 'result'
             ")->orderBy('togel_results_number.period', 'desc')->get();
 
-		return $this->paginate($results, 10); 
+		return $this->paginate($results, 10);
 	}
 	/**
 	 * Get Pasaran Blok Angka
-	 * @return LengthAwarePaginator 
+	 * @return LengthAwarePaginator
 	 */
 	public function getAllPasaran()
 	{
@@ -124,21 +124,13 @@ class OutResult extends ApiController
 		$paito = ConstantProviderTogelModel::query()
 			->select([
 				'id',
-				'name_initial as nama_id',
 				'name as pasaran',
-				'website_url as web',
-				'hari_diundi as hari_undi',
-				'libur as libur',
-				'tutup as tutup',
 				'jadwal as jadwal',
-				'period as periode',
-				'status as is_active',
 			])
 			->with('resultNumber')
 			->get();
-			
 		return PaitoResource::collection($paito);
-		
+
 	}
 
 	public function paitoAll(Request $request)
@@ -187,7 +179,7 @@ class OutResult extends ApiController
 												concat(a.name_initial, '-', togel_results_number.period) as pasaran
 											")
 											->orderBy('togel_results_number.period', 'desc');
-			if ($checkPasaran) {				
+			if ($checkPasaran) {
 				$result = $resultNumber->where('togel_results_number.constant_provider_togel_id', $request->pasaran);
 				$data = [
 					'id'      		=> $checkPasaran->id,
@@ -203,7 +195,7 @@ class OutResult extends ApiController
 					'result'  		=> $this->paginate($result->get()->toArray(), $this->perPage)
 				];
 				return $this->successResponse($data, null, 200);
-			} else {								
+			} else {
 				$result = $resultNumber->where('togel_results_number.constant_provider_togel_id', $paito->id);
 				$data = [
 					'id'      		=> $paito->id,
@@ -223,10 +215,10 @@ class OutResult extends ApiController
 			}
 		} catch (\Throwable $th) {
 			return $this->errorResponse("Server Internal Error", 500);
-		}				
+		}
 	}
 
-	public function getShioTables() 
+	public function getShioTables()
 	{
 		$result = DB::select("select
 								a.id as id ,

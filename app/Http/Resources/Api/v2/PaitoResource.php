@@ -17,15 +17,8 @@ class PaitoResource extends JsonResource
         return [
 			'id'      		=> $this->id,
 			'pasaran' 		=> $this->pasaran,
-			'initial' 		=> $this->nama_id,
-			'hari_undi'     => $this->hari_undi,
-			'libur'   		=> $this->libur,
-			'url'     		=> $this->web,
-			'tutup'   		=> $this->tutup,
 			'jadwal'  		=> $this->jadwal,
-			'periode' 		=> $this->periode,
-			'is_active'     => $this->is_active,
-			'result'  => $this->resultNumber()->limit(8)->get(),
+			'result'  => $this->resultNumber()->select(['id','constant_provider_togel_id','number_result_3','number_result_4','number_result_5','number_result_6','result_date'])->limit(8)->get(),
 		];
     }
 }
