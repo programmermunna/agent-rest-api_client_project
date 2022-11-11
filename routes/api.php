@@ -27,8 +27,8 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
     Route::post('/member/register', 'JWTAuthController@register')->name('registerJwt');
 
     // probation login and register
-    Route::post('/login', 'JWTAuthController@probationLogin');
-    Route::post('/register', 'JWTAuthController@probationRegister');
+    // Route::post('/login', 'JWTAuthController@probationLogin');
+    // Route::post('/register', 'JWTAuthController@probationRegister');
 
     Route::group(['middleware' => ['jwt.verify'], 'prefix' => 'member'], function () {
         Route::get('/history_by_type', 'MemberController@historyAll');
@@ -39,21 +39,21 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::get('/history', 'JWTAuthController@history');
         Route::post('/refresh', 'JWTAuthController@refresh');
         Route::post('/logout', 'JWTAuthController@logout');
-        Route::get('/bank_account', 'MemberController@bank_account');
+        // Route::get('/bank_account', 'MemberController@bank_account');
         Route::post('/change-password', 'JWTAuthController@changePassword');
         Route::get('/bonus-referal', 'MemberController@bonusReferal');
 
         // Probation
-        Route::post('/updateAccount', 'JWTAuthController@probationUpdateAccount');
-        Route::post('/deleteAccount', 'JWTAuthController@probationDeleteAccount');
-        Route::get('/accountList', 'JWTAuthController@probationAccountList');
+        // Route::post('/updateAccount', 'JWTAuthController@probationUpdateAccount');
+        // Route::post('/deleteAccount', 'JWTAuthController@probationDeleteAccount');
+        // Route::get('/accountList', 'JWTAuthController@probationAccountList');
 
         // Deposit
         Route::post('/deposit/create', 'DepositController@create');
         Route::get('/setting-bonus-freebet', 'DepositController@dataBonusFreebet');
 
         // Bonus Freebet
-        Route::post('/bonus-freebet/bonus-freebet-giveup','DepositController@BonusFreebetGivUp');
+        Route::post('/bonus-freebet/bonus-freebet-giveup', 'DepositController@BonusFreebetGivUp');
 
         //Withdraw
         Route::post('/withdraw/create', 'WithdrawController@create');
@@ -204,14 +204,15 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::post("debit", [QueenmakerController::class, "getDebitQueenMaker"]);
     Route::post("credit", [QueenmakerController::class, "getCreditQueenMaker"]);
 
-    # Togel
     Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
+
+    # Togel
     Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
-    Route::match(['get', 'post'], "sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
+    // Route::match(['get', 'post'], "sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
     Route::get('provider', [OutResult::class, 'getResultByProvider']);
     Route::get('paitoEight', [OutResult::class, 'paitoEight']);
     Route::match(['get', 'post'], "paitoAll", [OutResult::class, 'paitoAll']);
-    Route::match(['get', 'post'], "paitoTest", [OutResult::class, 'paitoTestAll']);
+    // Route::match(['get', 'post'], "paitoTest", [OutResult::class, 'paitoTestAll']);
     Route::get('shio', [OutResult::class, 'getShioTables']);
     Route::get('list_out_result', [OutResult::class, 'getAllResult']);
     Route::get('pasaran', [OutResult::class, 'getPasaran']);
@@ -221,7 +222,7 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::get('rules', [TogelPeraturanGame::class, 'getPeraturanGame']);
     Route::get('getDetailTransaksi', [OutResult::class, 'getDetailTransaksi']);
     Route::get('getDetailTransaksiTogel/{id}', [MemberController::class, 'detailDataTogel']);
-    # Togel Must Secure when betting
+    # Togel Must Secure when bettin
     Route::middleware(['jwt.verify'])->group(function () {
         Route::post('storeTogel', [BetsTogelController::class, 'store']);
     });
