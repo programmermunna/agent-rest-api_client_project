@@ -14,7 +14,6 @@ use App\Models\RekMemberModel;
 use App\Models\TurnoverModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator; # pagination pake ini
@@ -41,16 +40,7 @@ class JWTAuthController extends ApiController
     {
 
         $input = $request->all();
-
-        // get ip public
-        $client = new Client();
-        $url = "https://api.ipify.org/?format=json";
-        $response = $client->get(
-            $url
-        );
-        $body = $response->getBody();
-        $data = json_decode($body->getContents());
-        $ipPublic = $data->ip;
+        $ipPublic = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER["HTTP_CF_CONNECTING_IP"] ?? $_SERVER['HTTP_X_FORWARDED'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_FORWARDED'] ?? $_SERVER['HTTP_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? ' - ';
 
         $fieldType = filter_var($request->user_account, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
@@ -113,7 +103,7 @@ class JWTAuthController extends ApiController
                 'remember_token' => $token,
                 'active' => 1,
                 'last_login_at' => now(),
-                'last_login_ip' => $request->ip ?? $ipPublic,
+                'last_login_ip' => $request->ip() ?? $ipPublic,
             ]);
 
             auth('api')->user();
@@ -648,7 +638,7 @@ class JWTAuthController extends ApiController
 
             $user->update([
                 // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
-                'last_login_ip' => $request->ip,
+                'last_login_ip' => $request->ip() ?? $ipPublic,
             ]);
 
             UserLogModel::logMemberActivity(
@@ -714,9 +704,9 @@ class JWTAuthController extends ApiController
                     ],
                     'Berhasil Ganti Password.'
                 );
-                auth('api')->user()->update([
-                    'last_login_ip' => $request->ip,
-                ]);
+                // auth('api')->user()->update([
+                //     'last_login_ip' => $request->ip,
+                // ]);
 
                 return $this->successResponse(null, 'Berhasil Ganti Password.', 201);
             } else {
