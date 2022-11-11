@@ -74,14 +74,13 @@ class MemoController extends ApiController
     public function inbox()
     {
         try {
-            $memo = MemoModel::where('member_id', auth('api')->user()->id)
-                ->where('is_reply', 1)
+            $memo = MemoModel::select(['id','member_id','sender_id','is_read','subject','content','created_at'])
+                ->where('member_id', auth('api')->user()->id)
                 ->orderBy('id', 'desc')
                 ->where('memo_id', null)
-                ->with(['subMemos'])
-            // ->whereHas('subMemos', function($q){
-            //     $q->whereNotNull('id');
-            // })
+                ->with(['subMemos'=>function($query){
+                    $query->select('memo_id','id','member_id','sender_id','is_read','subject','content','created_at');
+                }])
                 ->get();
             $this->inbox = $memo->toArray();
             // dd($this->inbox);
@@ -101,11 +100,14 @@ class MemoController extends ApiController
     public function sent()
     {
         try {
-            $memo = MemoModel::where('member_id', auth('api')->user()->id)
+            $memo = MemoModel::select(['id','member_id','sender_id','is_read','subject','content','created_at'])
+                ->where('member_id', auth('api')->user()->id)
                 ->orderBy('id', 'desc')
                 ->where('is_sent', 1)
                 ->where('memo_id', null)
-                ->with(['subMemos'])
+                ->with(['subMemos'=>function($query){
+                    $query->select('memo_id','id','member_id','sender_id','is_read','subject','content','created_at');
+                }])
                 ->get();
             $this->inbox = $memo->toArray();
             $inbox = $this->paginate($this->inbox, $this->perPage);
