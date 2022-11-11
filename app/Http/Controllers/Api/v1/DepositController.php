@@ -45,7 +45,7 @@ class DepositController extends ApiController
             }
 
             $bonus_freebet = BonusFreebetModel::first();
-            $durasiBonus = $bonus_freebet->durasi_bonus_promo;
+            $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
             $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
@@ -147,7 +147,7 @@ class DepositController extends ApiController
                         $providers[] = ['id' => 16, 'name' => 'Game Togel'];
                     }
                 }
-                $durasiBonus = $item->durasi_bonus_promo;
+                $durasiBonus = $item->durasi_bonus_promo - 1;
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                 $today = Carbon::now()->format('Y-m-d 23:59:59');
                 $checkKlaimBonus = DepositModel::select('bonus_freebet_amount', 'is_bonus_freebet', 'status_bonus_freebet')
@@ -205,7 +205,7 @@ class DepositController extends ApiController
         try {
             $memberId = auth('api')->user()->id;
             $bonus_freebet = BonusFreebetModel::first();
-            $durasiBonus = $bonus_freebet->durasi_bonus_promo;
+            $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
             $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)

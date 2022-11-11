@@ -155,7 +155,7 @@ class JWTAuthController extends ApiController
     public function getAuthenticatedMember()
     {
         try {
-            $member = MembersModel::select(['id','username','credit','last_login_at','last_login_ip','created_at'])->where('id',auth('api')->user()->id)->first();
+            $member = MembersModel::select(['id', 'username', 'credit', 'last_login_at', 'last_login_ip', 'created_at'])->where('id', auth('api')->user()->id)->first();
             if (!$member) {
                 return $this->errorResponse('Member tidak ditemukan', 404);
             }
