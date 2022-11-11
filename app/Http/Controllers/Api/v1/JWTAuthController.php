@@ -167,7 +167,7 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Token absent', 500);
         }
 
-        return $this->successResponse([$member]);
+        return $this->successResponse($member);
     }
 
     public function lastBet()
