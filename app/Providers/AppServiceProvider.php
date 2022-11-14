@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Auth;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -33,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Schema::defaultStringLength(191);
-        Model::preventLazyLoading();
+        Model::preventLazyLoading(!app()->isProduction());
 
         # rey, 17 nov 2020 04:19 am
         view()->composer('*', function ($view) {

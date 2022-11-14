@@ -41,6 +41,7 @@ class JWTAuthController extends ApiController
 
         $input = $request->all();
         $ipPublic = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER["HTTP_CF_CONNECTING_IP"] ?? $_SERVER['HTTP_X_FORWARDED'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_FORWARDED'] ?? $_SERVER['HTTP_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? ' - ';
+        $ipClient = explode(', ', $ipPublic);
 
         $fieldType = filter_var($request->user_account, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
@@ -103,7 +104,7 @@ class JWTAuthController extends ApiController
                 'remember_token' => $token,
                 'active' => 1,
                 'last_login_at' => now(),
-                'last_login_ip' => $request->ip() ?? $ipPublic,
+                'last_login_ip' => $ipClient[0] ?? $request->ip(),
             ]);
 
             auth('api')->user();
@@ -116,7 +117,7 @@ class JWTAuthController extends ApiController
                 [
                     'target' => $user->username,
                     'activity' => 'Logged In',
-                    'ip_member' => $request->ip ?? $ipPublic,
+                    'ip_member' => $ipClient[0] ?? $request->ip(),
                 ],
                 'Successfully'
             );
@@ -636,9 +637,12 @@ class JWTAuthController extends ApiController
                 ]);
             }
 
+            $ipPublic = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER["HTTP_CF_CONNECTING_IP"] ?? $_SERVER['HTTP_X_FORWARDED'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_FORWARDED'] ?? $_SERVER['HTTP_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? ' - ';
+            $ipClient = explode(', ', $ipPublic);
+
             $user->update([
                 // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
-                'last_login_ip' => $request->ip() ?? $ipPublic,
+                'last_login_ip' => $ipClient[0] ?? $request->ip(),
             ]);
 
             UserLogModel::logMemberActivity(
@@ -649,7 +653,7 @@ class JWTAuthController extends ApiController
                     'target' => $user->username,
                     'activity' => 'Registered',
                     // 'ip' => $request->ip ?? request()->getClientIp(),
-                    'ip_member' => $request->ip,
+                    'ip_member' => $ipClient[0] ?? $request->ip(),
                 ],
                 'Successfully'
             );
