@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
+use App\Models\JobTransactionModel;
 use App\Models\MemoModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection; # pagination pake ini
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log; # pagination pake ini
 use Illuminate\Support\Facades\Validator; # pagination pake ini
+use Illuminate\Support\Str; # pagination pake ini
 use Livewire\WithPagination;
 
 class MemoController extends ApiController
@@ -38,7 +40,7 @@ class MemoController extends ApiController
             return $this->errorResponse('Kesalahan Validasi', 422, $validator->errors()->first());
         }
         try {
-            $memo = MemoModel::create([
+            $createAndGetId = MemoModel::insertGetId([
                 'member_id' => auth('api')->user()->id,
                 'sender_id' => auth('api')->user()->id,
                 'send_type' => 'Member',
@@ -47,6 +49,22 @@ class MemoController extends ApiController
                 'content' => $request->content,
                 'created_at' => Carbon::now(),
             ]);
+
+            # insert to table Jobs Transaction
+            $array = [
+                'uuid' => (string) Str::uuid(),
+                'class_name' => 'App\Models\MemoModel',
+                'id' => $createAndGetId,
+                'member_id' => auth('api')->user()->id,
+                'activity' => 'Create Memo',
+            ];
+            JobTransactionModel::create([
+                'payload' => json_encode($array),
+                'Processed_at_member_api' => true,
+                'Proccessed_at_agent_api' => false,
+            ]);
+
+            $memo = MemoModel::where('id', $createAndGetId)->first();
 
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
@@ -74,12 +92,12 @@ class MemoController extends ApiController
     public function inbox()
     {
         try {
-            $memo = MemoModel::select(['id','member_id','sender_id','is_read','subject','content','created_at'])
+            $memo = MemoModel::select(['id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at'])
                 ->where('member_id', auth('api')->user()->id)
                 ->orderBy('id', 'desc')
                 ->where('memo_id', null)
-                ->with(['subMemos'=>function($query){
-                    $query->select('memo_id','id','member_id','sender_id','is_read','subject','content','created_at');
+                ->with(['subMemos' => function ($query) {
+                    $query->select('memo_id', 'id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at');
                 }])
                 ->get();
             $this->inbox = $memo->toArray();
@@ -100,13 +118,13 @@ class MemoController extends ApiController
     public function sent()
     {
         try {
-            $memo = MemoModel::select(['id','member_id','sender_id','is_read','subject','content','created_at'])
+            $memo = MemoModel::select(['id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at'])
                 ->where('member_id', auth('api')->user()->id)
                 ->orderBy('id', 'desc')
                 ->where('is_sent', 1)
                 ->where('memo_id', null)
-                ->with(['subMemos'=>function($query){
-                    $query->select('memo_id','id','member_id','sender_id','is_read','subject','content','created_at');
+                ->with(['subMemos' => function ($query) {
+                    $query->select('memo_id', 'id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at');
                 }])
                 ->get();
             $this->inbox = $memo->toArray();
@@ -152,7 +170,7 @@ class MemoController extends ApiController
             return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
         }
         try {
-            $memo = MemoModel::create([
+            $createAndGetId = MemoModel::insertGetId([
                 'member_id' => auth('api')->user()->id,
                 'memo_id' => $request->memoId,
                 'is_sent' => 1,
@@ -166,6 +184,22 @@ class MemoController extends ApiController
                 ->update([
                     'is_sent' => 1,
                 ]);
+
+            $memo = MemoModel::where('id', $createAndGetId)->first();
+
+            # insert to table Jobs Transaction
+            $array = [
+                'uuid' => (string) Str::uuid(),
+                'class_name' => 'App\Models\MemoModel',
+                'id' => $createAndGetId,
+                'member_id' => auth('api')->user()->id,
+                'activity' => 'Replay Memo',
+            ];
+            JobTransactionModel::create([
+                'payload' => json_encode($array),
+                'Processed_at_member_api' => true,
+                'Proccessed_at_agent_api' => false,
+            ]);
 
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
