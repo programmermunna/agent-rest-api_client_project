@@ -25,6 +25,11 @@ class NotifyNewMemo implements ShouldBroadcast
         $this->memo = $memoModel;
     }
 
+    public function getMemo()
+    {
+        return $this->memo;
+    }
+
     /**
      * Get the channels the event should broadcast on.
      *
@@ -32,7 +37,6 @@ class NotifyNewMemo implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        //Log::info('broadcasted');
         return new Channel("App.Models.MembersModel.{$this->memo->member_id}");
     }
 }

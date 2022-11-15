@@ -1,0 +1,12 @@
+{
+    "services" : [
+        {
+            "id": 2,
+            "name": "Agent-api",
+            "staging_url": "https://agent-api.cktch.top",
+            "production_url": "https://agentcikaslot.xyz",
+            "is_online": true,
+            "events_endpoint": "/api/event-triggers"
+        }
+    ]
+}
