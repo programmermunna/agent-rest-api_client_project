@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\NotifyNewMemo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,6 +31,10 @@ class MemoModel extends Model
         'updated_at',
         'deleted_by',
         'deleted_at',
+    ];
+
+    protected $dispatchesEvents = [
+        'created' => NotifyNewMemo::class
     ];
 
     protected $casts = [
