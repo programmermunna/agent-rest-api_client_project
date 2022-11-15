@@ -10,6 +10,7 @@
 | used to check if an authenticated user can listen to the channel.
 |
 */
+
 Broadcast::channel('App.Models.MembersModel.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
