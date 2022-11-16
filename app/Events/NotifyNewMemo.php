@@ -44,6 +44,16 @@ class NotifyNewMemo implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel("App.Models.MembersModel.{$this->memo->member_id}");
+        Log::info("broadcast intiated");
+        //@todo for some reasons it needs more than 1 channel before it works
+        return [
+            new Channel("test"),
+            new Channel("App.Models.MembersModel.{$this->memo->member_id}")
+        ];
+    }
+
+    public function broadcastAs()
+    {
+        return 'New-Memo';
     }
 }
