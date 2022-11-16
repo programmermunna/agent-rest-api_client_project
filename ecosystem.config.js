@@ -8,10 +8,10 @@ module.exports = {
             //args: 'start',
         },
         {
-            name: 'Member-api Queue Listener',
+            name: 'Member-api Queue Worker',
             exec_mode: 'cluster',
             instances: 1, // Or a number of instances
-            script: 'php artisan queue:listen',
+            script: 'php artisan queue:work',
             //args: 'start',
         },
     ],
