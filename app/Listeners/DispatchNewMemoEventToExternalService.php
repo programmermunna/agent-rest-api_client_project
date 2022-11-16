@@ -31,23 +31,25 @@ class DispatchNewMemoEventToExternalService
     {
         //@todo extract this and make this a queue able job so we can manage REST
         //@todo response state to determine if job is done else set retries.
-        $memo = $event->getMemo();
-        //sends api call with payload to intending listener
-        $externalServices = (new OrganizationServiceRepository())->getAllItems();
+        if ($event->emitAble()) {
+            $memo = $event->getMemo();
+            //sends api call with payload to intending listener
+            $externalServices = (new OrganizationServiceRepository())->getAllItems();
 
-        $externalServicesEventDispatcher = new SyncApplicationEventsAmongServices();
-        foreach ($externalServices as $service) {
-            $url = config('app.environment') === 'production' ?
-                "{$service->production_url}{$service->events_endpoint}" :
-                "{$service->staging_url}{$service->events_endpoint}";
+            $externalServicesEventDispatcher = new SyncApplicationEventsAmongServices();
+            foreach ($externalServices as $service) {
+                $url = config('app.environment') === 'production' ?
+                    "{$service->production_url}{$service->events_endpoint}" :
+                    "{$service->staging_url}{$service->events_endpoint}";
 
-            $externalServicesEventDispatcher->notifyOverREST(
-                $url,
-                [
-                    'event' => NotifyNewMemo::class,
-                    'memo_id' => $memo->id
-                ]
-            );
+                $externalServicesEventDispatcher->notifyOverREST(
+                    $url,
+                    [
+                        'event' => NotifyNewMemo::class,
+                        'memo_id' => $memo->id
+                    ]
+                );
+            }
         }
     }
 }

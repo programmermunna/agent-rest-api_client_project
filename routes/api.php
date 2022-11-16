@@ -22,6 +22,9 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
  */
+//this is only used for internal services
+\App\Services\SyncApplicationEventsAmongServices::routes();
+
 Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function () {
     Route::post('/member/login', 'JWTAuthController@authenticate');
     Route::post('/member/register', 'JWTAuthController@register')->name('registerJwt');
