@@ -15,19 +15,26 @@ class NotifyNewMemo implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     private $memo;
+    protected $emitABle;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(MemoModel $memoModel)
+    public function __construct(MemoModel $memoModel, bool $emitABle = true)
     {
         $this->memo = $memoModel;
+        $this->emitABle = $emitABle;
     }
 
     public function getMemo()
     {
         return $this->memo;
+    }
+
+    public function emitAble()
+    {
+        return $this->emitABle;
     }
 
     /**
