@@ -4,7 +4,7 @@ module.exports = {
             name: 'Member-api Websocket',
             exec_mode: 'cluster',
             instances: 1, // Or a number of instances
-            script: 'php artisan websockets:serve --host=https://member-api.cktch.top',
+            script: 'php artisan websockets:serve',
             //args: 'start',
         },
         {
