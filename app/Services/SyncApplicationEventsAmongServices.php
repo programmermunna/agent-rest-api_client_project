@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Events\NotifyNewMemo;
 use App\Models\MemoModel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -37,7 +38,7 @@ class SyncApplicationEventsAmongServices
 
     public static function routes()
     {
-        \Route::post('event-triggers', function (\Request $request) {
+        \Route::post('event-triggers', function (Request $request) {
 
             try {
                 //@todo this whole dynamics can be scaled to suite generic purposes since we will likely
@@ -51,6 +52,7 @@ class SyncApplicationEventsAmongServices
 
                 $model = $events[$request->event]['model'];
                 $event = $events[$request->event]['event'];
+
                 $params = $model::find($request->memo_id);
                 $event = new $event($params, false);
                 event($event);
