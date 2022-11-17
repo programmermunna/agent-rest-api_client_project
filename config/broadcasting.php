@@ -40,7 +40,7 @@ return [
                 'useTLS' => true,
                 'encrypted' => true,
                 'host' => env('HOST'),//'127.0.0.1',
-                'port' => 6001,
+                'port' => env('LARAVEL_WEBSOCKETS_PORT', 6001),
                 'scheme' => env('PUSHER_APP_SCHEME')//'http'
             ],
         ],
