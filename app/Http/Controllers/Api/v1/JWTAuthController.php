@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
+use App\Models\BetsTogel;
 use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
@@ -146,7 +147,7 @@ class JWTAuthController extends ApiController
     public function getAuthenticatedMember()
     {
         try {
-            $member = MembersModel::select(['id', 'username', 'credit', 'last_login_at', 'last_login_ip', 'created_at'])->where('id', auth('api')->user()->id)->first();
+            $member = MembersModel::select(['id', 'username', 'credit', 'last_login_at', 'last_login_ip'])->where('id', auth('api')->user()->id)->first();
             if (!$member) {
                 return $this->errorResponse('Member tidak ditemukan', 404);
             }
@@ -159,6 +160,28 @@ class JWTAuthController extends ApiController
         }
 
         return $this->successResponse($member);
+    }
+
+    public function getBalanceMember()
+    {
+        try {
+            $balance = ['balance' => (float) auth('api')->user()->credit];
+            return $this->successResponse($balance);
+        } catch (\Throwable$th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+
+    }
+
+    public function lastBetWin()
+    {
+        try {
+            $bet = BetModel::query();
+            $betTogel = BetsTogel::query();
+            return $this->successResponse($balance);
+        } catch (\Throwable$th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
     }
 
     public function lastBet()

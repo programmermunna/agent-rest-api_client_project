@@ -37,6 +37,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::get('/history_by_type', 'MemberController@historyAll');
         // Member
         Route::get('/', 'JWTAuthController@getAuthenticatedMember');
+        Route::get('/balance', 'JWTAuthController@getBalanceMember');
         Route::get('/last_bet', 'JWTAuthController@lastBet');
         Route::get('/last_win', 'JWTAuthController@lastWin');
         Route::get('/history', 'JWTAuthController@history');
