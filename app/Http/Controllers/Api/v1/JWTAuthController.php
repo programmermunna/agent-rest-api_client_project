@@ -176,14 +176,28 @@ class JWTAuthController extends ApiController
     public function lastBetWin()
     {
         try {
-            $bet = BetModel::query();
-            $betTogel = BetsTogel::query();
-            return $this->successResponse($balance);
+            $id = auth('api')->user()->id;
+
+            # Last Bet
+            $queryLastBet = BetModel::select('bet', 'created_at')->where('bet', '>', 0)->where('created_by', $id);
+            $queryLastBetTogel = BetsTogel::select('pay_amount AS bet', 'created_at')->where('created_by', $id);
+            $lastBet = $queryLastBet->union($queryLastBetTogel)->orderBy('created_at', 'desc')->first();
+
+            # Last Win
+            $queryLastWin = BetModel::select('win', 'created_at')->where('win', '>', 0)->where('created_by', $id);
+            $queryLastWinTogel = BetsTogel::select('win_nominal AS win', 'created_at')->whereNotNull('win_nominal')->where('created_by', $id);
+            $lastWin = $queryLastWin->union($queryLastWinTogel)->orderBy('created_at', 'desc')->first();
+            $data = [
+                'last-bet' => $lastBet ?? ['bet' => 0, 'created_at' => auth('api')->user()->created_at],
+                'last-win' => $lastWin ?? ['win' => 0, 'created_at' => auth('api')->user()->created_at],
+            ];
+            return $this->successResponse($data);
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
 
+    # Not Used from Nov, 18 2022 to now
     public function lastBet()
     {
         try {
@@ -324,6 +338,7 @@ class JWTAuthController extends ApiController
         }
     }
 
+    # Not Used from Nov, 18 2022 to now
     public function lastWin()
     {
         try {
@@ -384,6 +399,7 @@ class JWTAuthController extends ApiController
         }
     }
 
+    # Not Used from Nov, 18 2022 to now
     public function history()
     {
         try {
