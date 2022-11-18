@@ -167,8 +167,12 @@ class JWTAuthController extends ApiController
         try {
             $balance = ['balance' => (float) auth('api')->user()->credit];
             return $this->successResponse($balance);
-        } catch (\Throwable$th) {
-            return $this->errorResponse('Internal Server Error', 500);
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+            return $this->errorResponse('Token expired', 404);
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+            return $this->errorResponse('Token invalid', 400);
+        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+            return $this->errorResponse('Token absent', 500);
         }
 
     }
