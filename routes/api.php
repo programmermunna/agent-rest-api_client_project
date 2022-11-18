@@ -36,8 +36,8 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
     Route::group(['middleware' => ['jwt.verify'], 'prefix' => 'member'], function () {
         Route::get('/history_by_type', 'MemberController@historyAll');
         // Member
-        Route::get('/', 'JWTAuthController@getBalanceMember');
-        Route::get('/members', 'JWTAuthController@getAuthenticatedMember');
+        Route::get('/', 'JWTAuthController@getAuthenticatedMember');
+        Route::get('/balance', 'JWTAuthController@getBalanceMember');
         Route::get('/last-bet-win', 'JWTAuthController@lastBetWin');
         Route::get('/last_bet', 'JWTAuthController@lastBet'); # Not Used from Nov, 18 2022 to now
         Route::get('/last_win', 'JWTAuthController@lastWin'); # Not Used from Nov, 18 2022 to now
