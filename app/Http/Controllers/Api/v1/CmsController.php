@@ -44,14 +44,23 @@ class CmsController extends ApiController
                     ->where('enabled', 1)->orderBy('type', 'asc')->orderBy('order', 'asc')->get();
                 return $this->successResponse($sildeAndPopupImages, 'Datanya ada', 200);
             } else {
-                $sildeAndPopupImages = ImageContent::select(
-                    'type',
-                    'path',
-                    'alt',
-                    'order',
-                    'content',
-                )
-                    ->where('type', $type)->where('enabled', 1)->orderBy('order', 'asc')->get();
+                if ($type == 'popup') {
+                    $sildeAndPopupImages = ImageContent::select(
+                        'type',
+                        'path',
+                        'alt',
+                    )
+                        ->where('type', $type)->where('enabled', 1)->orderBy('order', 'asc')->get();
+                } else {
+                    $sildeAndPopupImages = ImageContent::select(
+                        'type',
+                        'path',
+                        'alt',
+                        'order',
+                        'content',
+                    )
+                        ->where('type', $type)->where('enabled', 1)->orderBy('order', 'asc')->get();
+                }
                 if ($sildeAndPopupImages->count() <= 0) {
                     return $this->successResponse($sildeAndPopupImages, $type . ' aktif', 200);
                 } else {
