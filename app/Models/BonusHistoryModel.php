@@ -13,7 +13,6 @@ class BonusHistoryModel extends Model
 
     protected $table = 'bonus_history';
 
-
     public $timestamps = false;
 
     protected $dates = ['deleted_at'];
@@ -22,9 +21,12 @@ class BonusHistoryModel extends Model
         'free_bet_id',
         'constant_bonus_id',
         'event',
+        'member_id',
         'is_use',
+        'is_send',
         'is_delete',
         'jumlah',
+        'credit',
         'hadiah',
         'type',
         'created_by',

@@ -73,6 +73,7 @@ class MemberController extends ApiController
 
             # History Deposit
             $deposit = DB::select("SELECT
+                    'Deposit' as tables,
                     jumlah,
                     credit,
                     approval_status,
@@ -101,6 +102,7 @@ class MemberController extends ApiController
 
             # History Withdraw
             $withdraw = DB::select("SELECT
+                      'Withdraw' as tables,
                       jumlah,
                       credit,
                       approval_status,
@@ -144,7 +146,7 @@ class MemberController extends ApiController
             $properties = [];
             foreach ($activity_members as $activity) {
                 $array = json_decode($activity->properties, true);
-                if (!array_key_exists('device',$array) && !array_key_exists('created_at',$array)) {
+                if (!array_key_exists('device', $array) && !array_key_exists('created_at', $array)) {
                     $device = Arr::add($array, 'device', 'Unknown');
                     $properties[] = Arr::add($device, 'created_at', $activity->created_at);
                 } else {
@@ -187,33 +189,32 @@ class MemberController extends ApiController
             # Histori Bonus
             $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
                 ->selectRaw("
-          bonus_history.id,
-          constant_bonus.nama_bonus,
-          bonus_history.type,
-          bonus_history.jumlah,
-          bonus_history.hadiah,
-          if(
-            bonus_history.constant_bonus_id = 4
-              , bonus_history.updated_at
-              , bonus_history.created_at
-          ) as created_at,
-          bonus_history.member_id
-        ")
+                    bonus_history.id,
+                    constant_bonus.nama_bonus,
+                    bonus_history.type,
+                    bonus_history.jumlah,
+                    bonus_history.credit,
+                    bonus_history.hadiah,
+                    if(
+                        bonus_history.constant_bonus_id = 4
+                        , if (bonus_history.updated_at is null, bonus_history.created_at, bonus_history.updated_at)
+                        , bonus_history.created_at
+                    ) as created_at,
+                    bonus_history.member_id
+                ")
                 ->whereBetween('bonus_history.created_at', [$fromDate, $toDate])
                 ->where('bonus_history.is_send', 1)
                 ->where('bonus_history.member_id', auth('api')->user()->id);
 
-            if ($request->type == 'deposit') {
-                $this->deposit = $deposit;
-                $depo = $this->paginate($this->deposit, $this->perPageDepo);
-
-                $this->withdraw = $withdraw;
-                $wd = $this->paginate($this->withdraw, $this->perPageWd);
+            if ($request->type == 'depositWithdraw') {
+                $depoWD = array_merge($deposit, $withdraw);
+                $date = array_column($depoWD, 'created_at');
+                array_multisort($date, SORT_DESC, $depoWD);
+                $data = $this->paginate($depoWD, $this->perPageWd);
 
                 return [
                     'status' => 'success',
-                    'deposit' => $depo,
-                    'withdraw' => $wd,
+                    'depositWithdraw' => $data,
                 ];
             } elseif ($request->type == 'loginLogout') {
                 $this->loginLout = $activity;
@@ -589,8 +590,24 @@ class MemberController extends ApiController
                     'redTSlot' => $data,
                 ];
             } elseif ($request->type == 'BonusPromo') {
-                $this->bonus = $bonus->get()->toArray();
-                $bonusArr = $this->paginate($this->bonus, $this->perPage);
+                $bonusHistory = [];
+                foreach ($bonus->get() as $key => $value) {
+                    $status = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
+                    $bonusHistory[] = [
+                        'id' => $value->id,
+                        'nama_bonus' => $value->nama_bonus,
+                        'type' => $value->type,
+                        'jumlah' => $value->jumlah,
+                        'credit' => $value->credit ?? 0,
+                        'hadiah' => $value->hadiah,
+                        'status_bonus' => $status,
+                        'created_at' => $value->created_at,
+                        'member_id' => $value->member_id,
+                    ];
+                }
+                $date = array_column($bonusHistory, 'created_at');
+                array_multisort($date, SORT_DESC, $bonusHistory);
+                $bonusArr = $this->paginate($bonusHistory, $this->perPage);
 
                 return [
                     'status' => 'success',
@@ -636,7 +653,8 @@ class MemberController extends ApiController
                       NULL as bonusHistoryType,
                       NULL as bonusHistoryJumlah,
                       NULL as bonusHistoryHadiah,
-                      NULL as bonusHistoryCreatedBy,
+                      NULL as bonusHistoryStatus,
+                      NULL as bonusHistoryCredit,
                       NULL as activityDeskripsi,
                       NULL as activityName,
                       NULL as detail
@@ -685,7 +703,8 @@ class MemberController extends ApiController
                     NULL as bonusHistoryType,
                     NULL as bonusHistoryJumlah,
                     NULL as bonusHistoryHadiah,
-                    NULL as bonusHistoryCreatedBy,
+                    NULL as bonusHistoryStatus,
+                    NULL as bonusHistoryCredit,
                     NULL as activityDeskripsi,
                     NULL as activityName,
                     NULL as detail
@@ -738,7 +757,8 @@ class MemberController extends ApiController
                     NULL as bonusHistoryType,
                     NULL as bonusHistoryJumlah,
                     NULL as bonusHistoryHadiah,
-                    NULL as bonusHistoryCreatedBy,
+                    NULL as bonusHistoryStatus,
+                    NULL as bonusHistoryCredit,
                     NULL as activityDeskripsi,
                     NULL as activityName,
                     NULL as detail
@@ -748,53 +768,6 @@ class MemberController extends ApiController
                 WHERE
                     a.created_by = $id
                     AND a.created_at BETWEEN '$fromDate' AND '$toDate'
-                UNION ALL
-                SELECT
-                    'Bonus History' as Tables,
-                    NULL as betsBet,
-                    NULL as betsWin,
-                    NULL as betsGameInfo,
-                    NULL as betsBetId,
-                    NULL as betsGameId,
-                    NULL as betsDeskripsi,
-                    NULL as betsCredit,
-                    if(
-                            a.constant_bonus_id = 4
-                            , a.updated_at
-                            , a.created_at
-                    ) as created_at,
-                    NULL as betsProviderName,
-                    NULL as betsTogelHistoryId,
-                    NULL as betsTogelHistoryPasaran,
-                    NULL as betsTogelHistorDeskripsi,
-                    NULL as betsTogelHistoryDebit,
-                    NULL as betsTogelHistoryKredit,
-                    NULL as betsTogelHistoryBalance,
-                    NULL as betsTogelHistoryCreatedBy,
-                    NULL as depositCredit,
-                    NULL as depositJumlah,
-                    NULL as depositStatus,
-                    NULL as depositDescription,
-                    NULL as withdrawCredit,
-                    NULL as withdrawJumlah,
-                    NULL as withdrawStatus,
-                    NULL as withdrawDescription,
-                    b.nama_bonus as bonusHistoryNamaBonus,
-                    a.type as bonusHistoryType,
-                    a.jumlah as bonusHistoryJumlah,
-                    a.hadiah as bonusHistoryHadiah,
-                    a.created_by as bonusHistoryCreatedBy,
-                    NULL as activityDeskripsi,
-                    NULL as activityName,
-                    NULL as detail
-                FROM
-                    bonus_history as a
-                LEFT JOIN constant_bonus as b ON b.id = a.constant_bonus_id
-                WHERE
-                    a.created_at BETWEEN '$fromDate' AND '$toDate'
-                    AND a.member_id = $id
-                    AND is_send = 1
-                    AND a.deleted_at IS NULL
                 ORDER BY created_at DESC"));
 
                 # Histori Login/Logout
@@ -811,7 +784,7 @@ class MemberController extends ApiController
                 $properties = [];
                 foreach ($activity_members as $activity) {
                     $array = json_decode($activity->properties, true);
-                    if (!array_key_exists('device',$array) && !array_key_exists('created_at',$array)) {
+                    if (!array_key_exists('device', $array) && !array_key_exists('created_at', $array)) {
                         $device = Arr::add($array, 'device', 'Unknown');
                         $properties[] = Arr::add($device, 'created_at', $activity->created_at);
                     } else {
@@ -860,7 +833,8 @@ class MemberController extends ApiController
                         'bonusHistoryType' => null,
                         'bonusHistoryJumlah' => null,
                         'bonusHistoryHadiah' => null,
-                        'bonusHistoryCreatedBy' => null,
+                        'bonusHistoryStatus' => null,
+                        'bonusHistoryCredit' => null,
                         'activityDeskripsi' => $value['device'] != null ? $value['activity'] . " : " . $value['device'] : $value['activity'],
                         'activityName' => $value['device'] != null ? $value['activity'] . " - " . $value['device'] : $value['activity'],
                         'detail' => null,
@@ -868,9 +842,7 @@ class MemberController extends ApiController
                     $activitys[] = $activity;
                 };
 
-                // dd($activitys);
-
-                #History Bets Togel
+                # History Bets Togel
                 $betTogelHistories = [];
                 foreach ($this->dataTogel() as $key => $value) {
                     $betTogelHis = [
@@ -903,12 +875,54 @@ class MemberController extends ApiController
                         'bonusHistoryType' => null,
                         'bonusHistoryJumlah' => null,
                         'bonusHistoryHadiah' => null,
-                        'bonusHistoryCreatedBy' => null,
+                        'bonusHistoryStatus' => null,
+                        'bonusHistoryCredit' => null,
                         'activityDeskripsi' => null,
                         'activityName' => null,
                         'detail' => '/endpoint/getDetailTransaksiTogel/' . $value['id'],
                     ];
                     $betTogelHistories[] = $betTogelHis;
+                }
+
+                # History Bonus
+                $bonusHistory = [];
+                foreach ($bonus->get() as $key => $value) {
+                    $bonusHistory[] = [
+                        'Tables' => 'Bonus History',
+                        'betsBet' => null,
+                        'betsWin' => null,
+                        'betsGameInfo' => null,
+                        'betsBetId' => null,
+                        'betsGameId' => null,
+                        'betsDeskripsi' => null,
+                        'betsCredit' => null,
+                        'created_at' => $value->created_at,
+                        'betsProviderName' => null,
+                        'betsTogelHistoryId' => null,
+                        'betsTogelHistoryPasaran' => null,
+                        'betsTogelHistorDeskripsi' => null,
+                        'betsTogelHistoryDebit' => null,
+                        'betsTogelHistoryKredit' => null,
+                        'betsTogelHistoryBalance' => null,
+                        'betsTogelHistoryCreatedBy' => null,
+                        'depositCredit' => null,
+                        'depositJumlah' => null,
+                        'depositStatus' => null,
+                        'depositDescription' => null,
+                        'withdrawCredit' => null,
+                        'withdrawJumlah' => null,
+                        'withdrawStatus' => null,
+                        'withdrawDescription' => null,
+                        'bonusHistoryNamaBonus' => $value->nama_bonus,
+                        'bonusHistoryType' => $value->type,
+                        'bonusHistoryJumlah' => $value->jumlah,
+                        'bonusHistoryHadiah' => $value->hadiah,
+                        'bonusHistoryStatus' => preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim')),
+                        'bonusHistoryCredit' => $value->credit,
+                        'activityDeskripsi' => null,
+                        'activityName' => null,
+                        'detail' => null,
+                    ];
                 }
 
                 # History Togel Referral
@@ -944,7 +958,8 @@ class MemberController extends ApiController
                         'bonusHistoryType' => null,
                         'bonusHistoryJumlah' => null,
                         'bonusHistoryHadiah' => null,
-                        'bonusHistoryCreatedBy' => null,
+                        'bonusHistoryStatus' => null,
+                        'bonusHistoryCredit' => null,
                         'activityDeskripsi' => null,
                         'activityName' => null,
                         'detail' => null,
@@ -953,14 +968,11 @@ class MemberController extends ApiController
                 }
 
                 # Combine all history
-                $alldata1 = array_merge($providers, $allProBet, $activitys);
-                $alldata2 = array_merge($alldata1, $betTogelHistories);
-                $alldata3 = array_merge($alldata2, $togelReferals);
-                $date = array_column($alldata3, 'created_at');
-                array_multisort($date, SORT_DESC, $alldata3);
-                $this->allProviderBet = $alldata3;
-                // dd($alldata2);
-                // var_dump($this->allProviderBet);
+                $alldata = array_merge($providers, $allProBet, $activitys, $bonusHistory, $betTogelHistories, $togelReferals);
+                $date = array_column($alldata, 'created_at');
+                array_multisort($date, SORT_DESC, $alldata);
+                $this->allProviderBet = $alldata;
+
                 $allProviderBet = $this->paginate($this->allProviderBet, $this->pageAll);
                 return [
                     'status' => 'success',

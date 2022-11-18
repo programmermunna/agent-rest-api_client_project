@@ -22,35 +22,43 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
  */
+//this is only used for internal services
+\App\Services\SyncApplicationEventsAmongServices::routes();
+
 Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function () {
     Route::post('/member/login', 'JWTAuthController@authenticate');
     Route::post('/member/register', 'JWTAuthController@register')->name('registerJwt');
 
     // probation login and register
-    Route::post('/login', 'JWTAuthController@probationLogin');
-    Route::post('/register', 'JWTAuthController@probationRegister');
+    // Route::post('/login', 'JWTAuthController@probationLogin');
+    // Route::post('/register', 'JWTAuthController@probationRegister');
 
     Route::group(['middleware' => ['jwt.verify'], 'prefix' => 'member'], function () {
         Route::get('/history_by_type', 'MemberController@historyAll');
         // Member
         Route::get('/', 'JWTAuthController@getAuthenticatedMember');
-        Route::get('/last_bet', 'JWTAuthController@lastBet');
-        Route::get('/last_win', 'JWTAuthController@lastWin');
-        Route::get('/history', 'JWTAuthController@history');
+        Route::get('/balance', 'JWTAuthController@getBalanceMember');
+        Route::get('/last-bet-win', 'JWTAuthController@lastBetWin');
+        Route::get('/last_bet', 'JWTAuthController@lastBet'); # Not Used from Nov, 18 2022 to now
+        Route::get('/last_win', 'JWTAuthController@lastWin'); # Not Used from Nov, 18 2022 to now
+        Route::get('/history', 'JWTAuthController@history'); # Not Used from Nov, 18 2022 to now
         Route::post('/refresh', 'JWTAuthController@refresh');
         Route::post('/logout', 'JWTAuthController@logout');
-        Route::get('/bank_account', 'MemberController@bank_account');
+        // Route::get('/bank_account', 'MemberController@bank_account'); # Not Used from Nov, 18 2022 to now
         Route::post('/change-password', 'JWTAuthController@changePassword');
         Route::get('/bonus-referal', 'MemberController@bonusReferal');
 
         // Probation
-        Route::post('/updateAccount', 'JWTAuthController@probationUpdateAccount');
-        Route::post('/deleteAccount', 'JWTAuthController@probationDeleteAccount');
-        Route::get('/accountList', 'JWTAuthController@probationAccountList');
+        // Route::post('/updateAccount', 'JWTAuthController@probationUpdateAccount');
+        // Route::post('/deleteAccount', 'JWTAuthController@probationDeleteAccount');
+        // Route::get('/accountList', 'JWTAuthController@probationAccountList');
 
         // Deposit
         Route::post('/deposit/create', 'DepositController@create');
         Route::get('/setting-bonus-freebet', 'DepositController@dataBonusFreebet');
+
+        // Bonus Freebet
+        Route::post('/bonus-freebet/bonus-freebet-giveup', 'DepositController@BonusFreebetGivUp');
 
         //Withdraw
         Route::post('/withdraw/create', 'WithdrawController@create');
@@ -106,7 +114,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
     //open api with secret
     Route::group(['middleware' => ['open.api']], function () {
         Route::group(['prefix' => 'etc'], function () {
-            // Route::get('/broadcast', 'LanlanController@broadcast');
+            // Route::get('/broadcast', 'LanlanController@broadcast'); # Not Used from Nov, 18 2022 to now
             Route::get('/broadcast', 'LanlanController@broadcast');
             Route::get('/apk', 'LanlanController@apk');
             Route::get('/livechat', 'LanlanController@livechat');
@@ -125,6 +133,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/image-contents/{type}', 'CmsController@imageContent'); //{type}=> api all , popup , mobile , slide , promotion ///
             Route::get('/game-content/{slug}', 'CmsController@gameContent');
             Route::get('/banner_promo_bonus', 'CmsController@bannerPromoBonus');
+            Route::get('/freebet-list', 'CmsController@freebetBonus');
         });
 
         Route::group(['prefix' => 'contact'], function () {
@@ -158,56 +167,57 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
 });
 // api for integration
 Route::group(['prefix' => 'endpoint'], function () {
-    Route::post('bet', [ProviderController::class, 'bet']);
-    Route::post('betSpade', [ProviderController::class, 'betSpade']);
-    Route::post('get_history_pragmatic', [ProviderController::class, 'gameHistoryPragmatic']);
-    Route::post('round', [ProviderController::class, 'getGameRound']);
-    Route::post('bet_pragmatic', [ProviderController::class, 'betPragmatic']);
-    Route::post('result_pragmatic', [ProviderController::class, 'resultPragmatic']);
-    Route::post('cancel_bet_pragmatic', [ProviderController::class, 'cancelBetPragmatic']);
+    Route::post('bet', [ProviderController::class, 'bet']); # Not Used from Ock, 25 2022 to now
+    Route::post('betSpade', [ProviderController::class, 'betSpade']); # Not Used from Ock, 25 2022 to now
+    Route::post('get_history_pragmatic', [ProviderController::class, 'gameHistoryPragmatic']); # Not Used from Ock, 25 2022 to now
+    Route::post('round', [ProviderController::class, 'getGameRound']); # Not Used from Ock, 25 2022 to now
+    Route::post('bet_pragmatic', [ProviderController::class, 'betPragmatic']); # Not Used from Ock, 25 2022 to now
+    Route::post('result_pragmatic', [ProviderController::class, 'resultPragmatic']); # Not Used from Ock, 25 2022 to now
+    Route::post('cancel_bet_pragmatic', [ProviderController::class, 'cancelBetPragmatic']); # Not Used from Ock, 25 2022 to now
 
-    Route::post('result_habanero', [ProviderController::class, 'resultHabanero']);
+    Route::post('result_habanero', [ProviderController::class, 'resultHabanero']); # Not Used from Ock, 25 2022 to now
 
     # Joker Gaming Slot
-    Route::post('bet_joker', [ProviderController::class, 'betJoker']);
-    Route::post('settle_bet_joker', [ProviderController::class, 'settleBetJoker']);
-    Route::post('cancel_bet_joker', [ProviderController::class, 'cancelBetJoker']);
+    Route::post('bet_joker', [ProviderController::class, 'betJoker']); # Not Used from Ock, 25 2022 to now
+    Route::post('settle_bet_joker', [ProviderController::class, 'settleBetJoker']); # Not Used from Ock, 25 2022 to now
+    Route::post('cancel_bet_joker', [ProviderController::class, 'cancelBetJoker']); # Not Used from Ock, 25 2022 to now
 
-    Route::post('balance', [ProviderController::class, 'balance']);
-    Route::post('result', [ProviderController::class, 'result']);
-    Route::post('transaction_joker', [ProviderController::class, 'transaction']);
-    Route::post('withdraw_joker', [ProviderController::class, 'withdraw']);
-    Route::post('deposit_joker', [ProviderController::class, 'deposit']);
-    Route::post('resultSpade', [ProviderController::class, 'resultSpade']);
+    Route::post('balance', [ProviderController::class, 'balance']); # Not Used from Ock, 25 2022 to now
+    Route::post('result', [ProviderController::class, 'result']); # Not Used from Ock, 25 2022 to now
+    Route::post('transaction_joker', [ProviderController::class, 'transaction']); # Not Used from Ock, 25 2022 to now
+    Route::post('withdraw_joker', [ProviderController::class, 'withdraw']); # Not Used from Ock, 25 2022 to now
+    Route::post('deposit_joker', [ProviderController::class, 'deposit']); # Not Used from Ock, 25 2022 to now
+    Route::post('resultSpade', [ProviderController::class, 'resultSpade']); # Not Used from Ock, 25 2022 to now
 
     # Playtech
-    Route::post('bet_playtech', [ProviderController::class, 'betPlaytech']);
-    Route::post('cancel_bet_playtech', [ProviderController::class, 'cancelBetPlaytech']);
-    Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']);
+    Route::post('bet_playtech', [ProviderController::class, 'betPlaytech']); # Not Used from Ock, 25 2022 to now
+    Route::post('cancel_bet_playtech', [ProviderController::class, 'cancelBetPlaytech']); # Not Used from Ock, 25 2022 to now
+    Route::post('result_playtech', [ProviderController::class, 'resultPlaytech']); # Not Used from Ock, 25 2022 to now
 
-    Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']);
+    Route::post('get_history_spade_gaming', [ProviderController::class, 'getBetHistorySpadeGaming']); # Not Used from Ock, 25 2022 to now
 
     /**
      * @deprecated
      */
     /* Route::post('transfer-in-out', [ProviderController::class, 'resultPgSoft']); */
-    Route::post('transfer-in-out', [ProviderController::class, 'PgSoftTransaction']);
+    Route::post('transfer-in-out', [ProviderController::class, 'PgSoftTransaction']); # Not Used from Ock, 25 2022 to now
     # Game Gall
-    Route::post("bet_gameHall", [GameHallController::class, "listenTransaction"]);
-    Route::post("result_gameHall", [GameHallController::class, "resultGameHall"]);
+    Route::post("bet_gameHall", [GameHallController::class, "listenTransaction"]); # Not Used from Ock, 25 2022 to now
+    Route::post("result_gameHall", [GameHallController::class, "resultGameHall"]); # Not Used from Ock, 25 2022 to now
 
     #Queenmaker api route
-    Route::post("debit", [QueenmakerController::class, "getDebitQueenMaker"]);
-    Route::post("credit", [QueenmakerController::class, "getCreditQueenMaker"]);
+    Route::post("debit", [QueenmakerController::class, "getDebitQueenMaker"]); # Not Used from Ock, 25 2022 to now
+    Route::post("credit", [QueenmakerController::class, "getCreditQueenMaker"]); # Not Used from Ock, 25 2022 to now
+
+    Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']); # Not Used from Ock, 25 2022 to now
 
     # Togel
-    Route::post('detail_spade_gaming', [ProviderController::class, 'detailSpadeGaming']);
     Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
-    Route::match(['get', 'post'], "sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
+    // Route::match(['get', 'post'], "sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
     Route::get('provider', [OutResult::class, 'getResultByProvider']);
     Route::get('paitoEight', [OutResult::class, 'paitoEight']);
     Route::match(['get', 'post'], "paitoAll", [OutResult::class, 'paitoAll']);
-    Route::match(['get', 'post'], "paitoTest", [OutResult::class, 'paitoTestAll']);
+    // Route::match(['get', 'post'], "paitoTest", [OutResult::class, 'paitoTestAll']);
     Route::get('shio', [OutResult::class, 'getShioTables']);
     Route::get('list_out_result', [OutResult::class, 'getAllResult']);
     Route::get('pasaran', [OutResult::class, 'getPasaran']);
@@ -217,17 +227,17 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::get('rules', [TogelPeraturanGame::class, 'getPeraturanGame']);
     Route::get('getDetailTransaksi', [OutResult::class, 'getDetailTransaksi']);
     Route::get('getDetailTransaksiTogel/{id}', [MemberController::class, 'detailDataTogel']);
-    # Togel Must Secure when betting
+    # Togel Must Secure when bettin
     Route::middleware(['jwt.verify'])->group(function () {
         Route::post('storeTogel', [BetsTogelController::class, 'store']);
     });
 });
 
 Route::group(['prefix' => 'ionx'], function () {
-    Route::post("deduct-player-balance", [IONXController::class, "deductPlayerBalance"]);
-    Route::post("get-player-balance", [IONXController::class, "getPlayerBalance"]);
-    Route::post("rollback-player-balance", [IONXController::class, "rollbackPlayerBalance"]);
-    Route::post("Insert-running-bet", [IONXController::class, "InsertRunningBet"]);
-    Route::post("settle-bet", [IONXController::class, "SettleBet"]);
-    Route::post("insert-game-announcement", [IONXController::class, "insertGameAnnouncement"]);
+    Route::post("deduct-player-balance", [IONXController::class, "deductPlayerBalance"]); # Not Used from Ock, 25 2022 to now
+    Route::post("get-player-balance", [IONXController::class, "getPlayerBalance"]); # Not Used from Ock, 25 2022 to now
+    Route::post("rollback-player-balance", [IONXController::class, "rollbackPlayerBalance"]); # Not Used from Ock, 25 2022 to now
+    Route::post("Insert-running-bet", [IONXController::class, "InsertRunningBet"]); # Not Used from Ock, 25 2022 to now
+    Route::post("settle-bet", [IONXController::class, "SettleBet"]); # Not Used from Ock, 25 2022 to now
+    Route::post("insert-game-announcement", [IONXController::class, "insertGameAnnouncement"]); # Not Used from Ock, 25 2022 to now
 });

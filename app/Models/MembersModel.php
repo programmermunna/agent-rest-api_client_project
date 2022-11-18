@@ -8,7 +8,6 @@ use App\Domains\Auth\Models\Traits\Attribute\UserAttribute;
 use App\Domains\Auth\Models\Traits\Method\UserMethod;
 use App\Domains\Auth\Models\Traits\Relationship\UserRelationship;
 use App\Domains\Auth\Models\Traits\Scope\UserScope;
-use App\UserToken;
 use DarkGhostHunter\Laraguard\Contracts\TwoFactorAuthenticatable;
 use DarkGhostHunter\Laraguard\TwoFactorAuthentication;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
@@ -18,20 +17,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Lab404\Impersonate\Models\Impersonate;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 use Spatie\Permission\Traits\HasRoles;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactorAuthenticatable, JWTSubject
 {
     use HasRoles,
-        Impersonate,
-        MustVerifyEmailTrait,
-        Notifiable,
-        SoftDeletes,
-        TwoFactorAuthentication,
-        UserAttribute,
-        UserMethod,
-        UserRelationship,
+    Impersonate,
+    MustVerifyEmailTrait,
+    Notifiable,
+    SoftDeletes,
+    TwoFactorAuthentication,
+    UserAttribute,
+    UserMethod,
+    UserRelationship,
         UserScope;
 
     protected $connection = 'mysql';
@@ -65,10 +64,10 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
     protected $guarded = ['id'];
 
     /**
-    * The attributes that are mass assignable.
-    *
-    * @var array
-    */
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
         'referrer_id',
         'bonus_referal',
@@ -103,7 +102,6 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
         'provider',
         'provider_id',
     ];
-
 
     /**
      * The attributes that should be hidden for arrays.
@@ -142,25 +140,24 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
      */
     protected $appends = [
         'avatar',
-        'referral_link'
+        // 'referral_link',
     ];
-            /**
+    /**
      * Get the member's referral link.
      *
      * @return string
      */
     public function getReferralLinkAttribute()
     {
-        return $this->referral_link = url('https://cikaslot.com/register?ref='. $this->username);
+        return $this->referral_link = url('https://cikaslot.com/register?ref=' . $this->username);
     }
-
 
     /**
      * @var string[]
      */
     protected $with = [
-        'permissions',
-        'roles',
+        // 'permissions',
+        // 'roles',
     ];
 
     /**
@@ -182,7 +179,7 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
      */
     public function canBeImpersonated(): bool
     {
-        return ! $this->isMasterAdmin();
+        return !$this->isMasterAdmin();
     }
 
     public function getJWTIdentifier()
@@ -203,7 +200,6 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
     {
         return $this->hasMany(BonusHistoryModel::class);
     }
-
 
     //start referal
     /**
@@ -243,19 +239,19 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
 
     public function rekeningMembers()
     {
-        return $this->hasMany(RekMemberModel::class, 'created_by','id');
+        return $this->hasMany(RekMemberModel::class, 'created_by', 'id');
     }
 
     public function scopeIsNewMember($query, $userId)
     {
         return $query->where('is_new_member', 1)
-                    ->where('id', $userId);
+            ->where('id', $userId);
     }
 
     public function scopeIsNextDeposit($query, $userId)
     {
         return $query->where('is_next_deposit', 1)
-                    ->where('id', $userId);
+            ->where('id', $userId);
     }
 
     public function authTokens(): HasMany

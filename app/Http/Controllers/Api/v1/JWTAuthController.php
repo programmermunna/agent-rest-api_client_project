@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
+use App\Models\BetsTogel;
 use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
@@ -14,7 +15,6 @@ use App\Models\RekMemberModel;
 use App\Models\TurnoverModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator; # pagination pake ini
@@ -41,16 +41,8 @@ class JWTAuthController extends ApiController
     {
 
         $input = $request->all();
-
-        // get ip public
-        $client = new Client();
-        $url = "https://api.ipify.org/?format=json";
-        $response = $client->get(
-            $url
-        );
-        $body = $response->getBody();
-        $data = json_decode($body->getContents());
-        $ipPublic = $data->ip;
+        $ipPublic = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER["HTTP_CF_CONNECTING_IP"] ?? $_SERVER['HTTP_X_FORWARDED'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_FORWARDED'] ?? $_SERVER['HTTP_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? ' - ';
+        $ipClient = explode(', ', $ipPublic);
 
         $fieldType = filter_var($request->user_account, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
@@ -113,7 +105,7 @@ class JWTAuthController extends ApiController
                 'remember_token' => $token,
                 'active' => 1,
                 'last_login_at' => now(),
-                'last_login_ip' => $request->ip ?? $ipPublic,
+                'last_login_ip' => $ipClient[0] ?? $request->ip(),
             ]);
 
             auth('api')->user();
@@ -126,7 +118,7 @@ class JWTAuthController extends ApiController
                 [
                     'target' => $user->username,
                     'activity' => 'Logged In',
-                    'ip_member' => $request->ip ?? $ipPublic,
+                    'ip_member' => $ipClient[0] ?? $request->ip(),
                 ],
                 'Successfully'
             );
@@ -155,7 +147,7 @@ class JWTAuthController extends ApiController
     public function getAuthenticatedMember()
     {
         try {
-            $member = auth('api')->user();
+            $member = MembersModel::select(['id', 'username', 'last_login_at', 'last_login_ip'])->where('id', auth('api')->user()->id)->first();
             if (!$member) {
                 return $this->errorResponse('Member tidak ditemukan', 404);
             }
@@ -170,6 +162,46 @@ class JWTAuthController extends ApiController
         return $this->successResponse($member);
     }
 
+    public function getBalanceMember()
+    {
+        try {
+            $balance = ['balance' => (float) auth('api')->user()->credit];
+            return $this->successResponse($balance);
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+            return $this->errorResponse('Token expired', 404);
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+            return $this->errorResponse('Token invalid', 400);
+        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+            return $this->errorResponse('Token absent', 500);
+        }
+
+    }
+
+    public function lastBetWin()
+    {
+        try {
+            $id = auth('api')->user()->id;
+
+            # Last Bet
+            $queryLastBet = BetModel::select('bet', 'created_at')->where('bet', '>', 0)->where('created_by', $id);
+            $queryLastBetTogel = BetsTogel::select('pay_amount AS bet', 'created_at')->where('created_by', $id);
+            $lastBet = $queryLastBet->union($queryLastBetTogel)->orderBy('created_at', 'desc')->first();
+
+            # Last Win
+            $queryLastWin = BetModel::select('win', 'created_at')->where('win', '>', 0)->where('created_by', $id);
+            $queryLastWinTogel = BetsTogel::select('win_nominal AS win', 'created_at')->whereNotNull('win_nominal')->where('created_by', $id);
+            $lastWin = $queryLastWin->union($queryLastWinTogel)->orderBy('created_at', 'desc')->first();
+            $data = [
+                ['lastBet' => [$lastBet ?? ['bet' => 0, 'created_at' => auth('api')->user()->created_at]]],
+                ['lastWin' => [$lastWin ?? ['win' => 0, 'created_at' => auth('api')->user()->created_at]]],
+            ];
+            return $this->successResponse($data);
+        } catch (\Throwable$th) {
+            return $this->errorResponse('Internal Server Error', 500);
+        }
+    }
+
+    # Not Used from Nov, 18 2022 to now
     public function lastBet()
     {
         try {
@@ -310,6 +342,7 @@ class JWTAuthController extends ApiController
         }
     }
 
+    # Not Used from Nov, 18 2022 to now
     public function lastWin()
     {
         try {
@@ -370,6 +403,7 @@ class JWTAuthController extends ApiController
         }
     }
 
+    # Not Used from Nov, 18 2022 to now
     public function history()
     {
         try {
@@ -646,9 +680,12 @@ class JWTAuthController extends ApiController
                 ]);
             }
 
+            $ipPublic = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER["HTTP_CF_CONNECTING_IP"] ?? $_SERVER['HTTP_X_FORWARDED'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_FORWARDED'] ?? $_SERVER['HTTP_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? ' - ';
+            $ipClient = explode(', ', $ipPublic);
+
             $user->update([
                 // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
-                'last_login_ip' => $request->ip,
+                'last_login_ip' => $ipClient[0] ?? $request->ip(),
             ]);
 
             UserLogModel::logMemberActivity(
@@ -659,7 +696,7 @@ class JWTAuthController extends ApiController
                     'target' => $user->username,
                     'activity' => 'Registered',
                     // 'ip' => $request->ip ?? request()->getClientIp(),
-                    'ip_member' => $request->ip,
+                    'ip_member' => $ipClient[0] ?? $request->ip(),
                 ],
                 'Successfully'
             );
@@ -714,9 +751,9 @@ class JWTAuthController extends ApiController
                     ],
                     'Berhasil Ganti Password.'
                 );
-                auth('api')->user()->update([
-                    'last_login_ip' => $request->ip,
-                ]);
+                // auth('api')->user()->update([
+                //     'last_login_ip' => $request->ip,
+                // ]);
 
                 return $this->successResponse(null, 'Berhasil Ganti Password.', 201);
             } else {
