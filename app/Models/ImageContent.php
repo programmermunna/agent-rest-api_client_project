@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 
 class ImageContent extends Model
 {
@@ -35,12 +34,16 @@ class ImageContent extends Model
         'deleted_at',
     ];
 
-    protected $appends = ['slide_photo', 'photo_path', 'box_photo'];
+    protected $appends = [
+        // 'slide_photo',
+        'photo_path',
+        // 'box_photo'
+    ];
 
     public function getPhotoPath($width, $height)
     {
         if ($this->path == null) {
-            return 'http://via.placeholder.com/'.$width.'x'.$height.'/?text=Agent+WL';
+            return 'http://via.placeholder.com/' . $width . 'x' . $height . '/?text=Agent+WL';
         }
 
         return $this->path;

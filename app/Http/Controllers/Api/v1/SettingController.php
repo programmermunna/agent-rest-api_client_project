@@ -17,7 +17,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -30,7 +30,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -58,150 +58,150 @@ class SettingController extends ApiController
             $itempropName = "";
             $itempropDescription = "";
             $itempropImage = "";
-            if($metaTag->value){
+            if ($metaTag->value) {
                 $dom = new \DOMdocument();
                 $dom->loadhtml($metaTag->value);
                 if ($dom->getelementsbytagname('meta')) {
                     $datas = [];
-                    foreach($dom->getelementsbytagname('meta') as $meta) {
-                        if($meta->getattribute('name') == 'keywords' && $meta->getattribute('content')) {
+                    foreach ($dom->getelementsbytagname('meta') as $meta) {
+                        if ($meta->getattribute('name') == 'keywords' && $meta->getattribute('content')) {
                             $keyword = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'description' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'description' && $meta->getattribute('content')) {
                             $description = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'geo.region' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'geo.region' && $meta->getattribute('content')) {
                             $geoRegion = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'geo.country' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'geo.country' && $meta->getattribute('content')) {
                             $geoCountry = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'language' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'language' && $meta->getattribute('content')) {
                             $language = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'googlebot' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'googlebot' && $meta->getattribute('content')) {
                             $googlebot = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'robots' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'robots' && $meta->getattribute('content')) {
                             $robots = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'distribution' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'distribution' && $meta->getattribute('content')) {
                             $distribution = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'geo.placename' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'geo.placename' && $meta->getattribute('content')) {
                             $geoPlacename = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'author' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'author' && $meta->getattribute('content')) {
                             $author = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'publisher' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'publisher' && $meta->getattribute('content')) {
                             $publisher = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('property') == 'og:type' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('property') == 'og:type' && $meta->getattribute('content')) {
                             $ogType = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('property') == 'og:locale' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('property') == 'og:locale' && $meta->getattribute('content')) {
                             $ogLocale = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('property') == 'og:locale:alternate' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('property') == 'og:locale:alternate' && $meta->getattribute('content')) {
                             $ogLocaleAlternate = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('name') == 'google-site-verification' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('name') == 'google-site-verification' && $meta->getattribute('content')) {
                             $googleSiteVerification = $meta->getattribute('content');
                             $datas[] = $googleSiteVerification;
                         }
-                        if($meta->getattribute('itemprop') == 'name' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('itemprop') == 'name' && $meta->getattribute('content')) {
                             $itempropName = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('itemprop') == 'description' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('itemprop') == 'description' && $meta->getattribute('content')) {
                             $itempropDescription = $meta->getattribute('content');
                         }
-                        if($meta->getattribute('itemprop') == 'image' && $meta->getattribute('content')) {
+                        if ($meta->getattribute('itemprop') == 'image' && $meta->getattribute('content')) {
                             $itempropImage = $meta->getattribute('content');
                         }
                     }
                 }
                 if ($dom->getelementsbytagname('link')) {
-                    foreach($dom->getelementsbytagname('link') as $link) {
-                        if($link->getattribute('rel') == 'canonical' && $link->getattribute('href')) {
+                    foreach ($dom->getelementsbytagname('link') as $link) {
+                        if ($link->getattribute('rel') == 'canonical' && $link->getattribute('href')) {
                             $linkcanonical = $link->getattribute('href');
                         }
                     }
                 }
             }
             $googleSiteVerificationArr = [];
-            foreach ($datas as $data){
+            foreach ($datas as $data) {
                 $googleSiteVerificationArr[] = ['name' => 'google-site-verification', 'content' => $data];
             }
             $dataMeta = [
                 [
                     'name' => "description",
-                    'content' => $description
+                    'content' => $description,
                 ],
                 [
                     'name' => "keywords",
-                    'content' => $keyword
+                    'content' => $keyword,
                 ],
                 [
                     'name' => "geo.region",
-                    'content' => $geoRegion
+                    'content' => $geoRegion,
                 ],
                 [
                     'name' => "geo.country",
-                    'content' => $geoCountry
+                    'content' => $geoCountry,
                 ],
                 [
                     'name' => "language",
-                    'content' => $language
+                    'content' => $language,
                 ],
                 [
                     'name' => "googlebot",
-                    'content' => $googlebot
+                    'content' => $googlebot,
                 ],
                 [
                     'name' => "robots",
-                    'content' => $robots
+                    'content' => $robots,
                 ],
                 [
                     'name' => "distribution",
-                    'content' => $distribution
+                    'content' => $distribution,
                 ],
                 [
                     'name' => "geo.placename",
-                    'content' => $geoPlacename
+                    'content' => $geoPlacename,
                 ],
                 [
                     'name' => "author",
-                    'content' => $author
+                    'content' => $author,
                 ],
                 [
                     'name' => "publisher",
-                    'content' => $publisher
+                    'content' => $publisher,
                 ],
                 [
                     'property' => "og:type",
-                    'content' => $ogType
+                    'content' => $ogType,
                 ],
                 [
                     'property' => "og:locale",
-                    'content' => $ogLocale
+                    'content' => $ogLocale,
                 ],
                 [
                     'property' => "og:locale:alternate",
-                    'content' => $ogLocaleAlternate
+                    'content' => $ogLocaleAlternate,
                 ],
                 [
                     'itemprop' => "name",
-                    'content' => $itempropName
+                    'content' => $itempropName,
                 ],
                 [
                     'itemprop' => "description",
-                    'content' => $itempropDescription
+                    'content' => $itempropDescription,
                 ],
                 [
                     'itemprop' => "image",
-                    'content' => $itempropImage
-                ]
+                    'content' => $itempropImage,
+                ],
             ];
             $meta = array_merge_recursive($dataMeta, $googleSiteVerificationArr);
             if ($title && $metaTag) {
@@ -210,15 +210,15 @@ class SettingController extends ApiController
                     'data' => [
                         'meta' => $meta,
                         'link' => [
-                            'rel'  => 'canonical',
+                            'rel' => 'canonical',
                             'href' => $linkcanonical,
-                        ]
-                    ]
+                        ],
+                    ],
                 ], 200);
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             // return $this->errorResponse($th->getMessage(), 500);
             return response()->json([
                 'status' => 'error',
@@ -226,10 +226,10 @@ class SettingController extends ApiController
                 'data' => [
                     'meta' => $meta,
                     'link' => [
-                        'rel'  => 'canonical',
+                        'rel' => 'canonical',
                         'href' => $linkcanonical,
-                    ]
-                ]
+                    ],
+                ],
             ], 400);
         }
     }
@@ -261,7 +261,7 @@ class SettingController extends ApiController
                     'name' => 'fa_chai_fishing',
                     'value' => '0.1',
                 ];
-                 $fakeArray[] = [
+                $fakeArray[] = [
                     'name' => 'monster_fishing',
                     'value' => '0.1',
                 ];
@@ -278,7 +278,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -287,14 +287,14 @@ class SettingController extends ApiController
     public function list_togel()
     {
         try {
-            $list_togel = ConstantProviderTogelModel::select('id','name', 'name_initial','website_url')->where('status', 1)->orWhere('auto_online', 1)->get();
+            $list_togel = ConstantProviderTogelModel::select('id', 'name', 'name_initial', 'website_url')->where('status', 1)->orWhere('auto_online', 1)->get();
 
             if ($list_togel) {
                 return $this->successResponse($list_togel->toArray(), 'Daftar Togel Ditemukan');
             }
 
             return $this->successResponse(null, 'Tidak ada daftar Togel', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -308,20 +308,21 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
 
     // get footer tag
-    public function footer_tag(){
+    public function footer_tag()
+    {
         try {
             $footer_tag = AppSetting::select('name', 'value')->where('name', 'footer_tag')->first();
             if ($footer_tag) {
                 return $this->successResponse($footer_tag->toArray());
             }
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -336,7 +337,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -347,27 +348,27 @@ class SettingController extends ApiController
         try {
             $whatsappUrl = AppSetting::select('name', 'value')->where([
                 ['name', 'whats_app_url'],
-                ['type', 'web_page']
-                ])->get();
-            $whatsappNumber = AppSetting::select('name', 'value')->where([
-                ['name', 'whatsapp'],
-                ['type', 'social_media']
-                ])->get();
-            if ($whatsappUrl && $whatsappNumber) {
+                ['type', 'web_page'],
+            ])->get();
+            // $whatsappNumber = AppSetting::select('name', 'value')->where([
+            //     ['name', 'whatsapp'],
+            //     ['type', 'social_media'],
+            // ])->get();
+            if ($whatsappUrl) {
                 // return $this->successResponse($whatsappUrl->toArray(), 'Whatsapp URL is exist', 200);
                 return response()->json([
                     'status' => 'success',
-                    'code'  => 200,
+                    'code' => 200,
                     'message' => 'Nomor dan URL ditemukan',
-                    'data'  => [
+                    'data' => [
                         'text' => $whatsappUrl->toArray(),
-                        'number' => $whatsappNumber->toArray()
-                    ]
+                        // 'number' => $whatsappNumber->toArray()
+                    ],
                 ]);
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
