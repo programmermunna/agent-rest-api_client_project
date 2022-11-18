@@ -188,8 +188,8 @@ class JWTAuthController extends ApiController
             $queryLastWinTogel = BetsTogel::select('win_nominal AS win', 'created_at')->whereNotNull('win_nominal')->where('created_by', $id);
             $lastWin = $queryLastWin->union($queryLastWinTogel)->orderBy('created_at', 'desc')->first();
             $data = [
-                'lastBet' => [$lastBet ?? ['bet' => 0, 'created_at' => auth('api')->user()->created_at]],
-                'lastWin' => [$lastWin ?? ['win' => 0, 'created_at' => auth('api')->user()->created_at]],
+                ['lastBet' => [$lastBet ?? ['bet' => 0, 'created_at' => auth('api')->user()->created_at]]],
+                ['lastWin' => [$lastWin ?? ['win' => 0, 'created_at' => auth('api')->user()->created_at]]],
             ];
             return $this->successResponse($data);
         } catch (\Throwable$th) {
