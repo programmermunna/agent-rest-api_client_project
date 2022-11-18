@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
-use App\Models\JobTransactionModel;
 use App\Models\MemoModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
@@ -51,18 +50,18 @@ class MemoController extends ApiController
             ]);
 
             # insert to table Jobs Transaction
-            $array = [
-                'uuid' => (string) Str::uuid(),
-                'class_name' => 'App\Models\MemoModel',
-                'id' => $createAndGetId,
-                'member_id' => auth('api')->user()->id,
-                'activity' => 'Create Memo',
-            ];
-            JobTransactionModel::create([
-                'payload' => json_encode($array),
-                'Processed_at_member_api' => true,
-                'Proccessed_at_agent_api' => false,
-            ]);
+            // $array = [
+            //     'uuid' => (string) Str::uuid(),
+            //     'class_name' => 'App\Models\MemoModel',
+            //     'id' => $createAndGetId,
+            //     'member_id' => auth('api')->user()->id,
+            //     'activity' => 'Create Memo',
+            // ];
+            // JobTransactionModel::create([
+            //     'payload' => json_encode($array),
+            //     'Processed_at_member_api' => true,
+            //     'Proccessed_at_agent_api' => false,
+            // ]);
 
             $memo = MemoModel::where('id', $createAndGetId)->first();
 
@@ -188,18 +187,18 @@ class MemoController extends ApiController
             $memo = MemoModel::where('id', $createAndGetId)->first();
 
             # insert to table Jobs Transaction
-            $array = [
-                'uuid' => (string) Str::uuid(),
-                'class_name' => 'App\Models\MemoModel',
-                'id' => $createAndGetId,
-                'member_id' => auth('api')->user()->id,
-                'activity' => 'Replay Memo',
-            ];
-            JobTransactionModel::create([
-                'payload' => json_encode($array),
-                'Processed_at_member_api' => true,
-                'Proccessed_at_agent_api' => false,
-            ]);
+            // $array = [
+            //     'uuid' => (string) Str::uuid(),
+            //     'class_name' => 'App\Models\MemoModel',
+            //     'id' => $createAndGetId,
+            //     'member_id' => auth('api')->user()->id,
+            //     'activity' => 'Replay Memo',
+            // ];
+            // JobTransactionModel::create([
+            //     'payload' => json_encode($array),
+            //     'Processed_at_member_api' => true,
+            //     'Proccessed_at_agent_api' => false,
+            // ]);
 
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
