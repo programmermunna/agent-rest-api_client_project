@@ -16,8 +16,9 @@ Route::get('/', function(){
 });
 
 Route::get('/test-create-event', function (Request $request) {
+
     \App\Models\MemoModel::create([
-        'member_id' => $request->member_id ?? 1,
+        'member_id' => request('member_id') ?? 1,
         'subject' => 'Test',
         'content' => 'Test',
         //'send_type' => 'Test',
@@ -26,8 +27,8 @@ Route::get('/test-create-event', function (Request $request) {
         'is_read' => 0,
         //'memo_id',
         'is_bonus' => 0,
-        'sender_id' => $request->sender_id ?? 1,
-        'created_by' => $request->created_by ?? 1
+        'sender_id' => request('sender_id') ?? 1,
+        'created_by' => request('created_by') ?? 1
     ]);
 
     return 'memo created';
