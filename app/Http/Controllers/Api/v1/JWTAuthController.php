@@ -141,7 +141,7 @@ class JWTAuthController extends ApiController
         auth('api')->user()->authTokens()->create([
             'token' => $token,
         ]);
-        return $this->createNewToken($token);
+        return $this->createNewToken($token, auth('api')->user());
     }
 
     public function getAuthenticatedMember()
@@ -485,7 +485,7 @@ class JWTAuthController extends ApiController
      */
     public function refresh()
     {
-        return $this->createNewToken(auth('api')->refresh());
+        return $this->createNewToken(auth('api')->refresh(), auth('api')->user());
     }
 
     /**
@@ -495,12 +495,13 @@ class JWTAuthController extends ApiController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    protected function createNewToken($token)
+    protected function createNewToken($token, $userData = [])
     {
         return $this->successResponse([
             'token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL(),
+            'user' => $userData
             // 'member' => auth('api')->user(),
         ]);
     }
@@ -861,7 +862,7 @@ class JWTAuthController extends ApiController
         auth('api')->user()->authTokens()->create([
             'token' => $token,
         ]);
-        return $this->createNewToken($token);
+        return $this->createNewToken($token, auth('api')->user());
     }
 
     public function probationRegister(Request $request)
