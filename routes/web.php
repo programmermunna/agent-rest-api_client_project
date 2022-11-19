@@ -24,7 +24,7 @@ Route::get('/test-create-event', function (Request $request) {
         //'send_type' => 'Test',
         'is_sent' => 1,
         'is_reply' => 0,
-        'is_read' => 0,
+        'is_read' => false,
         //'memo_id',
         'is_bonus' => 0,
         'sender_id' => request('sender_id') ?? 1,
