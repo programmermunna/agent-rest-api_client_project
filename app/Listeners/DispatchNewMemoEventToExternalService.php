@@ -38,7 +38,7 @@ class DispatchNewMemoEventToExternalService
 
             $externalServicesEventDispatcher = new SyncApplicationEventsAmongServices();
             foreach ($externalServices as $service) {
-                $url = config('app.environment') === 'production' ?
+                $url = config('app.env') === 'production' ?
                     "{$service->production_url}{$service->events_endpoint}" :
                     "{$service->staging_url}{$service->events_endpoint}";
 
