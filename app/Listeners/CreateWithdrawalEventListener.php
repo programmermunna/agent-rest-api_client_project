@@ -2,14 +2,14 @@
 
 namespace App\Listeners;
 
-use App\Events\NotifyNewMemo;
+use App\Events\CreateDepositEvent;
+use App\Events\CreateWithdrawalEvent;
 use App\Repositories\OrganizationServiceRepository;
 use App\Services\SyncApplicationEventsAmongServices;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Log;
 
-class DispatchNewMemoEventToExternalService
+class CreateWithdrawalEventListener
 {
     /**
      * Create the event listener.
@@ -24,15 +24,13 @@ class DispatchNewMemoEventToExternalService
     /**
      * Handle the event.
      *
-     * @param  object  $event
+     * @param  \App\Events\CreateWithdrawalEvent  $event
      * @return void
      */
-    public function handle(NotifyNewMemo $event)
+    public function handle(CreateWithdrawalEvent $event)
     {
-        //@todo extract this and make this a queue able job so we can manage REST
-        //@todo response state to determine if job is done else set retries.
-        if ($event->emitAble()) {
-            $memo = $event->getMemo();
+        if ($event->getEmitAble()) {
+            $withdrawal = $event->getWithdrawModel();
             //sends api call with payload to intending listener
             $externalServices = (new OrganizationServiceRepository())->getAllItems();
 
@@ -45,8 +43,9 @@ class DispatchNewMemoEventToExternalService
                 $externalServicesEventDispatcher->notifyOverREST(
                     $url,
                     [
-                        'event' => NotifyNewMemo::class,
-                        'memo_id' => $memo->id
+                        'event' => CreateWithdrawalEvent::class,
+                        'withdrawal_id' => $withdrawal->id,
+                        'has_model' => true
                     ]
                 );
             }
