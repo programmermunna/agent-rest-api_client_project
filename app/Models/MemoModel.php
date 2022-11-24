@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
-use App\Events\NotifyNewMemo;
+// WEB SOCKET START
+// use App\Events\NotifyNewMemo;
+// WEB SOCKET END
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -33,9 +35,11 @@ class MemoModel extends Model
         'deleted_at',
     ];
 
-    protected $dispatchesEvents = [
-        'created' => NotifyNewMemo::class
-    ];
+    // WEB SOCKET START
+    // protected $dispatchesEvents = [
+    //     'created' => NotifyNewMemo::class
+    // ];
+    // WEB SOCKET END
 
     protected $casts = [
         'is_read' => 'boolean',
