@@ -15,6 +15,16 @@ Broadcast::channel('App.Models.MembersModel.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
-Broadcast::channel('test', function ($user) {
-    return true;
-});
+// WEB SOCKET START
+// Broadcast::channel('maintenance.status', function ($user) {
+//     return true;
+// });
+
+// Broadcast::channel('all.auth.users', function ($user) {
+//     return true;
+// });
+
+// Broadcast::channel('test', function ($user) {
+//     return true;
+// });
+// WEB SOCKET END

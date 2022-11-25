@@ -2,14 +2,13 @@
 
 namespace App\Listeners;
 
-use App\Events\NotifyNewMemo;
+use App\Events\CreateDepositEvent;
 use App\Repositories\OrganizationServiceRepository;
 use App\Services\SyncApplicationEventsAmongServices;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Support\Facades\Log;
 
-class DispatchNewMemoEventToExternalService
+class CreateDepositEventListener
 {
     /**
      * Create the event listener.
@@ -24,15 +23,13 @@ class DispatchNewMemoEventToExternalService
     /**
      * Handle the event.
      *
-     * @param  object  $event
+     * @param  \App\Events\CreateDepositEvent  $event
      * @return void
      */
-    public function handle(NotifyNewMemo $event)
+    public function handle(CreateDepositEvent $event)
     {
-        //@todo extract this and make this a queue able job so we can manage REST
-        //@todo response state to determine if job is done else set retries.
-        if ($event->emitAble()) {
-            $memo = $event->getMemo();
+        if ($event->getEmitAble()) {
+            $deposit = $event->getDeposit();
             //sends api call with payload to intending listener
             $externalServices = (new OrganizationServiceRepository())->getAllItems();
 
@@ -45,8 +42,9 @@ class DispatchNewMemoEventToExternalService
                 $externalServicesEventDispatcher->notifyOverREST(
                     $url,
                     [
-                        'event' => NotifyNewMemo::class,
-                        'memo_id' => $memo->id
+                        'event' => CreateDepositEvent::class,
+                        'deposit_id' => $deposit->id,
+                        'has_model' => true
                     ]
                 );
             }

@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+// WEB SOCKET START
+// use App\Events\CreateWithdrawalEvent;
+// WEB SOCKET END
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -11,14 +14,11 @@ class WithdrawModel extends Model
 
     protected $connection = 'mysql';
 
-    // public function userFront(){
-    //   # where user id di 'deposit' = user id front 'users'
-    //   return $this->belongsTo('App\Models\UserFrontMemberPanelModel', 'front_user_id', 'id');
-    // }
-    // public function tujuanRekening(){
-    //   # where conts rek id di 'deposit' = id di 'constant_rekening'
-    //   return $this->belongsTo('App\Models\RekeningModel', 'rekening_id', 'id');
-    // }
+    // WEB SOCKET START
+    // protected $dispatchesEvents = [
+    //     'created' => CreateWithdrawalEvent::class
+    // ];
+    // WEB SOCKET END
 
     /**
      * The attributes that should be mutated to dates.
