@@ -8,9 +8,7 @@ use App\Domains\Auth\Models\Traits\Attribute\UserAttribute;
 use App\Domains\Auth\Models\Traits\Method\UserMethod;
 use App\Domains\Auth\Models\Traits\Relationship\UserRelationship;
 use App\Domains\Auth\Models\Traits\Scope\UserScope;
-// WEB SOCKET START
-// use App\Events\MemberUpdate;
-// WEB SOCKET END
+ use App\Events\MemberUpdate;
 use DarkGhostHunter\Laraguard\Contracts\TwoFactorAuthenticatable;
 use DarkGhostHunter\Laraguard\TwoFactorAuthentication;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
@@ -106,11 +104,9 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
         'provider_id',
     ];
 
-    // WEB SOCKET START
-    // protected $dispatchesEvents = [
-    //     'updated' => MemberUpdate::class
-    // ];
-    // WEB SOCKET END
+     protected $dispatchesEvents = [
+         'updated' => MemberUpdate::class
+     ];
 
     /**
      * The attributes that should be hidden for arrays.
