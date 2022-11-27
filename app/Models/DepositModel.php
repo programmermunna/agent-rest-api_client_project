@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-// WEB SOCKET START
-// use App\Events\CreateDepositEvent;
-// WEB SOCKET END
+use App\Events\CreateDepositEvent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -14,11 +12,9 @@ class DepositModel extends Model
 
     protected $connection = 'mysql';
 
-    // WEB SOCKET START
-    // protected $dispatchesEvents = [
-    //     'created' => CreateDepositEvent::class
-    // ];
-    // WEB SOCKET END
+     protected $dispatchesEvents = [
+         'created' => CreateDepositEvent::class
+     ];
 
     protected $dates = ['deleted_at'];
 
