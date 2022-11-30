@@ -7,6 +7,7 @@ use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BonusFreebetModel;
 use App\Models\BonusHistoryModel;
+use App\Models\BonusSettingModel;
 use App\Models\ConstantProvider;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
@@ -30,11 +31,16 @@ class DepositController extends ApiController
                     'jumlah' => 'required|integer',
                     'note' => 'sometimes|nullable',
                     'rekening_member_id' => 'required|integer',
-                    'is_bonus_freebet' => 'sometimes',
+                    'is_claim_bonus' => 'sometimes',
                 ]
             );
             if ($validator->fails()) {
                 return $this->errorResponse($validator->errors()->first(), 422);
+            }
+            if ($request->is_claim_bonus != null) {
+                if (!in_array($request->is_claim_bonus, [4, 6])) {
+                    return $this->errorResponse("Maaf, Bonus tidak ditemukan.", 400);
+                }
             }
 
             $cek_status_depo = DepositModel::where('members_id', auth('api')->user()->id)
@@ -44,41 +50,83 @@ class DepositController extends ApiController
                 return $this->errorResponse("Maaf Anda masih ada transaksi Deposit yang belum selesai.", 400);
             }
 
-            $bonus_freebet = BonusFreebetModel::first();
-            $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
-            $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-            $today = Carbon::now()->format('Y-m-d 23:59:59');
-            $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
-                ->where('approval_status', 1)
-                ->where('is_bonus_freebet', 1)
-                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
-            if ($request->is_bonus_freebet == 1 && $bonus_freebet->status_bonus == 1) {
-                if ($check_claim_bonus) {
-                    return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
+            if ($request->is_claim_bonus == 4) {
+                $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount')->where('constant_bonus_id', $request->is_claim_bonus)->first();
+                $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
+                $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+                $today = Carbon::now()->format('Y-m-d 23:59:59');
+                $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
+                    ->where('approval_status', 1)
+                    ->whereIn('is_claim_bonus', [4, 6])
+                    ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
+                if ($bonus_freebet->status_bonus == 1) {
+                    if ($check_claim_bonus) {
+                        if ($check_claim_bonus->is_claim_bonus == 4) {
+                            return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
+                        }
+                        if ($check_claim_bonus->is_claim_bonus == 6) {
+                            return $this->errorResponse("Maaf, Bonus Freebet tidak dapat diklaim, Anda sudah mengklaim Bonus Deposit hari ini.", 400);
+                        }
+                    }
+                    if ($request->jumlah < $bonus_freebet->min_depo) {
+                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->min_depo) . ".", 400);
+                    }
+                    if ($request->jumlah > $bonus_freebet->max_depo) {
+                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->max_depo) . ".", 400);
+                    }
+                } else {
+                    return $this->errorResponse("Bonus Freebet sedang tidak aktif.", 400);
                 }
-                if ($request->jumlah < $bonus_freebet->min_depo) {
-                    return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->min_depo) . ".", 400);
+                $bonus = ($request->jumlah * $bonus_freebet->bonus_amount) / 100;
+                $bonus_amount = $bonus_freebet->status_bonus == 1 ? $bonus : 0;
+                $claimBonus = $bonus_freebet->status_bonus == 1 ? $request->is_claim_bonus : 0;
+            }
+            if ($request->is_claim_bonus == 6) {
+                $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
+                $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
+                $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+                $today = Carbon::now()->format('Y-m-d 23:59:59');
+                $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
+                    ->where('approval_status', 1)
+                    ->whereIn('is_claim_bonus', [4, 6])
+                    ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
+                if ($bonus_deposit->status_bonus == 1) {
+                    if ($check_claim_bonus) {
+                        if ($check_claim_bonus->is_claim_bonus == 6) {
+                            return $this->errorResponse("Maaf, Bonus Deposit dapat diklaim sehari sekali.", 400);
+                        }
+                        if ($check_claim_bonus->is_claim_bonus == 4) {
+                            return $this->errorResponse("Maaf, Bonus Deposit tidak dapat diklaim, Anda sudah mengklaim Bonus Freebet hari ini.", 400);
+                        }
+                    }
+                    if ($request->jumlah < $bonus_deposit->min_depo) {
+                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus deposit sebesar " . number_format($bonus_deposit->min_depo) . ".", 400);
+                    }
+                    if ($request->jumlah > $bonus_deposit->max_depo) {
+                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus deposit sebesar " . number_format($bonus_deposit->max_depo) . ".", 400);
+                    }
+                } else {
+                    return $this->errorResponse("Bonus Deposit sedang tidak aktif.", 400);
                 }
-                if ($request->jumlah > $bonus_freebet->max_depo) {
-                    return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->max_depo) . ".", 400);
-                }
-            };
+                $bonus = ($request->jumlah * $bonus_deposit->bonus_amount) / 100;
+                $bonus_amount = $bonus_deposit->status_bonus == 1 ? $bonus : 0;
+                $claimBonus = $bonus_deposit->status_bonus == 1 ? $request->is_claim_bonus : 0;
+            }
+
             $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id], ['is_depo', 1]])->first();
-            $bonus = ($request->jumlah * $bonus_freebet->bonus_amount) / 100;
             $payload = [
                 'rek_member_id' => $request->rekening_member_id,
                 'members_id' => auth('api')->user()->id,
                 'rekening_id' => $request->rekening_id,
                 'jumlah' => $request->jumlah,
                 'credit' => MembersModel::where('id', auth('api')->user()->id)->first()->credit,
-                'is_bonus_freebet' => $request->is_bonus_freebet ?? 0,
-                'bonus_freebet_amount' => $request->is_bonus_freebet == 1 && $bonus_freebet->status_bonus == 1 ? $bonus : 0,
+                'is_claim_bonus' => $claimBonus ?? 0,
+                'bonus_amount' => $bonus_amount ?? 0,
                 'note' => $request->note,
                 'created_by' => auth('api')->user()->id,
                 'created_at' => Carbon::now(),
             ];
 
-            // $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id],['is_depo', 1]])->first();
             if ((!empty($active_rek)) && ($active_rek->is_depo == 1)) {
                 if ($active_rek->id != $request->rekening_member_id) {
                     $active_rek->update([
@@ -91,7 +139,7 @@ class DepositController extends ApiController
                 ]);
             }
 
-            $Check_deposit_claim_bonus_freebet = DepositModel::create($payload);
+            $depositCreate = DepositModel::create($payload);
 
             // MembersModel::where('id', auth('api')->user()->id)
             //         ->update([
@@ -102,20 +150,18 @@ class DepositController extends ApiController
             UserLogModel::logMemberActivity(
                 'Deposit Created',
                 $user,
-                $Check_deposit_claim_bonus_freebet,
+                $depositCreate,
                 [
                     'target' => 'Deposit',
                     'activity' => 'Create Deposit',
                     'ip_member' => auth('api')->user()->last_login_ip,
                 ],
-                $user->username . ' Created a Deposit with amount ' . number_format($Check_deposit_claim_bonus_freebet->jumlah)
+                $user->username . ' Created a Deposit with amount ' . number_format($depositCreate->jumlah)
             );
-            // auth('api')->user()->update([
-            //     'last_login_ip' => $request->ip,
-            // ]);
 
             return $this->successResponse(null, 'Deposit berhasil');
         } catch (\Throwable$th) {
+            dd($th);
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
