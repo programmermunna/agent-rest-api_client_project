@@ -38,7 +38,7 @@ class BetsTogelController extends ApiController
         $checkBonusFreebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'constant_provider_id')->where('constant_bonus_id', 4)->first();
         $checkBonusDeposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
         if ($checkBonusFreebet->status_bonus == 1) {
-            $provider_id = explode(',', $bonusFreebet->constant_provider_id);
+            $provider_id = explode(',', $checkBonusFreebet->constant_provider_id);
             $durasiBonus = $checkBonusFreebet->durasi_bonus_promo;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $checkKlaimBonus = DepositModel::select('bonus_amount')
@@ -60,7 +60,7 @@ class BetsTogelController extends ApiController
             }
         }
         if ($checkBonusDeposit->status_bonus == 1) {
-            $provider_id = explode(',', $bonusFreebet->constant_provider_id);
+            $provider_id = explode(',', $checkBonusDeposit->constant_provider_id);
             $durasiBonus = $checkBonusDeposit->durasi_bonus_promo;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $checkKlaimBonus = DepositModel::select('bonus_amount')
