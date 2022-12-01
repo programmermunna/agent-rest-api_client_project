@@ -161,7 +161,6 @@ class DepositController extends ApiController
 
             return $this->successResponse(null, 'Deposit berhasil');
         } catch (\Throwable$th) {
-            dd($th);
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -309,7 +308,7 @@ class DepositController extends ApiController
                         'date_claim_again' => $dateClaim,
                     ];
                 } else {
-                    $status = $Check_deposit_claim_bonus_freebet->status_bonus_freebet == 0 ? 'Klaim' : 'Selesai';
+                    $status = $Check_deposit_claim_bonus_freebet->status_bonus == 0 ? 'Klaim' : 'Selesai';
                     $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
                     $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
                     $data = [
@@ -345,18 +344,28 @@ class DepositController extends ApiController
     {
         try {
             $memberId = auth('api')->user()->id;
-            $bonus_freebet = BonusFreebetModel::first();
+            $bonus_freebet = BonusSettingModel::select(
+                'min_depo',
+                'max_depo',
+                'bonus_amount',
+                'turnover_x',
+                'turnover_amount',
+                'info',
+                'status_bonus',
+                'durasi_bonus_promo',
+                'constant_provider_id',
+            )->where('constant_bonus_id', 4)->first();
             $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
             $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)
                 ->where('approval_status', 1)
-                ->where('is_bonus_freebet', 1)
-                ->where('status_bonus_freebet', 0)
+                ->where('is_claim_bonus', 4)
+                ->where('status_bonus', 0)
                 ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
                 ->first();
             if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
-                $providerId = explode(',', $bonus_freebet->provider_id);
+                $providerId = explode(',', $bonus_freebet->constant_provider_id);
                 if (!in_array(16, $providerId)) {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
@@ -387,7 +396,7 @@ class DepositController extends ApiController
                     return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus Freebet, silahkan Withdraw sekarang', 400);
                 }
 
-                $bonus = $Check_deposit_claim_bonus_freebet->bonus_freebet_amount;
+                $bonus = $Check_deposit_claim_bonus_freebet->bonus_amount;
                 $member = MembersModel::where('id', $memberId)->first();
                 $credit = $member->credit - $bonus;
 
@@ -398,10 +407,10 @@ class DepositController extends ApiController
                         'updated_at' => Carbon::now(),
                     ]);
 
-                DepositModel::where('members_id', auth('api')->user()->id)
+                DepositModel::where('id', $Check_deposit_claim_bonus_freebet->id)
                     ->update([
-                        'status_bonus_freebet' => 2,
-                        'reason_bonus_freebet' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO,
+                        'status_bonus' => 2,
+                        'reason_bonus' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO,
                         'updated_by' => auth('api')->user()->id,
                         'updated_at' => Carbon::now(),
                     ]);
@@ -447,7 +456,7 @@ class DepositController extends ApiController
                 ]);
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Bonus Freebet giveup successfully.',
+                    'message' => 'Penyerahan bonus Freebet berhasil.',
                 ]);
             }
 

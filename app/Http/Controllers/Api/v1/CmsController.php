@@ -6,8 +6,6 @@ use App\Http\Controllers\ApiController;
 use App\Http\Resources\Api\v1\WebsiteContentResource;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
-use App\Models\BonusFreebetModel;
-use App\Models\BonusSettingModel;
 use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\WebSiteContent;
