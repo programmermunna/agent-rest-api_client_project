@@ -39,9 +39,8 @@ class JWTAuthController extends ApiController
     public $history = [];
     public function authenticate(Request $request)
     {
-
         $input = $request->all();
-        $ipPublic = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER["HTTP_CF_CONNECTING_IP"] ?? $_SERVER['HTTP_X_FORWARDED'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_FORWARDED'] ?? $_SERVER['HTTP_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? ' - ';
+        $ipPublic = $request->ip ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $ipClient = explode(', ', $ipPublic);
 
         $fieldType = filter_var($request->user_account, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
