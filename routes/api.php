@@ -55,10 +55,13 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
 
         // Deposit
         Route::post('/deposit/create', 'DepositController@create');
-        Route::get('/setting-bonus-freebet', 'DepositController@dataBonusFreebet');
 
         // Bonus Freebet
-        Route::post('/bonus-freebet/bonus-freebet-giveup', 'DepositController@BonusFreebetGivUp');
+        Route::group(['prefix' => 'bonus-freebet'],function () {            
+            Route::get('/setting-bonus-freebet', 'DepositController@settingBonusFreebet');        
+            Route::get('/freebet-list', 'DepositController@freebetBonus');
+            Route::post('/bonus-freebet-giveup', 'DepositController@BonusFreebetGivUp');
+        });
 
         //Withdraw
         Route::post('/withdraw/create', 'WithdrawController@create');
@@ -133,7 +136,6 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/image-contents/{type}', 'CmsController@imageContent'); //{type}=> api all , popup , mobile , slide , promotion ///
             Route::get('/game-content/{slug}', 'CmsController@gameContent');
             Route::get('/banner_promo_bonus', 'CmsController@bannerPromoBonus');
-            Route::get('/freebet-list', 'CmsController@freebetBonus');
         });
 
         Route::group(['prefix' => 'contact'], function () {

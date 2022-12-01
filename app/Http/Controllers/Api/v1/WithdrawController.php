@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
-use App\Models\BonusFreebetModel;
 use App\Models\BonusSettingModel;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
