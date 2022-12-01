@@ -105,7 +105,7 @@ class WithdrawController extends ApiController
                             'jumlah' => $jumlah,
                             'credit' => $credit,
                             'note' => $request->note,
-                            'is_claim_bonus' => 1,
+                            'is_claim_bonus' => 4,
                             'created_by' => $memberId,
                             'created_at' => Carbon::now(),
                         ];
@@ -188,7 +188,7 @@ class WithdrawController extends ApiController
                             'jumlah' => $jumlah,
                             'credit' => $credit,
                             'note' => $request->note,
-                            'is_claim_bonus' => 1,
+                            'is_claim_bonus' => 6,
                             'created_by' => $memberId,
                             'created_at' => Carbon::now(),
                         ];
@@ -220,7 +220,6 @@ class WithdrawController extends ApiController
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
                 }
-                
                 $payload = [
                     'members_id' => $memberId,
                     'rekening_id' => $bankAsalTransferForWd->id,

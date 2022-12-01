@@ -62,7 +62,7 @@ class WithdrawModel extends Model
         'credit',
         'note',
         'rek_member_id',
-        'is_claim_bonus_freebet',
+        'is_claim_bonus',
         'approval_status',
         'approval_status_by',
         'approval_status_at',
