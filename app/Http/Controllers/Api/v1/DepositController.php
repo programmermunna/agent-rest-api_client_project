@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\v1;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
-use App\Models\BonusFreebetModel;
 use App\Models\BonusHistoryModel;
 use App\Models\BonusSettingModel;
 use App\Models\ConstantProvider;
@@ -37,7 +36,7 @@ class DepositController extends ApiController
             if ($validator->fails()) {
                 return $this->errorResponse($validator->errors()->first(), 422);
             }
-            if ($request->is_claim_bonus != null) {
+            if ($request->is_claim_bonus != null || $request->is_claim_bonus != 0) {
                 if (!in_array($request->is_claim_bonus, [4, 6])) {
                     return $this->errorResponse("Maaf, Bonus tidak ditemukan.", 400);
                 }
@@ -193,18 +192,18 @@ class DepositController extends ApiController
         try {
             $userId = auth('api')->user()->id;
             $dataSetting = BonusSettingModel::join('constant_bonus', 'constant_bonus.id', 'bonus_setting.constant_bonus_id')
-            ->select(
-                'constant_bonus.nama_bonus',
-                'bonus_setting.min_depo',
-                'bonus_setting.max_depo',
-                'bonus_setting.bonus_amount',
-                'bonus_setting.turnover_x',
-                'bonus_setting.turnover_amount',
-                'bonus_setting.info',
-                'bonus_setting.status_bonus',
-                'bonus_setting.durasi_bonus_promo',
-                'bonus_setting.constant_provider_id',
-            )->where('bonus_setting.constant_bonus_id', 4)->get();
+                ->select(
+                    'constant_bonus.nama_bonus',
+                    'bonus_setting.min_depo',
+                    'bonus_setting.max_depo',
+                    'bonus_setting.bonus_amount',
+                    'bonus_setting.turnover_x',
+                    'bonus_setting.turnover_amount',
+                    'bonus_setting.info',
+                    'bonus_setting.status_bonus',
+                    'bonus_setting.durasi_bonus_promo',
+                    'bonus_setting.constant_provider_id',
+                )->where('bonus_setting.constant_bonus_id', 4)->get();
             $dataBonusSetting = [];
             foreach ($dataSetting as $key => $item) {
                 $provider_id = explode(',', $item->constant_provider_id);
@@ -252,18 +251,18 @@ class DepositController extends ApiController
         try {
             $userId = auth('api')->user()->id;
             $dataSetting = BonusSettingModel::join('constant_bonus', 'constant_bonus.id', 'bonus_setting.constant_bonus_id')
-            ->select(
-                'constant_bonus.nama_bonus',
-                'bonus_setting.min_depo',
-                'bonus_setting.max_depo',
-                'bonus_setting.bonus_amount',
-                'bonus_setting.turnover_x',
-                'bonus_setting.turnover_amount',
-                'bonus_setting.info',
-                'bonus_setting.status_bonus',
-                'bonus_setting.durasi_bonus_promo',
-                'bonus_setting.constant_provider_id',
-            )->where('bonus_setting.constant_bonus_id', 6)->get();
+                ->select(
+                    'constant_bonus.nama_bonus',
+                    'bonus_setting.min_depo',
+                    'bonus_setting.max_depo',
+                    'bonus_setting.bonus_amount',
+                    'bonus_setting.turnover_x',
+                    'bonus_setting.turnover_amount',
+                    'bonus_setting.info',
+                    'bonus_setting.status_bonus',
+                    'bonus_setting.durasi_bonus_promo',
+                    'bonus_setting.constant_provider_id',
+                )->where('bonus_setting.constant_bonus_id', 6)->get();
             $dataBonusSetting = [];
             foreach ($dataSetting as $key => $item) {
                 $provider_id = explode(',', $item->constant_provider_id);
@@ -304,7 +303,7 @@ class DepositController extends ApiController
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
-    }    
+    }
 
     public function freebetBonus()
     {
@@ -449,7 +448,7 @@ class DepositController extends ApiController
                 } else {
                     $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
                 }
-                
+
                 $TO = $depoPlusBonus * $turnover_x;
                 if ($Check_deposit_claim_bonus_deposit->status_bonus == 2) {
                     $status = preg_match("/menyerah/i", $Check_deposit_claim_bonus_deposit->reason_bonus) ? 'Menyerah' : 'Gagal';
@@ -680,7 +679,7 @@ class DepositController extends ApiController
                 } else {
                     $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
                 }
-                
+
                 $TO = $depoPlusBonus * $turnover_x;
 
                 if ($TOmember > $TO) {
