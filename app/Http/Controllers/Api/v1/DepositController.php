@@ -36,7 +36,7 @@ class DepositController extends ApiController
             if ($validator->fails()) {
                 return $this->errorResponse($validator->errors()->first(), 422);
             }
-            if ($request->is_claim_bonus != null || $request->is_claim_bonus != 0) {
+            if ($request->is_claim_bonus == 4 || $request->is_claim_bonus == 6) {
                 if (!in_array($request->is_claim_bonus, [4, 6])) {
                     return $this->errorResponse("Maaf, Bonus tidak ditemukan.", 400);
                 }
