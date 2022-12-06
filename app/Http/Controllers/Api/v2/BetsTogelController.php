@@ -39,7 +39,7 @@ class BetsTogelController extends ApiController
         $checkBonusDeposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
         if ($checkBonusFreebet->status_bonus == 1) {
             $provider_id = explode(',', $checkBonusFreebet->constant_provider_id);
-            $durasiBonus = $checkBonusFreebet->durasi_bonus_promo;
+            $durasiBonus = $checkBonusFreebet->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $checkKlaimBonus = DepositModel::select('bonus_amount')
                 ->where('is_claim_bonus', 4)
@@ -61,15 +61,15 @@ class BetsTogelController extends ApiController
         }
         if ($checkBonusDeposit->status_bonus == 1) {
             $provider_id = explode(',', $checkBonusDeposit->constant_provider_id);
-            $durasiBonus = $checkBonusDeposit->durasi_bonus_promo;
+            $durasiBonus = $checkBonusDeposit->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-            $checkKlaimBonus = DepositModel::select('bonus_amount')
+            $checkClaimBonus = DepositModel::select('bonus_amount')
                 ->where('is_claim_bonus', 6)
                 ->where('status_bonus', 0)
                 ->where('approval_status', 1)
                 ->where('members_id', auth('api')->user()->id)
                 ->whereBetween('approval_status_at', [$subDay, now()])->orderBy('approval_status_at', 'desc')->first();
-            if ($checkKlaimBonus) {
+            if ($checkClaimBonus) {
                 $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
                 $providers = implode(', ', $providers);
                 if (!in_array(16, $provider_id)) {
@@ -147,8 +147,8 @@ class BetsTogelController extends ApiController
                     return $this->errorResponse('Saldo anda tidak mencukupi', 400);
                 }
             }
-            if ($checkBonusDeposit->status_bonus == 1 && $checkKlaimBonus) {
-                if ($lastCredit <= $checkKlaimBonus->bonus_amount) {
+            if ($checkBonusDeposit->status_bonus == 1 && $checkClaimBonus) {
+                if ($lastCredit <= $checkClaimBonus->bonus_amount) {
                     return $this->errorResponse('Saldo anda tidak mencukupi', 400);
                 }
             }
