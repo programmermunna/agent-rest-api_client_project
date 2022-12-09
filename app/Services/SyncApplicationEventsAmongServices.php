@@ -2,13 +2,12 @@
 
 namespace App\Services;
 
-// WEB SOCKET START
-// use App\Events\MaintenanceStatusUpdate;
-// use App\Events\MemberUpdate;
-// use App\Events\NotifyNewMemo;
-// use App\Models\MembersModel;
-// use App\Models\MemoModel;
-// WEB SOCKET END
+
+use App\Events\MaintenanceStatusUpdate;
+use App\Events\MemberUpdate;
+use App\Events\NotifyNewMemo;
+use App\Models\MembersModel;
+use App\Models\MemoModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -48,48 +47,47 @@ class SyncApplicationEventsAmongServices
             try {
                 //@todo this whole dynamics can be scaled to suite generic purposes since we will likely
                 //@todo to use single endpoint to handle multiple events
-                // WEB SOCKET START
-                // $events = [
-                //     NotifyNewMemo::class => [
-                //         'event' => NotifyNewMemo::class,
-                //         'model' => MemoModel::class,
-                //         'params' => [
-                //             'model_id' => 'memo_id',
-                //             'has_model' => 'has_model'
-                //         ]
-                //     ],
-                //     MemberUpdate::class => [
-                //         'event' => MemberUpdate::class,
-                //         'model' => MembersModel::class,
-                //         'params' => [
-                //             'model_id' => 'member_id',
-                //             'has_model' => 'has_model'
-                //         ]
-                //     ],
-                //     MaintenanceStatusUpdate::class => [
-                //         'event' => MaintenanceStatusUpdate::class,
-                //         'params' => [
-                //             'status' => 'status',
-                //             'has_model' => 'has_model'
-                //         ],
-                //     ]
-                // ];
 
-                // $event = $events[$request->event];
-                // $eventHasModel = $request->{$event['params']['has_model']} ?? true;
-                // $eventClass = $event['event'];
+                 $events = [
+                     NotifyNewMemo::class => [
+                         'event' => NotifyNewMemo::class,
+                         'model' => MemoModel::class,
+                         'params' => [
+                             'model_id' => 'memo_id',
+                             'has_model' => 'has_model'
+                         ]
+                     ],
+                     MemberUpdate::class => [
+                         'event' => MemberUpdate::class,
+                         'model' => MembersModel::class,
+                         'params' => [
+                             'model_id' => 'member_id',
+                             'has_model' => 'has_model'
+                         ]
+                     ],
+                     MaintenanceStatusUpdate::class => [
+                         'event' => MaintenanceStatusUpdate::class,
+                         'params' => [
+                             'status' => 'status',
+                             'has_model' => 'has_model'
+                         ],
+                     ]
+                 ];
 
-                // if ($eventHasModel && !in_array(MaintenanceStatusUpdate::class,$event)) {
-                //     $model = $event['model'];
+                 $event = $events[$request->event];
+                 $eventHasModel = $request->{$event['params']['has_model']} ?? true;
+                 $eventClass = $event['event'];
 
-                //     $modelObject = $model::find($request->{$event['params']['model_id']});
-                //     $eventObject = new $eventClass($modelObject, false);
-                // } else {
-                //     $eventObject = new $eventClass($request->{$event['params']['status']}, false);
-                // }
+                 if ($eventHasModel && !in_array(MaintenanceStatusUpdate::class,$event)) {
+                     $model = $event['model'];
 
-                // event($eventObject);
-                // WEB SOCKET END
+                     $modelObject = $model::find($request->{$event['params']['model_id']});
+                     $eventObject = new $eventClass($modelObject, false);
+                 } else {
+                     $eventObject = new $eventClass($request->{$event['params']['status']}, false);
+                 }
+
+                 event($eventObject);
 
                 return response()->json([
                     'success' => true,

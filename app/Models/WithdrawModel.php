@@ -2,9 +2,7 @@
 
 namespace App\Models;
 
-// WEB SOCKET START
-// use App\Events\CreateWithdrawalEvent;
-// WEB SOCKET END
+use App\Events\CreateWithdrawalEvent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -14,11 +12,9 @@ class WithdrawModel extends Model
 
     protected $connection = 'mysql';
 
-    // WEB SOCKET START
-    // protected $dispatchesEvents = [
-    //     'created' => CreateWithdrawalEvent::class
-    // ];
-    // WEB SOCKET END
+     protected $dispatchesEvents = [
+         'created' => CreateWithdrawalEvent::class
+     ];
 
     /**
      * The attributes that should be mutated to dates.
@@ -66,7 +62,7 @@ class WithdrawModel extends Model
         'credit',
         'note',
         'rek_member_id',
-        'is_claim_bonus_freebet',
+        'is_claim_bonus',
         'approval_status',
         'approval_status_by',
         'approval_status_at',

@@ -6,7 +6,6 @@ use App\Http\Controllers\ApiController;
 use App\Http\Resources\Api\v1\WebsiteContentResource;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
-use App\Models\BonusFreebetModel;
 use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\WebSiteContent;
@@ -117,89 +116,6 @@ class CmsController extends ApiController
             }
         } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);
-        }
-    }
-
-    public function freebetBonus()
-    {
-        try {
-            $bonus_freebet = BonusFreebetModel::first();
-            $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
-            $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-            $today = Carbon::now()->format('Y-m-d 23:59:59');
-            $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)
-                ->where('approval_status', 1)
-                ->where('is_bonus_freebet', 1)
-                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
-            if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
-                $providerId = explode(',', $bonus_freebet->provider_id);
-                if (!in_array(16, $providerId)) {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-
-                    $TOMember = $TOSlotCasinoFish;
-                } else {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
-                        ->where('game_info', 'slot')->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
-
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
-                }
-
-                $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
-                $turnover_x = $bonus_freebet->turnover_x;
-                $bonus_amount = $bonus_freebet->bonus_amount;
-                $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                $TO = $depoPlusBonus * $turnover_x;
-                if ($Check_deposit_claim_bonus_freebet->status_bonus_freebet == 2) {
-                    $status = preg_match("/menyerah/i", $Check_deposit_claim_bonus_freebet->reason_bonus_freebet) ? 'Menyerah' : 'Gagal';
-                    $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
-                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
-                    $data = [
-                        'turnover' => $TO,
-                        'turnover_member' => $TOMember,
-                        'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
-                        'status_bonus' => $bonus_freebet->status_bonus,
-                        'is_bonus_freebet' => $Check_deposit_claim_bonus_freebet->is_bonus_freebet,
-                        'bonus_freebet_amount' => $Check_deposit_claim_bonus_freebet->bonus_freebet_amount,
-                        'status_bonus_member' => $status,
-                        'date_claim_again' => $dateClaim,
-                    ];
-                } else {
-                    $status = $Check_deposit_claim_bonus_freebet->status_bonus_freebet == 0 ? 'Klaim' : 'Selesai';
-                    $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
-                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
-                    $data = [
-                        'turnover' => $TO,
-                        'turnover_member' => $TOMember,
-                        'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
-                        'status_bonus' => $bonus_freebet->status_bonus,
-                        'is_bonus_freebet' => $Check_deposit_claim_bonus_freebet->is_bonus_freebet,
-                        'bonus_freebet_amount' => $Check_deposit_claim_bonus_freebet->bonus_freebet_amount,
-                        'status_bonus_member' => $status,
-                        'date_claim_again' => $dateClaim,
-                    ];
-                }
-            } else {
-                $data = [
-                    'turnover' => 0,
-                    'turnover_member' => 0,
-                    'durasi_bonus_promo' => 0,
-                    'status_bonus' => 0,
-                    'is_bonus_freebet' => 0,
-                    'bonus_freebet_amount' => 0,
-                    'status_bonus_member' => null,
-                    'date_claim_again' => null,
-                ];
-            }
-            return $this->successResponse([$data], 'Datanya ada', 200);
-        } catch (\Throwable$th) {
-            return $this->errorResponse('Internal Server Error', 500);
         }
     }
 }

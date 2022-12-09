@@ -16,7 +16,7 @@ jobs:
         with:
           host: ${{ secrets.AGENT_REST_STAGING_IP }}
           username: ${{ secrets.STAGING_HOSTNAME }}
-          key: ${{ secrets.KEY }}
+          key: ${{ secrets.SSHKEY_S }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             pwd
