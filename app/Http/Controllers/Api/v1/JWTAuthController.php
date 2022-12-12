@@ -21,7 +21,7 @@ use Illuminate\Pagination\Paginator; # pagination pake ini
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
+// use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
@@ -66,23 +66,23 @@ class JWTAuthController extends ApiController
             ->first();
         if ($member) {
             # check maintenance
-            $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
-            $headers = [
-                'secret' => config('cikatechMaster.secret_url'),
-            ];
-            $requestCikatechMaster = [
-                'agent_name' => config('cikatechMaster.agent_name'),
-                'ip' => config('cikatechMaster.agent_ip'),
-            ];
-            $res = Http::asForm()
-                ->withHeaders($headers)
-                ->post($maintenanceUrl, $requestCikatechMaster)->json();
+            // $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
+            // $headers = [
+            //     'secret' => config('cikatechMaster.secret_url'),
+            // ];
+            // $requestCikatechMaster = [
+            //     'agent_name' => config('cikatechMaster.agent_name'),
+            //     'ip' => config('cikatechMaster.agent_ip'),
+            // ];
+            // $res = Http::asForm()
+            //     ->withHeaders($headers)
+            //     ->post($maintenanceUrl, $requestCikatechMaster)->json();
 
-            if ($res['data']['status'] == 1) {
-                if (!in_array($member->id, [2, 3, 21])) {
-                    return $this->errorResponse('Maaf, kita sedang Maintenance!.', 503);
-                }
-            }
+            // if ($res['data']['status'] == 1) {
+            //     if (!in_array($member->id, [2, 3, 21])) {
+            //         return $this->errorResponse('Maaf, kita sedang Maintenance!.', 503);
+            //     }
+            // }
             if ($member->status == 0) {
                 return $this->errorResponse('Akun anda telah di blokir', 401);
             } elseif ($member->status == 2) {
@@ -500,7 +500,7 @@ class JWTAuthController extends ApiController
             'token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL(),
-            'user' => $userData
+            'user' => $userData,
             // 'member' => auth('api')->user(),
         ]);
     }
