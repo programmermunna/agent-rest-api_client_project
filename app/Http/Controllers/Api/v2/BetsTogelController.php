@@ -155,7 +155,7 @@ class BetsTogelController extends ApiController
 
             foreach ($this->checkBlokednumber($request, $provider) as $togel) {
                 # definition of bonus referal
-                $calculateReferal = $bonus["$pasaran->name_initial"] * $togel['pay_amount'];
+                $calculateReferal = ($bonus["$pasaran->name_initial"] * $togel['pay_amount']) / 100;
 
                 # get member bet
                 $member = MembersModel::where('id', auth('api')->user()->id)->first();
@@ -198,17 +198,25 @@ class BetsTogelController extends ApiController
                 if ($member->referrer_id) {
                     // calculate bonus have referrer
                     $referal = MembersModel::where('id', $member->referrer_id)->first();
+                    $newCredit = $referal->credit + $calculateReferal;
                     MembersModel::where('id', $member->referrer_id)->update([
                         'updated_at' => Carbon::now(),
-                        'credit' => $referal->credit + $calculateReferal,
+                        'credit' => $newCredit,
                     ]);
 
                     # create bonus history
                     BonusHistoryModel::create([
+                        'member_id' => $member->referrer_id,
                         'constant_bonus_id' => 3,
-                        'created_by' => $member->referrer_id,
-                        'created_at' => Carbon::now(),
+                        'is_send' => 1,
+                        'is_use' => 1,
+                        'is_delete' => 0,
                         'jumlah' => $calculateReferal,
+                        'credit' => $newCredit,
+                        'type' => 'uang',
+                        'hadiah' => 'Bonus Referral Togel sebesar Rp. ' . number_format($calculateReferal),
+                        'created_by' => 0,
+                        'created_at' => Carbon::now(),
                     ]);
                 }
             }
