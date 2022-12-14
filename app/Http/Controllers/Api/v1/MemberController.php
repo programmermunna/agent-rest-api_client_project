@@ -592,7 +592,7 @@ class MemberController extends ApiController
             } elseif ($request->type == 'BonusPromo') {
                 $bonusHistory = [];
                 foreach ($bonus->get() as $key => $value) {
-                    $status = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
+                    $status = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : (preg_match("/Bonus Referral Togel/i", $value->hadiah) ? 'Dari downline referal Anda bermain Togel' : (preg_match("/Bonus Referral Slot/i", $value->hadiah) ? 'Dari downline referal Anda bermain Slot' : 'Klaim'))));
                     $bonusHistory[] = [
                         'id' => $value->id,
                         'nama_bonus' => $value->nama_bonus,
@@ -917,7 +917,7 @@ class MemberController extends ApiController
                         'bonusHistoryType' => $value->type,
                         'bonusHistoryJumlah' => $value->jumlah,
                         'bonusHistoryHadiah' => $value->hadiah,
-                        'bonusHistoryStatus' => preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim')),
+                        'bonusHistoryStatus' => preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : (preg_match("/Bonus Referral Togel/i", $value->hadiah) ? 'Dari downline referal Anda bermain Togel' : (preg_match("/Bonus Referral Slot/i", $value->hadiah) ? 'Dari downline referal Anda bermain Slot' : 'Klaim')))),
                         'bonusHistoryCredit' => $value->credit,
                         'activityDeskripsi' => null,
                         'activityName' => null,
