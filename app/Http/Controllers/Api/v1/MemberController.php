@@ -190,6 +190,7 @@ class MemberController extends ApiController
             $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
                 ->selectRaw("
                     bonus_history.id,
+                    bonus_history.constant_bonus_id,
                     constant_bonus.nama_bonus,
                     bonus_history.type,
                     bonus_history.jumlah,
@@ -204,7 +205,8 @@ class MemberController extends ApiController
                 ")
                 ->whereBetween('bonus_history.created_at', [$fromDate, $toDate])
                 ->where('bonus_history.is_send', 1)
-                ->where('bonus_history.member_id', auth('api')->user()->id);
+                ->where('bonus_history.member_id', auth('api')->user()->id)
+                ->orderBy('bonus_history.created_at', 'desc');
 
             if ($request->type == 'depositWithdraw') {
                 $depoWD = array_merge($deposit, $withdraw);
@@ -592,7 +594,11 @@ class MemberController extends ApiController
             } elseif ($request->type == 'BonusPromo') {
                 $bonusHistory = [];
                 foreach ($bonus->get() as $key => $value) {
-                    $status = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : (preg_match("/Bonus Referral Togel/i", $value->hadiah) ? 'Dari downline referal Anda bermain Togel' : (preg_match("/Bonus Referral Slot/i", $value->hadiah) ? 'Dari downline referal Anda bermain Slot' : 'Klaim'))));
+                    if ($value->constant_bonus_id == 3) {
+                        $status_bonus = (preg_match("/Bonus Referral Togel/i", $value->hadiah) ? 'Dari downline referal Anda bermain Togel' : (preg_match("/Bonus Referral Slot/i", $value->hadiah) ? 'Dari downline referal Anda bermain Slot' : (preg_match("/Bonus Referral Fish/i", $value->hadiah) ? 'Dari downline referal Anda bermain Fish' : 'Dari downline referal Anda bermain Live Casino')));
+                    } else {
+                        $status_bonus = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
+                    }
                     $bonusHistory[] = [
                         'id' => $value->id,
                         'nama_bonus' => $value->nama_bonus,
@@ -600,7 +606,7 @@ class MemberController extends ApiController
                         'jumlah' => $value->jumlah,
                         'credit' => $value->credit ?? 0,
                         'hadiah' => $value->hadiah,
-                        'status_bonus' => $status,
+                        'status_bonus' => $status_bonus,
                         'created_at' => $value->created_at,
                         'member_id' => $value->member_id,
                     ];
@@ -887,6 +893,12 @@ class MemberController extends ApiController
                 # History Bonus
                 $bonusHistory = [];
                 foreach ($bonus->get() as $key => $value) {
+                    if ($value->constant_bonus_id == 3) {
+                        $status_bonus = (preg_match("/Bonus Referral Togel/i", $value->hadiah) ? 'Dari downline referal Anda bermain Togel' : (preg_match("/Bonus Referral Slot/i", $value->hadiah) ? 'Dari downline referal Anda bermain Slot' : (preg_match("/Bonus Referral Fish/i", $value->hadiah) ? 'Dari downline referal Anda bermain Fish' : 'Dari downline referal Anda bermain Live Casino')));
+                    } else {
+                        $status_bonus = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
+                    }
+
                     $bonusHistory[] = [
                         'Tables' => 'Bonus History',
                         'betsBet' => null,
@@ -917,7 +929,7 @@ class MemberController extends ApiController
                         'bonusHistoryType' => $value->type,
                         'bonusHistoryJumlah' => $value->jumlah,
                         'bonusHistoryHadiah' => $value->hadiah,
-                        'bonusHistoryStatus' => preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : (preg_match("/Bonus Referral Togel/i", $value->hadiah) ? 'Dari downline referal Anda bermain Togel' : (preg_match("/Bonus Referral Slot/i", $value->hadiah) ? 'Dari downline referal Anda bermain Slot' : 'Klaim')))),
+                        'bonusHistoryStatus' => $status_bonus,
                         'bonusHistoryCredit' => $value->credit,
                         'activityDeskripsi' => null,
                         'activityName' => null,
