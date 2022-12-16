@@ -4006,7 +4006,7 @@ class MemberController extends ApiController
                 return $this->successResponse(null, 'Tidak ada data', 200);
             } else {
                 $data[] = ["togel" => $bonus];
-                $data[] = ["slot" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id',[1,2,3,4,5,6,7,9,12])->get()];
+                $data[] = ["slot" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id',[1,2,3,4,5,7,9,12])->get()];
                 $data[] = ["tembak_ikan" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id',[13,14,15])->get()];
                 $data[] = ["live_casino" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id',[8,10,11])->get()];
                 return $this->successResponse($data, 'Bonus referal', 200);
