@@ -17,7 +17,7 @@ jobs:
         with:
           host: ${{ secrets.IP_PROD }}
           username: ${{ secrets.DO_HOSTNAME }}
-          key: ${{ secrets.NEW_SSHKEY }}
+          key: ${{ secrets.SSHKEY_P }}
           port: ${{ secrets.SSH_PORT }}
           script: |
             pwd

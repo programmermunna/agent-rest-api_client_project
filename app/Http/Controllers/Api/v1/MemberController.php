@@ -2,29 +2,30 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Http\Controllers\ApiController;
+use Carbon\Carbon;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
-use App\Models\BonusHistoryModel;
-use App\Models\ConstantProviderTogelModel;
+use App\Models\MemoModel;
+use Illuminate\Support\Arr;
 use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\MembersModel;
-use App\Models\MemoModel;
-use App\Models\RekeningModel;
-use App\Models\RekMemberModel;
-use App\Models\TurnoverModel;
 use App\Models\UserLogModel;
-use App\Models\WithdrawModel;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Arr;
+use Livewire\WithPagination;
+use App\Models\RekeningModel;
+use App\Models\TurnoverModel;
+use App\Models\WithdrawModel;
+use App\Models\RekMemberModel;
+use App\Models\ConstantProvider;
+use App\Models\BonusHistoryModel;
 use Illuminate\Support\Collection;
+use Illuminate\Pagination\Paginator;
+use App\Http\Controllers\ApiController;
+use App\Models\ConstantProviderTogelModel;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB; # pagination pake ini
 use Illuminate\Support\Facades\Validator; # pagination pake ini
-use Livewire\WithPagination;
 
 # pagination pake ini
 
@@ -4004,7 +4005,11 @@ class MemberController extends ApiController
             if ($bonus->count() < 1) {
                 return $this->successResponse(null, 'Tidak ada data', 200);
             } else {
-                return $this->successResponse($bonus, 'Bonus referal', 200);
+                $data[] = ["togel" => $bonus];
+                $data[] = ["slot" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id',[1,2,3,4,5,6,7,9,12])->get()];
+                $data[] = ["tembak_ikan" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id',[13,14,15])->get()];
+                $data[] = ["live_casino" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id',[8,10,11])->get()];
+                return $this->successResponse($data, 'Bonus referal', 200);
             }
         } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);
