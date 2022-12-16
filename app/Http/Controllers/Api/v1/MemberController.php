@@ -866,8 +866,8 @@ class MemberController extends ApiController
                         'betsTogelHistoryId' => $value['id'],
                         'betsTogelHistoryPasaran' => $value['Pasaran'],
                         'betsTogelHistorDeskripsi' => 'Bet : (' . $value['Game'] . ' => ' . $value['Nomor'] . ')',
-                        'betsTogelHistoryDebit' => $value['Bayar'],
-                        'betsTogelHistoryKredit' => $value['winTogel'],
+                        'betsTogelHistoryDebit' => $value['winTogel'],
+                        'betsTogelHistoryKredit' => $value['Bayar'],
                         'betsTogelHistoryBalance' => $value['balance'],
                         'betsTogelHistoryCreatedBy' => $value['created_by'],
                         'depositCredit' => null,
@@ -1666,8 +1666,8 @@ class MemberController extends ApiController
                 'bets_togel_id' => $value->id,
                 'pasaran' => $value->Pasaran,
                 'description' => 'Bet : ' . $value->Game,
-                'debit' => $value->Bayar, #pay amount
-                'kredit' => $value->winTogel, #win
+                'debit' => $value->winTogel, #win
+                'kredit' => $value->Bayar, #pay amount
                 'balance' => $value->balance,
                 'created_by' => auth('api')->user()->username,
                 // 'url'       => "/endpoint/getDetailTransaksi?detail=$value->id",
