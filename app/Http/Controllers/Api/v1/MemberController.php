@@ -1276,291 +1276,289 @@ class MemberController extends ApiController
                     ];
                 }
 
-                $referalMembers = MembersModel::select('id')->where('id', $id)->with(['referrals'])->first();
-
+                $referalMembers = MembersModel::select('id')->where('id', $id)
+                    ->with([
+                        'referrals' => function($query) use ($fromDate, $toDate) {
+                        $query->with(['betTogels' => function($query) use ($fromDate, $toDate) {
+                            $query->selectRaw("created_by, id as bet_id, bonus_daily_referal, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                        },
+                        'bets' => function ($query) use ($fromDate, $toDate) {
+                            $query->selectRaw("constant_provider_id, created_by, game_id as bet_id, bonus_daily_referal, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                        }
+                    ])->select(['referrer_id','id','username']);
+                    }])->first()->toArray();
                 # History Togel Referral
                 $togelReferals = [];
-                foreach ($referalMembers['referrals'] as $key => $value) {
-                    $transactionTogel = BetsTogel::selectRaw("SUM(bonus_daily_referal) as bonus_daily_referal, MAX(created_at) as created_at")
-                        ->whereBetween('created_at', [$fromDate, $toDate])
-                        ->where('bonus_daily_referal', '!=', 0)
-                        ->where('created_by', $value['id'])->groupBy('created_by')->get();
-                    if ($transactionTogel->toArray() != []) {
-                        $togelReferals[] = [
-                            'Tables' => 'Referral Togel History',
-                            'betsBet' => null,
-                            'betsWin' => null,
-                            'betsGameInfo' => null,
-                            'betsBetId' => null,
-                            'betsGameId' => null,
-                            'betsDeskripsi' => null,
-                            'betsCredit' => null,
-                            'created_at' => $transactionTogel->max('created_at'),
-                            'betsProviderName' => null,
-                            'betsTogelHistoryId' => null,
-                            'betsTogelHistoryPasaran' => null,
-                            'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $value['username'] . ' bermain Togel',
-                            'betsTogelHistoryDebit' => null,
-                            'betsTogelHistoryKredit' => $transactionTogel->sum('bonus_daily_referal'),
-                            'betsTogelHistoryBalance' => null,
-                            'betsTogelHistoryCreatedBy' => null,
-                            'depositCredit' => null,
-                            'depositJumlah' => null,
-                            'depositStatus' => null,
-                            'depositDescription' => null,
-                            'withdrawCredit' => null,
-                            'withdrawJumlah' => null,
-                            'withdrawStatus' => null,
-                            'withdrawDescription' => null,
-                            'bonusHistoryNamaBonus' => null,
-                            'bonusHistoryType' => null,
-                            'bonusHistoryJumlah' => null,
-                            'bonusHistoryHadiah' => null,
-                            'bonusHistoryStatus' => null,
-                            'bonusHistoryCredit' => null,
-                            'activityDeskripsi' => null,
-                            'activityName' => null,
-                            'detail' => null,
-                        ];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bet_togels'] != []) {
+                        foreach( $item['bet_togels'] as $value){
+                            $togelReferals[] = [
+                                'Tables' => 'Referral Togel History',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Togel',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
                     }
                 }
 
                 # History Pragmatic Slot Referral
                 $PragmaticSlotReferal = [];
-                foreach ($referalMembers['referrals'] as $key => $value) {
-                    $transactionPragmaticSlot = BetModel::selectRaw("SUM(bonus_daily_referal) as bonus_daily_referal, MAX(created_at) as created_at")
-                        ->whereBetween('created_at', [$fromDate, $toDate])
-                        ->where('bonus_daily_referal', '!=', 0)
-                        ->where('constant_provider_id', 1)
-                        ->where('created_by', $value['id'])->groupBy('created_by')->get();
-                    if ($transactionPragmaticSlot->toArray() != []) {
-                        $PragmaticSlotReferal[] = [
-                            'Tables' => 'Referral Togel History',
-                            'betsBet' => null,
-                            'betsWin' => null,
-                            'betsGameInfo' => null,
-                            'betsBetId' => null,
-                            'betsGameId' => null,
-                            'betsDeskripsi' => null,
-                            'betsCredit' => null,
-                            'created_at' => $transactionPragmaticSlot->max('created_at'),
-                            'betsProviderName' => null,
-                            'betsTogelHistoryId' => null,
-                            'betsTogelHistoryPasaran' => null,
-                            'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $value['username'] . ' bermain Pragmatic Slot',
-                            'betsTogelHistoryDebit' => null,
-                            'betsTogelHistoryKredit' => $transactionPragmaticSlot->sum('bonus_daily_referal'),
-                            'betsTogelHistoryBalance' => null,
-                            'betsTogelHistoryCreatedBy' => null,
-                            'depositCredit' => null,
-                            'depositJumlah' => null,
-                            'depositStatus' => null,
-                            'depositDescription' => null,
-                            'withdrawCredit' => null,
-                            'withdrawJumlah' => null,
-                            'withdrawStatus' => null,
-                            'withdrawDescription' => null,
-                            'bonusHistoryNamaBonus' => null,
-                            'bonusHistoryType' => null,
-                            'bonusHistoryJumlah' => null,
-                            'bonusHistoryHadiah' => null,
-                            'bonusHistoryStatus' => null,
-                            'bonusHistoryCredit' => null,
-                            'activityDeskripsi' => null,
-                            'activityName' => null,
-                            'detail' => null,
-                        ];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $PragmaticSlot = collect($item['bets'])->where('constant_provider_id', 1)->all();
+                        foreach($PragmaticSlot as $value){
+                            $PragmaticSlotReferal[] = [
+                                'Tables' => 'Referral Togel History',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
                     }
                 }
 
                 # History Pragmatic Live Casino Referral
                 $PragmaticLiveCasinoReferal = [];
                 foreach ($referalMembers['referrals'] as $key => $value) {
-                    $transactionPragmaticLiveCasino = BetModel::selectRaw("SUM(bonus_daily_referal) as bonus_daily_referal, MAX(created_at) as created_at")
-                        ->whereBetween('created_at', [$fromDate, $toDate])
-                        ->where('bonus_daily_referal', '!=', 0)
-                        ->where('constant_provider_id', 10)
-                        ->where('created_by', $value['id'])->groupBy('created_by')->get();
-                    if ($transactionPragmaticLiveCasino->toArray() != []) {
-                        $PragmaticLiveCasinoReferal[] = [
-                            'Tables' => 'Referral Togel History',
-                            'betsBet' => null,
-                            'betsWin' => null,
-                            'betsGameInfo' => null,
-                            'betsBetId' => null,
-                            'betsGameId' => null,
-                            'betsDeskripsi' => null,
-                            'betsCredit' => null,
-                            'created_at' => $transactionPragmaticLiveCasino->max('created_at'),
-                            'betsProviderName' => null,
-                            'betsTogelHistoryId' => null,
-                            'betsTogelHistoryPasaran' => null,
-                            'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $value['username'] . ' bermain Pragmatic Live Casino',
-                            'betsTogelHistoryDebit' => null,
-                            'betsTogelHistoryKredit' => $transactionPragmaticLiveCasino->sum('bonus_daily_referal'),
-                            'betsTogelHistoryBalance' => null,
-                            'betsTogelHistoryCreatedBy' => null,
-                            'depositCredit' => null,
-                            'depositJumlah' => null,
-                            'depositStatus' => null,
-                            'depositDescription' => null,
-                            'withdrawCredit' => null,
-                            'withdrawJumlah' => null,
-                            'withdrawStatus' => null,
-                            'withdrawDescription' => null,
-                            'bonusHistoryNamaBonus' => null,
-                            'bonusHistoryType' => null,
-                            'bonusHistoryJumlah' => null,
-                            'bonusHistoryHadiah' => null,
-                            'bonusHistoryStatus' => null,
-                            'bonusHistoryCredit' => null,
-                            'activityDeskripsi' => null,
-                            'activityName' => null,
-                            'detail' => null,
-                        ];
+                    if ($item['bets'] != []) {
+                        $PragmaticLiveCasino = collect($item['bets'])->where('constant_provider_id', 10)->all();
+                        foreach($PragmaticLiveCasino as $value){
+                            $PragmaticLiveCasinoReferal[] = [
+                                'Tables' => 'Referral Togel History',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Live Casino',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+
                     }
                 }
 
                 # History Habanero Slot Referral
                 $HabaneroSlotReferal = [];
                 foreach ($referalMembers['referrals'] as $key => $value) {
-                    $transactionHabaneroSlot = BetModel::selectRaw("SUM(bonus_daily_referal) as bonus_daily_referal, MAX(created_at) as created_at")
-                        ->whereBetween('created_at', [$fromDate, $toDate])
-                        ->where('bonus_daily_referal', '!=', 0)
-                        ->where('constant_provider_id', 2)
-                        ->where('created_by', $value['id'])->groupBy('created_by')->get();
-                    if ($transactionHabaneroSlot->toArray() != []) {
-                        $HabaneroSlotReferal[] = [
-                            'Tables' => 'Referral Togel History',
-                            'betsBet' => null,
-                            'betsWin' => null,
-                            'betsGameInfo' => null,
-                            'betsBetId' => null,
-                            'betsGameId' => null,
-                            'betsDeskripsi' => null,
-                            'betsCredit' => null,
-                            'created_at' => $transactionHabaneroSlot->max('created_at'),
-                            'betsProviderName' => null,
-                            'betsTogelHistoryId' => null,
-                            'betsTogelHistoryPasaran' => null,
-                            'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $value['username'] . ' bermain Habanero Slot',
-                            'betsTogelHistoryDebit' => null,
-                            'betsTogelHistoryKredit' => $transactionHabaneroSlot->sum('bonus_daily_referal'),
-                            'betsTogelHistoryBalance' => null,
-                            'betsTogelHistoryCreatedBy' => null,
-                            'depositCredit' => null,
-                            'depositJumlah' => null,
-                            'depositStatus' => null,
-                            'depositDescription' => null,
-                            'withdrawCredit' => null,
-                            'withdrawJumlah' => null,
-                            'withdrawStatus' => null,
-                            'withdrawDescription' => null,
-                            'bonusHistoryNamaBonus' => null,
-                            'bonusHistoryType' => null,
-                            'bonusHistoryJumlah' => null,
-                            'bonusHistoryHadiah' => null,
-                            'bonusHistoryStatus' => null,
-                            'bonusHistoryCredit' => null,
-                            'activityDeskripsi' => null,
-                            'activityName' => null,
-                            'detail' => null,
-                        ];
+                    if ($item['bets'] != []) {
+                        $HabaneroSlot = collect($item['bets'])->where('constant_provider_id', 2)->all();
+                        foreach($HabaneroSlot as $value){
+                            $HabaneroSlotReferal[] = [
+                                'Tables' => 'Referral Togel History',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Habanero Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
                     }
                 }
 
                 # History Joker Slot Referral
                 $JokerSlotReferal = [];
                 foreach ($referalMembers['referrals'] as $key => $value) {
-                    $transactionJokerSlot = BetModel::selectRaw("SUM(bonus_daily_referal) as bonus_daily_referal, MAX(created_at) as created_at")
-                        ->whereBetween('created_at', [$fromDate, $toDate])
-                        ->where('bonus_daily_referal', '!=', 0)
-                        ->where('constant_provider_id', 3)
-                        ->where('created_by', $value['id'])->groupBy('created_by')->get();
-                    if ($transactionJokerSlot->toArray() != []) {
-                        $JokerSlotReferal[] = [
-                            'Tables' => 'Referral Togel History',
-                            'betsBet' => null,
-                            'betsWin' => null,
-                            'betsGameInfo' => null,
-                            'betsBetId' => null,
-                            'betsGameId' => null,
-                            'betsDeskripsi' => null,
-                            'betsCredit' => null,
-                            'created_at' => $transactionJokerSlot->max('created_at'),
-                            'betsProviderName' => null,
-                            'betsTogelHistoryId' => null,
-                            'betsTogelHistoryPasaran' => null,
-                            'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $value['username'] . ' bermain Joker Slot',
-                            'betsTogelHistoryDebit' => null,
-                            'betsTogelHistoryKredit' => $transactionJokerSlot->sum('bonus_daily_referal'),
-                            'betsTogelHistoryBalance' => null,
-                            'betsTogelHistoryCreatedBy' => null,
-                            'depositCredit' => null,
-                            'depositJumlah' => null,
-                            'depositStatus' => null,
-                            'depositDescription' => null,
-                            'withdrawCredit' => null,
-                            'withdrawJumlah' => null,
-                            'withdrawStatus' => null,
-                            'withdrawDescription' => null,
-                            'bonusHistoryNamaBonus' => null,
-                            'bonusHistoryType' => null,
-                            'bonusHistoryJumlah' => null,
-                            'bonusHistoryHadiah' => null,
-                            'bonusHistoryStatus' => null,
-                            'bonusHistoryCredit' => null,
-                            'activityDeskripsi' => null,
-                            'activityName' => null,
-                            'detail' => null,
-                        ];
+                    if ($item['bets'] != []) {
+                        $JokerSlot = collect($item['bets'])->where('constant_provider_id', 3)->all();
+                        foreach($JokerSlot as $value){
+                            $JokerSlotReferal[] = [
+                                'Tables' => 'Referral Togel History',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
                     }
                 }
                 # History Joker Fish Referral
                 $JokerFishReferal = [];
                 foreach ($referalMembers['referrals'] as $key => $value) {
-                    $transactionJokerFish = BetModel::selectRaw("SUM(bonus_daily_referal) as bonus_daily_referal, MAX(created_at) as created_at")
-                        ->whereBetween('created_at', [$fromDate, $toDate])
-                        ->where('bonus_daily_referal', '!=', 0)
-                        ->where('constant_provider_id', 13)
-                        ->where('created_by', $value['id'])->groupBy('created_by')->get();
-                    if ($transactionJokerFish->toArray() != []) {
-                        $JokerFishReferal[] = [
-                            'Tables' => 'Referral Togel History',
-                            'betsBet' => null,
-                            'betsWin' => null,
-                            'betsGameInfo' => null,
-                            'betsBetId' => null,
-                            'betsGameId' => null,
-                            'betsDeskripsi' => null,
-                            'betsCredit' => null,
-                            'created_at' => $transactionJokerFish->max('created_at'),
-                            'betsProviderName' => null,
-                            'betsTogelHistoryId' => null,
-                            'betsTogelHistoryPasaran' => null,
-                            'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $value['username'] . ' bermain Joker Fish',
-                            'betsTogelHistoryDebit' => null,
-                            'betsTogelHistoryKredit' => $transactionJokerFish->sum('bonus_daily_referal'),
-                            'betsTogelHistoryBalance' => null,
-                            'betsTogelHistoryCreatedBy' => null,
-                            'depositCredit' => null,
-                            'depositJumlah' => null,
-                            'depositStatus' => null,
-                            'depositDescription' => null,
-                            'withdrawCredit' => null,
-                            'withdrawJumlah' => null,
-                            'withdrawStatus' => null,
-                            'withdrawDescription' => null,
-                            'bonusHistoryNamaBonus' => null,
-                            'bonusHistoryType' => null,
-                            'bonusHistoryJumlah' => null,
-                            'bonusHistoryHadiah' => null,
-                            'bonusHistoryStatus' => null,
-                            'bonusHistoryCredit' => null,
-                            'activityDeskripsi' => null,
-                            'activityName' => null,
-                            'detail' => null,
-                        ];
+                    if ($item['bets'] != []) {
+                        $JokerFish = collect($item['bets'])->where('constant_provider_id', 13)->all();
+                        foreach($JokerFish as $value){
+                            $JokerFishReferal[] = [
+                                'Tables' => 'Referral Togel History',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Fish',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
                     }
                 }
                 # History Spade Slot Referral
