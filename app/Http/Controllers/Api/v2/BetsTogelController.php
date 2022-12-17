@@ -159,11 +159,41 @@ class BetsTogelController extends ApiController
 
                 # get member bet
                 $member = MembersModel::where('id', auth('api')->user()->id)->first();
+                $balance_upline_referral = 0;
+
+                # check if any referrer
+                if ($member->referrer_id) {
+                    // calculate bonus have referrer
+                    $referal = MembersModel::where('id', $member->referrer_id)->first();
+                    $newCredit = $referal->credit + $calculateReferal;
+                    $balance_upline_referral = $newCredit;
+                    MembersModel::where('id', $member->referrer_id)->update([
+                        'updated_at' => Carbon::now(),
+                        'credit' => $newCredit,
+                    ]);
+
+                    # create bonus history
+                    BonusHistoryModel::create([
+                        'member_id' => $member->referrer_id,
+                        'constant_bonus_id' => 3,
+                        'is_send' => 1,
+                        'is_use' => 1,
+                        'is_delete' => 0,
+                        'jumlah' => $calculateReferal,
+                        'credit' => $newCredit,
+                        'type' => 'uang',
+                        'hadiah' => number_format($calculateReferal),
+                        'created_by' => 0,
+                        'created_at' => Carbon::now(),
+                    ]);
+                }
+
                 $payBetTogel = $togel['pay_amount'];
                 $beforeBets = array_merge($togel, [
                     'balance' => $member->credit - $payBetTogel,
                     'period' => $periodProvider->period,
                     'bonus_daily_referal' => $calculateReferal,
+                    'balance_upline_referral' => $balance_upline_referral,
                     "togel_game_id" => $gameType,
                     "constant_provider_togel_id" => $provider,
                     'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release
@@ -193,32 +223,6 @@ class BetsTogelController extends ApiController
                     'updated_at' => Carbon::now(),
                     'bonus_referal' => $member->bonus_referal + $calculateReferal,
                 ]);
-
-                # check if any referrer
-                if ($member->referrer_id) {
-                    // calculate bonus have referrer
-                    $referal = MembersModel::where('id', $member->referrer_id)->first();
-                    $newCredit = $referal->credit + $calculateReferal;
-                    MembersModel::where('id', $member->referrer_id)->update([
-                        'updated_at' => Carbon::now(),
-                        'credit' => $newCredit,
-                    ]);
-
-                    # create bonus history
-                    BonusHistoryModel::create([
-                        'member_id' => $member->referrer_id,
-                        'constant_bonus_id' => 3,
-                        'is_send' => 1,
-                        'is_use' => 1,
-                        'is_delete' => 0,
-                        'jumlah' => $calculateReferal,
-                        'credit' => $newCredit,
-                        'type' => 'uang',
-                        'hadiah' => 'Bonus Referral Togel sebesar Rp. ' . number_format($calculateReferal),
-                        'created_by' => 0,
-                        'created_at' => Carbon::now(),
-                    ]);
-                }
             }
 
             # activity log
