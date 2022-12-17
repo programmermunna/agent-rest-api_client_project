@@ -284,19 +284,21 @@ class MemberController extends ApiController
                     'referralPragmaticLiveCasino' => $data,
                 ];
             } elseif ($request->type == 'referralHabaneroSlot') { # History Referral Habanero Slot
-                $referalMembers = MembersModel::select('id')->where('id', $id)->with(['referrals'])->first();
+                $referalMembers = MembersModel::select('id')->where('id', $id)->with(['referrals' => function($q) use ($fromDate, $toDate) {
+                    $q->with(['bets' => function ($q) use ($fromDate, $toDate) {
+                        $q->selectRaw("created_by, SUM(bonus_daily_referal) as bonus_daily_referal, MAX(created_at) as created_at")->whereBetween('created_at', [$fromDate, $toDate])
+                                ->where('bonus_daily_referal', '!=', 0)
+                                ->where('constant_provider_id', 2)
+                                ->groupBy('created_by')->get();
+                    }]);
+                }])->first();
                 $HabaneroSlotReferal = [];
                 foreach ($referalMembers['referrals'] as $key => $value) {
-                    $transactionHabaneroSlot = BetModel::selectRaw("SUM(bonus_daily_referal) as bonus_daily_referal, MAX(created_at) as created_at")
-                        ->whereBetween('created_at', [$fromDate, $toDate])
-                        ->where('bonus_daily_referal', '!=', 0)
-                        ->where('constant_provider_id', 2)
-                        ->where('created_by', $value['id'])->groupBy('created_by')->get();
-                    if ($transactionHabaneroSlot->toArray() != []) {
+                    if ($value['bets']->toArray() != []) {
                         $HabaneroSlotReferal[] = [
-                            'created_at' => $transactionHabaneroSlot->max('created_at'),
+                            'created_at' => $value['bets']->max('created_at'),
                             'deskripsi' => 'Dari downline referal Anda ' . $value['username'] . ' bermain Habanero Slot',
-                            'bonus' => $transactionHabaneroSlot->sum('bonus_daily_referal'),
+                            'bonus' => $value['bets']->sum('bonus_daily_referal'),
                         ];
                     }
                 }
