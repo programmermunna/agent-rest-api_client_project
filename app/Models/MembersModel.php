@@ -231,6 +231,10 @@ class MembersModel extends Authenticatable implements MustVerifyEmail, TwoFactor
     {
         return $this->hasMany(BetModel::class, 'created_by');
     }
+    public function betTogels(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(BetsTogel::class, 'created_by');
+    }
 
     public function withdrawals(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
