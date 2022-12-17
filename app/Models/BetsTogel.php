@@ -13,7 +13,6 @@ class BetsTogel extends Model
 
     protected $table = 'bets_togel';
 
-
     public $timestamps = false;
 
     protected $dates = ['deleted_at'];
@@ -23,6 +22,7 @@ class BetsTogel extends Model
         , 'togel_game_id'
         , 'constant_provider_togel_id'
         , 'bonus_daily_referal'
+        , 'balance_upline_referral'
         , 'platform'
         , 'number_1'
         , 'number_2'
@@ -38,7 +38,7 @@ class BetsTogel extends Model
         , 'tebak_mono_stereo'
         , 'tebak_kembang_kempis_kembar'
         , 'tebak_shio'
-        
+
         , 'win_lose_status'
         , 'togel_results_number_id'
         , 'win_nominal'
@@ -52,7 +52,7 @@ class BetsTogel extends Model
         , 'deleted_by'
         , 'created_at'
         , 'updated_at'
-        , 'deleted_at'
+        , 'deleted_at',
     ];
 
     public function bets_togel_history_transaksi()
@@ -88,5 +88,5 @@ class BetsTogel extends Model
     public function tebak_shio()
     {
         return $this->belongsTo(TogelShioNameModel::class, 'tebak_shio', 'id');
-    }    
+    }
 }
