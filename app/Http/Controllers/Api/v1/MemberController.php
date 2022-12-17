@@ -102,16 +102,17 @@ class MemberController extends ApiController
                 ->where('bonus_history.member_id', auth('api')->user()->id)
                 ->orderBy('bonus_history.created_at', 'desc');
 
-                $referalMembers = MembersModel::select('id')->where('id', $id)
-                    ->with([
-                        'referrals' => function($query) use ($fromDate, $toDate) {
-                        $query->with(['betTogels' => function($query) use ($fromDate, $toDate) {
-                            $query->selectRaw("created_by, id as bet_id, bonus_daily_referal, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
-                        },
-                        'bets' => function ($query) use ($fromDate, $toDate) {
-                            $query->selectRaw("constant_provider_id, created_by, game_id as bet_id, bonus_daily_referal, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
-                        }
-                    ])->select(['referrer_id','id','username']);
+            $referalMembers = MembersModel::select('id')->where('id', $id)
+                ->with([
+                    'referrals' => function ($query) use ($fromDate, $toDate) {
+                        $query->with([
+                            'betTogels' => function ($query) use ($fromDate, $toDate) {
+                                $query->selectRaw("created_by, id as bet_id, bonus_daily_referal, balance_upline_referral, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                            },
+                            'bets' => function ($query) use ($fromDate, $toDate) {
+                                $query->selectRaw("constant_provider_id, created_by, game_id as bet_id, bonus_daily_referal, credit_upline_referral, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                            },
+                        ])->select(['referrer_id', 'id', 'username']);
                     }])->first()->toArray();
 
             if ($request->type == 'depositWithdraw') { # History Desposit & Withdraw
@@ -232,11 +233,12 @@ class MemberController extends ApiController
                 $togelReferal = [];
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bet_togels'] != []) {
-                        foreach( $item['bet_togels'] as $value){
+                        foreach ($item['bet_togels'] as $value) {
                             $togelReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Togel',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['balance_upline_referral'],
                             ];
                         }
                     }
@@ -251,11 +253,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $PragmaticSlot = collect($item['bets'])->where('constant_provider_id', 1)->all();
-                        foreach($PragmaticSlot as $value){
+                        foreach ($PragmaticSlot as $value) {
                             $PragmaticSlotReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Slot',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -272,11 +275,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $PragmaticLiveCasino = collect($item['bets'])->where('constant_provider_id', 10)->all();
-                        foreach($PragmaticLiveCasino as $value){
+                        foreach ($PragmaticLiveCasino as $value) {
                             $PragmaticLiveCasinoReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Live Casino',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -293,11 +297,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $HabaneroSlot = collect($item['bets'])->where('constant_provider_id', 2)->all();
-                        foreach($HabaneroSlot as $value){
+                        foreach ($HabaneroSlot as $value) {
                             $HabaneroSlotReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Habanero Slot',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -314,11 +319,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $JokerSlot = collect($item['bets'])->where('constant_provider_id', 3)->all();
-                        foreach($JokerSlot as $value){
+                        foreach ($JokerSlot as $value) {
                             $JokerSlotReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Slot',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -335,11 +341,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $JokerFish = collect($item['bets'])->where('constant_provider_id', 13)->all();
-                        foreach($JokerFish as $value){
+                        foreach ($JokerFish as $value) {
                             $JokerFishReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Fish',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -356,11 +363,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $SpadeSlot = collect($item['bets'])->where('constant_provider_id', 4)->all();
-                        foreach($SpadeSlot as $value){
+                        foreach ($SpadeSlot as $value) {
                             $SpadeSlotReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Spade Slot',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -377,11 +385,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $SpadeFish = collect($item['bets'])->where('constant_provider_id', 14)->all();
-                        foreach($SpadeFish as $value){
+                        foreach ($SpadeFish as $value) {
                             $SpadeFishReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Spade Fish',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -398,11 +407,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $PGSoftSlot = collect($item['bets'])->where('constant_provider_id', 5)->all();
-                        foreach($PGSoftSlot as $value){
-                            $PGSoftSlotferal[] = [
+                        foreach ($PGSoftSlot as $value) {
+                            $PGSoftSlotReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain PGSoft Slot',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -419,11 +429,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $JDBSlot = collect($item['bets'])->where('constant_provider_id', 7)->all();
-                        foreach($JDBSlot as $value){
+                        foreach ($JDBSlot as $value) {
                             $JDBSlotReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain JDB Slot',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -440,11 +451,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $JDBFish = collect($item['bets'])->where('constant_provider_id', 15)->all();
-                        foreach($JDBFish as $value){
+                        foreach ($JDBFish as $value) {
                             $JDBFishReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain JDB Fish',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -461,11 +473,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $SexyGamingLiveCasino = collect($item['bets'])->where('constant_provider_id', 11)->all();
-                        foreach($SexyGamingLiveCasino as $value){
+                        foreach ($SexyGamingLiveCasino as $value) {
                             $SexyGamingLiveCasinoReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Sexy Gaming Live Casino',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -482,11 +495,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $IONXLiveCasino = collect($item['bets'])->where('constant_provider_id', 8)->all();
-                        foreach($IONXLiveCasino as $value){
+                        foreach ($IONXLiveCasino as $value) {
                             $IONXLiveCasinoReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain IONX Live Casino',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
 
@@ -503,11 +517,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $OneGameSlot = collect($item['bets'])->where('constant_provider_id', 9)->all();
-                        foreach($OneGameSlot as $value){
+                        foreach ($OneGameSlot as $value) {
                             $OneGameSlotReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain One Game Slot',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
                     }
@@ -523,11 +538,12 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $RedTigerSlot = collect($item['bets'])->where('constant_provider_id', 12)->all();
-                        foreach($RedTigerSlot as $value){
+                        foreach ($RedTigerSlot as $value) {
                             $RedTigerSlotReferal[] = [
                                 'created_at' => $value['created_at'],
                                 'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Red Tiger Slot',
                                 'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
                             ];
                         }
                     }
@@ -1237,22 +1253,23 @@ class MemberController extends ApiController
 
                 $referalMembers = MembersModel::select('id')->where('id', $id)
                     ->with([
-                        'referrals' => function($query) use ($fromDate, $toDate) {
-                        $query->with(['betTogels' => function($query) use ($fromDate, $toDate) {
-                            $query->selectRaw("created_by, id as bet_id, bonus_daily_referal, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
-                        },
-                        'bets' => function ($query) use ($fromDate, $toDate) {
-                            $query->selectRaw("constant_provider_id, created_by, game_id as bet_id, bonus_daily_referal, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
-                        }
-                    ])->select(['referrer_id','id','username']);
-                    }])->first()->toArray();
+                        'referrals' => function ($query) use ($fromDate, $toDate) {
+                            $query->with([
+                                'betTogels' => function ($query) use ($fromDate, $toDate) {
+                                    $query->selectRaw("created_by, id as bet_id, bonus_daily_referal, balance_upline_referral, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                                },
+                                'bets' => function ($query) use ($fromDate, $toDate) {
+                                    $query->selectRaw("constant_provider_id, created_by, game_id as bet_id, bonus_daily_referal, credit_upline_referral, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                                },
+                            ])->select(['referrer_id', 'id', 'username']);
+                        }])->first()->toArray();
                 # History Togel Referral
                 $togelReferals = [];
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bet_togels'] != []) {
-                        foreach( $item['bet_togels'] as $value){
+                        foreach ($item['bet_togels'] as $value) {
                             $togelReferals[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1267,7 +1284,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Togel',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['balance_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1296,9 +1313,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $item) {
                     if ($item['bets'] != []) {
                         $PragmaticSlot = collect($item['bets'])->where('constant_provider_id', 1)->all();
-                        foreach($PragmaticSlot as $value){
+                        foreach ($PragmaticSlot as $value) {
                             $PragmaticSlotReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1313,7 +1330,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Slot',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1342,9 +1359,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $PragmaticLiveCasino = collect($item['bets'])->where('constant_provider_id', 10)->all();
-                        foreach($PragmaticLiveCasino as $value){
+                        foreach ($PragmaticLiveCasino as $value) {
                             $PragmaticLiveCasinoReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1359,7 +1376,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Live Casino',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1389,9 +1406,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $HabaneroSlot = collect($item['bets'])->where('constant_provider_id', 2)->all();
-                        foreach($HabaneroSlot as $value){
+                        foreach ($HabaneroSlot as $value) {
                             $HabaneroSlotReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1406,7 +1423,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Habanero Slot',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1435,9 +1452,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $JokerSlot = collect($item['bets'])->where('constant_provider_id', 3)->all();
-                        foreach($JokerSlot as $value){
+                        foreach ($JokerSlot as $value) {
                             $JokerSlotReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1452,7 +1469,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Slot',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1480,9 +1497,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $JokerFish = collect($item['bets'])->where('constant_provider_id', 13)->all();
-                        foreach($JokerFish as $value){
+                        foreach ($JokerFish as $value) {
                             $JokerFishReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1497,7 +1514,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Fish',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1525,9 +1542,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $SpadeSlot = collect($item['bets'])->where('constant_provider_id', 4)->all();
-                        foreach($SpadeSlot as $value){
+                        foreach ($SpadeSlot as $value) {
                             $SpadeSlotReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1542,7 +1559,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Spade Slot',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1570,9 +1587,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $SpadeFish = collect($item['bets'])->where('constant_provider_id', 14)->all();
-                        foreach($SpadeFish as $value){
+                        foreach ($SpadeFish as $value) {
                             $SpadeFishReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1587,7 +1604,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Spade Fish',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1615,9 +1632,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $PGSoftSlot = collect($item['bets'])->where('constant_provider_id', 5)->all();
-                        foreach($PGSoftSlot as $value){
+                        foreach ($PGSoftSlot as $value) {
                             $PGSoftSlotReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1632,7 +1649,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain PGSoft Slot',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1660,9 +1677,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $JDBSlot = collect($item['bets'])->where('constant_provider_id', 7)->all();
-                        foreach($JDBSlot as $value){
+                        foreach ($JDBSlot as $value) {
                             $JDBSlotReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1677,7 +1694,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain JDB Slot',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1705,9 +1722,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $JDBFish = collect($item['bets'])->where('constant_provider_id', 15)->all();
-                        foreach($JDBFish as $value){
+                        foreach ($JDBFish as $value) {
                             $JDBFishReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1722,7 +1739,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain JDB Fish',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1750,9 +1767,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $SexyGamingLiveCasino = collect($item['bets'])->where('constant_provider_id', 11)->all();
-                        foreach($SexyGamingLiveCasino as $value){
+                        foreach ($SexyGamingLiveCasino as $value) {
                             $SexyGamingLiveCasinoReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1767,7 +1784,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Sexy Gaming Live Casino',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1795,9 +1812,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $IONXLiveCasino = collect($item['bets'])->where('constant_provider_id', 8)->all();
-                        foreach($IONXLiveCasino as $value){
+                        foreach ($IONXLiveCasino as $value) {
                             $IONXLiveCasinoReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1812,7 +1829,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain IONX Live Casino',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1840,9 +1857,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $OneGameSlot = collect($item['bets'])->where('constant_provider_id', 9)->all();
-                        foreach($OneGameSlot as $value){
+                        foreach ($OneGameSlot as $value) {
                             $OneGameSlotReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1857,7 +1874,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain One Game Slot',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1885,9 +1902,9 @@ class MemberController extends ApiController
                 foreach ($referalMembers['referrals'] as $key => $value) {
                     if ($item['bets'] != []) {
                         $RedTigerSlot = collect($item['bets'])->where('constant_provider_id', 12)->all();
-                        foreach($RedTigerSlot as $value){
+                        foreach ($RedTigerSlot as $value) {
                             $RedTigerSlotReferal[] = [
-                                'Tables' => 'Referral Togel History',
+                                'Tables' => 'bonus Referral',
                                 'betsBet' => null,
                                 'betsWin' => null,
                                 'betsGameInfo' => null,
@@ -1902,7 +1919,7 @@ class MemberController extends ApiController
                                 'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Red Tiger Slot',
                                 'betsTogelHistoryDebit' => null,
                                 'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
-                                'betsTogelHistoryBalance' => null,
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
                                 'betsTogelHistoryCreatedBy' => null,
                                 'depositCredit' => null,
                                 'depositJumlah' => null,
@@ -1927,7 +1944,7 @@ class MemberController extends ApiController
                 }
 
                 # Combine all history
-                $alldata = array_merge($providers, $allProBet, $activitys, $bonusHistory, $betTogelHistories, $togelReferals, $PragmaticSlotReferal, $PragmaticLiveCasinoReferal, $HabaneroSlotReferal,$JokerSlotReferal,$JokerFishReferal,$SpadeSlotReferal,$SpadeFishReferal,$PGSoftSlotReferal,$JDBSlotReferal,$JDBFishReferal,$SexyGamingLiveCasinoReferal,$IONXLiveCasinoReferal,$OneGameSlotReferal,$RedTigerSlotReferal);
+                $alldata = array_merge($providers, $allProBet, $activitys, $bonusHistory, $betTogelHistories, $togelReferals, $PragmaticSlotReferal, $PragmaticLiveCasinoReferal, $HabaneroSlotReferal, $JokerSlotReferal, $JokerFishReferal, $SpadeSlotReferal, $SpadeFishReferal, $PGSoftSlotReferal, $JDBSlotReferal, $JDBFishReferal, $SexyGamingLiveCasinoReferal, $IONXLiveCasinoReferal, $OneGameSlotReferal, $RedTigerSlotReferal);
                 $date = array_column($alldata, 'created_at');
                 array_multisort($date, SORT_DESC, $alldata);
                 $this->allProviderBet = $alldata;
