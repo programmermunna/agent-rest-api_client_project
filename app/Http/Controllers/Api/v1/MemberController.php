@@ -6,6 +6,7 @@ use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BonusHistoryModel;
+use App\Models\ConstantProvider;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\DepositModel;
 use App\Models\ImageContent;
@@ -22,9 +23,11 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB; # pagination pake ini
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator; # pagination pake ini
 use Livewire\WithPagination;
+
+# pagination pake ini
 
 # pagination pake ini
 
@@ -71,116 +74,6 @@ class MemberController extends ApiController
             $fromDate = Carbon::now()->subMonth(2)->format('Y-m-d 00:00:00');
             $toDate = Carbon::now();
 
-            # History Deposit
-            $deposit = DB::select("SELECT
-                    'Deposit' as tables,
-                    jumlah,
-                    credit,
-                    approval_status,
-                    created_at,
-                    created_by,
-                    if (
-                        approval_status = 0,
-                        'Pending',
-                        if (
-                            approval_status = 1,
-                            'Success',
-                            if (
-                                approval_status = 2,
-                                'Rejected',
-                                'nulled'
-                            )
-                        )
-                    ) as 'deposit status'
-                FROM
-                    deposit
-                WHERE
-                    created_by = $id
-                    AND created_at BETWEEN '$fromDate' AND '$toDate'
-                ORDER BY
-                    created_at DESC");
-
-            # History Withdraw
-            $withdraw = DB::select("SELECT
-                      'Withdraw' as tables,
-                      jumlah,
-                      credit,
-                      approval_status,
-                      created_at,
-                      created_by,
-                      if (
-                        approval_status = 0
-                          , 'Pending'
-                          , if (
-                              approval_status = 1
-                              , 'Success'
-                              , if (
-                                  approval_status = 2
-                                  , 'Rejected'
-                                  , 'nulled'
-                              )
-                          )
-                      ) as 'Withdraw status'
-                  FROM
-                      withdraw
-                  WHERE
-                      created_by = $id
-                      AND created_at BETWEEN '$fromDate' AND '$toDate'
-                  ORDER BY
-                      created_at
-                  DESC");
-
-            # Login / Logout Filter
-            $activity_members = DB::select("SELECT
-                  properties,
-                  created_at
-              FROM
-                  activity_log
-              WHERE
-                  log_name = 'Member Login' OR log_name ='Member Log Out'
-                  AND created_at BETWEEN '$fromDate' AND '$toDate'
-              ORDER BY
-                    created_at
-              DESC");
-
-            $properties = [];
-            foreach ($activity_members as $activity) {
-                $array = json_decode($activity->properties, true);
-                if (!array_key_exists('device', $array) && !array_key_exists('created_at', $array)) {
-                    $device = Arr::add($array, 'device', 'Unknown');
-                    $properties[] = Arr::add($device, 'created_at', $activity->created_at);
-                } else {
-                    $properties[] = Arr::add($array, 'created_at', $activity->created_at);
-                }
-            }
-
-            $member = MembersModel::where('id', $id)->first();
-            $activity = [];
-            $filterDate = collect($properties)->whereBetween('created_at', [$fromDate, $toDate])->all();
-            foreach ($filterDate as $index => $json) {
-                if ($json['target'] == $member->username) {
-                    $data = [
-                        "ip" => $json['ip'],
-                        "target" => $json['target'],
-                        "activity" => $json['device'] == null ? $json['activity'] : $json['activity'] . ' - ' . $json['device'],
-                        "created_at" => $json['created_at'],
-                    ];
-                    $activity[] = $data;
-                }
-            }
-
-            # Referral filter
-            $referalMembers = MembersModel::where('id', $id)->with('referrals')->first();
-            $togelReferal = [];
-            foreach ($referalMembers['referrals'] as $key => $value) {
-                $data = [
-                    'created_at' => Carbon::parse($value['created_at'])->format('Y-m-d H:i:s'),
-                    'deskripsi' => 'Referral Togel dari : (' . $value['username'] . ' = ' . $value['bonus_referal'] . ')',
-                    'bonus' => $value['bonus_referal'],
-                ];
-                $togelReferal[] = $data;
-            }
-
             $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
                 ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
                 ->whereBetween('bets.created_at', [$fromDate, $toDate])
@@ -190,6 +83,7 @@ class MemberController extends ApiController
             $bonus = BonusHistoryModel::join('constant_bonus', 'constant_bonus.id', '=', 'bonus_history.constant_bonus_id')
                 ->selectRaw("
                     bonus_history.id,
+                    bonus_history.constant_bonus_id,
                     constant_bonus.nama_bonus,
                     bonus_history.type,
                     bonus_history.jumlah,
@@ -203,10 +97,84 @@ class MemberController extends ApiController
                     bonus_history.member_id
                 ")
                 ->whereBetween('bonus_history.created_at', [$fromDate, $toDate])
+                ->whereNotIn('bonus_history.constant_bonus_id', [3])
                 ->where('bonus_history.is_send', 1)
-                ->where('bonus_history.member_id', auth('api')->user()->id);
+                ->where('bonus_history.member_id', auth('api')->user()->id)
+                ->orderBy('bonus_history.created_at', 'desc');
 
-            if ($request->type == 'depositWithdraw') {
+            $referalMembers = MembersModel::select('id')->where('id', $id)
+                ->with([
+                    'referrals' => function ($query) use ($fromDate, $toDate) {
+                        $query->with([
+                            'betTogels' => function ($query) use ($fromDate, $toDate) {
+                                $query->selectRaw("created_by, id as bet_id, bonus_daily_referal, balance_upline_referral, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                            },
+                            'bets' => function ($query) use ($fromDate, $toDate) {
+                                $query->selectRaw("constant_provider_id, created_by, game_id as bet_id, bonus_daily_referal, credit_upline_referral, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                            },
+                        ])->select(['referrer_id', 'id', 'username']);
+                    }])->first()->toArray();
+
+            if ($request->type == 'depositWithdraw') { # History Desposit & Withdraw
+                # History Deposit
+                $deposit = DB::select("SELECT
+                        'Deposit' as tables,
+                        jumlah,
+                        credit,
+                        approval_status,
+                        created_at,
+                        created_by,
+                        if (
+                            approval_status = 0,
+                            'Pending',
+                            if (
+                                approval_status = 1,
+                                'Success',
+                                if (
+                                    approval_status = 2,
+                                    'Rejected',
+                                    'nulled'
+                                )
+                            )
+                        ) as 'deposit status'
+                    FROM
+                        deposit
+                    WHERE
+                        created_by = $id
+                        AND created_at BETWEEN '$fromDate' AND '$toDate'
+                    ORDER BY
+                        created_at DESC");
+
+                # History Withdraw
+                $withdraw = DB::select("SELECT
+                        'Withdraw' as tables,
+                        jumlah,
+                        credit,
+                        approval_status,
+                        created_at,
+                        created_by,
+                        if (
+                            approval_status = 0
+                            , 'Pending'
+                            , if (
+                                approval_status = 1
+                                , 'Success'
+                                , if (
+                                    approval_status = 2
+                                    , 'Rejected'
+                                    , 'nulled'
+                                )
+                            )
+                        ) as 'Withdraw status'
+                    FROM
+                        withdraw
+                    WHERE
+                        created_by = $id
+                        AND created_at BETWEEN '$fromDate' AND '$toDate'
+                    ORDER BY
+                        created_at
+                    DESC");
+
                 $depoWD = array_merge($deposit, $withdraw);
                 $date = array_column($depoWD, 'created_at');
                 array_multisort($date, SORT_DESC, $depoWD);
@@ -216,21 +184,377 @@ class MemberController extends ApiController
                     'status' => 'success',
                     'depositWithdraw' => $data,
                 ];
-            } elseif ($request->type == 'loginLogout') {
+            } elseif ($request->type == 'loginLogout') { # History Login/Logout
+                # Login / Logout Filter
+                $activity_members = DB::select("SELECT
+                                        properties,
+                                        created_at
+                                    FROM
+                                        activity_log
+                                    WHERE
+                                        log_name = 'Member Login' OR log_name ='Member Log Out'
+                                        AND created_at BETWEEN '$fromDate' AND '$toDate'
+                                    ORDER BY
+                                        created_at
+                                    DESC");
+
+                $properties = [];
+                foreach ($activity_members as $activity) {
+                    $array = json_decode($activity->properties, true);
+                    if (!array_key_exists('device', $array) && !array_key_exists('created_at', $array)) {
+                        $device = Arr::add($array, 'device', 'Unknown');
+                        $properties[] = Arr::add($device, 'created_at', $activity->created_at);
+                    } else {
+                        $properties[] = Arr::add($array, 'created_at', $activity->created_at);
+                    }
+                }
+
+                $member = MembersModel::where('id', $id)->first();
+                $activity = [];
+                $filterDate = collect($properties)->whereBetween('created_at', [$fromDate, $toDate])->all();
+                foreach ($filterDate as $index => $json) {
+                    if ($json['target'] == $member->username) {
+                        $data = [
+                            "ip" => $json['ip'],
+                            "target" => $json['target'],
+                            "activity" => $json['device'] == null ? $json['activity'] : $json['activity'] . ' - ' . $json['device'],
+                            "created_at" => $json['created_at'],
+                        ];
+                        $activity[] = $data;
+                    }
+                }
                 $this->loginLout = $activity;
                 $loginLout = $this->paginate($this->loginLout, $this->perPage);
                 return [
                     'status' => 'success',
                     'loginLogout' => $loginLout,
                 ];
-            } elseif ($request->type == 'referralTogel') {
-                $this->togelReferal = $togelReferal;
-                $togelReferal = $this->paginate($this->togelReferal, $this->perPage);
+            } elseif ($request->type == 'referralTogel') { # History Referral Togel
+                $togelReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bet_togels'] != []) {
+                        foreach ($item['bet_togels'] as $value) {
+                            $togelReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Togel',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['balance_upline_referral'],
+                            ];
+                        }
+                    }
+                }
+                $togelReferal = $this->paginate($togelReferal, $this->perPage);
                 return [
                     'status' => 'success',
                     'referralTogel' => $togelReferal,
                 ];
-            } elseif ($request->type == 'pragmaticSlot') {
+            } elseif ($request->type == 'referralPragmaticSlot') { # History Referral Pragmatic Slot
+                $PragmaticSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $PragmaticSlot = collect($item['bets'])->where('constant_provider_id', 1)->all();
+                        foreach ($PragmaticSlot as $value) {
+                            $PragmaticSlotReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Slot',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($PragmaticSlotReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralPragmaticSlot' => $data,
+                ];
+            } elseif ($request->type == 'referralPragmaticLiveCasino') { # History Referral Pragmatic Live Casino
+                $PragmaticLiveCasinoReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $PragmaticLiveCasino = collect($item['bets'])->where('constant_provider_id', 10)->all();
+                        foreach ($PragmaticLiveCasino as $value) {
+                            $PragmaticLiveCasinoReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Live Casino',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($PragmaticLiveCasinoReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralPragmaticLiveCasino' => $data,
+                ];
+            } elseif ($request->type == 'referralHabaneroSlot') { # History Referral Habanero Slot
+                $HabaneroSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $HabaneroSlot = collect($item['bets'])->where('constant_provider_id', 2)->all();
+                        foreach ($HabaneroSlot as $value) {
+                            $HabaneroSlotReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Habanero Slot',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($HabaneroSlotReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralHabaneroSlot' => $data,
+                ];
+            } elseif ($request->type == 'referralJokerSlot') { # History Referral Joker Gaming Slot
+                $JokerSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $JokerSlot = collect($item['bets'])->where('constant_provider_id', 3)->all();
+                        foreach ($JokerSlot as $value) {
+                            $JokerSlotReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Slot',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($JokerSlotReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralJokerSlot' => $data,
+                ];
+            } elseif ($request->type == 'referralJokerFish') { # History Referral Joker Gaming Fish
+                $JokerFishReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $JokerFish = collect($item['bets'])->where('constant_provider_id', 13)->all();
+                        foreach ($JokerFish as $value) {
+                            $JokerFishReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Fish',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($JokerFishReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralJokerFish' => $data,
+                ];
+            } elseif ($request->type == 'referralSpadeSlot') { # History Referral Spade Gaming Slot
+                $SpadeSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $SpadeSlot = collect($item['bets'])->where('constant_provider_id', 4)->all();
+                        foreach ($SpadeSlot as $value) {
+                            $SpadeSlotReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Spade Slot',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($SpadeSlotReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralSpadeSlot' => $data,
+                ];
+            } elseif ($request->type == 'referralSpadeFish') { # History Referral Spade Gaming Fish
+                $SpadeFishReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $SpadeFish = collect($item['bets'])->where('constant_provider_id', 14)->all();
+                        foreach ($SpadeFish as $value) {
+                            $SpadeFishReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Spade Fish',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($SpadeFishReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralSpadeFish' => $data,
+                ];
+            } elseif ($request->type == 'referralPGSoftSlot') { # History Referral PG Soft Slot
+                $PGSoftSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $PGSoftSlot = collect($item['bets'])->where('constant_provider_id', 5)->all();
+                        foreach ($PGSoftSlot as $value) {
+                            $PGSoftSlotReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain PGSoft Slot',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($PGSoftSlotReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralPGSoftSlot' => $data,
+                ];
+            } elseif ($request->type == 'referralJDBSlot') { # History Referral JDB Slot
+                $JDBSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $JDBSlot = collect($item['bets'])->where('constant_provider_id', 7)->all();
+                        foreach ($JDBSlot as $value) {
+                            $JDBSlotReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain JDB Slot',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($JDBSlotReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralJDBSlot' => $data,
+                ];
+            } elseif ($request->type == 'referralJDBFish') { # History Referral JDB Fish
+                $JDBFishReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $JDBFish = collect($item['bets'])->where('constant_provider_id', 15)->all();
+                        foreach ($JDBFish as $value) {
+                            $JDBFishReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain JDB Fish',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($JDBFishReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralJDBFish' => $data,
+                ];
+            } elseif ($request->type == 'referralSexyGamingLiveCasino') { # History Referral Sexy Gaming Live Casino
+                $SexyGamingLiveCasinoReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $SexyGamingLiveCasino = collect($item['bets'])->where('constant_provider_id', 11)->all();
+                        foreach ($SexyGamingLiveCasino as $value) {
+                            $SexyGamingLiveCasinoReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Sexy Gaming Live Casino',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($SexyGamingLiveCasinoReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralSexyGamingLiveCasino' => $data,
+                ];
+            } elseif ($request->type == 'referralIONXLiveCasino') { # History Referral IONX Live Casino
+                $IONXLiveCasinoReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $IONXLiveCasino = collect($item['bets'])->where('constant_provider_id', 8)->all();
+                        foreach ($IONXLiveCasino as $value) {
+                            $IONXLiveCasinoReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain IONX Live Casino',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($IONXLiveCasinoReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralIONXLiveCasino' => $data,
+                ];
+            } elseif ($request->type == 'referralOneGameSlot') { # History Referral One Game Slot
+                $OneGameSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $OneGameSlot = collect($item['bets'])->where('constant_provider_id', 9)->all();
+                        foreach ($OneGameSlot as $value) {
+                            $OneGameSlotReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain One Game Slot',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+                    }
+                }
+
+                $data = $this->paginate($OneGameSlotReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralOneGameSlot' => $data,
+                ];
+            } elseif ($request->type == 'referralRedTigerSlot') { # History Referral Red Tiger Slot
+                $RedTigerSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $RedTigerSlot = collect($item['bets'])->where('constant_provider_id', 12)->all();
+                        foreach ($RedTigerSlot as $value) {
+                            $RedTigerSlotReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Red Tiger Slot',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+                    }
+                }
+
+                $data = $this->paginate($RedTigerSlotReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralRedTigerSlot' => $data,
+                ];
+            } elseif ($request->type == 'transaksiPragmaticSlot') { # History Transaksi Pragmatic Slot
                 $pragmaticSlot = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -252,9 +576,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'pragmaticSlot' => $data,
+                    'transaksiPragmaticSlot' => $data,
                 ];
-            } elseif ($request->type == 'pragmaticCasino') {
+            } elseif ($request->type == 'transaksipragmaticLiveCasino') { # History Transaksi Pragmatic Live Casino
                 $pragmaticCasino = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -276,9 +600,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'pragmaticCasino' => $data,
+                    'transaksipragmaticLiveCasino' => $data,
                 ];
-            } elseif ($request->type == 'habaneroSlot') {
+            } elseif ($request->type == 'transaksiHabaneroSlot') { # History Transaksi Habanero Slot
                 $habaneroSlot = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -300,9 +624,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'habaneroSlot' => $data,
+                    'transaksiHabaneroSlot' => $data,
                 ];
-            } elseif ($request->type == 'jokerSlot') {
+            } elseif ($request->type == 'transaksiJokerSlot') { # History Transaksi Joker Gaming Slot
                 $jokerSlot = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -324,9 +648,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'jokerSlot' => $data,
+                    'transaksiJokerSlot' => $data,
                 ];
-            } elseif ($request->type == 'jokerFish') {
+            } elseif ($request->type == 'transaksiJokerFish') { # History Transaksi Joker Gaming Fish
                 $jokerFish = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -348,9 +672,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'jokerFish' => $data,
+                    'transaksiJokerFish' => $data,
                 ];
-            } elseif ($request->type == 'spadeSlot') {
+            } elseif ($request->type == 'transaksiSpadeSlot') { # History Transaksi Spade Gaming Slot
                 $spadeSlot = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -372,9 +696,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'spadeSlot' => $data,
+                    'transaksiSpadeSlot' => $data,
                 ];
-            } elseif ($request->type == 'spadeFish') {
+            } elseif ($request->type == 'transaksiSpadeFish') { # History Transaksi Spade Gaming Fish
                 $spadeFish = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -396,9 +720,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'spadeFish' => $data,
+                    'transaksiSpadeFish' => $data,
                 ];
-            } elseif ($request->type == 'pgSlot') {
+            } elseif ($request->type == 'transaksiPGSoftSlot') { # History Transaksi PG Soft Slot
                 $pgSlot = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -420,32 +744,32 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'pgSlot' => $data,
+                    'transaksiPGSoftSlot' => $data,
                 ];
-            } elseif ($request->type == 'playtechSlot') {
-                $playtechSlot = $query->select(
-                    'bets.bet',
-                    'bets.game_info',
-                    'bets.bet_id',
-                    'bets.game_id',
-                    'bets.deskripsi',
-                    'bets.credit',
-                    'bets.win',
-                    'bets.type',
-                    'bets.created_at',
-                    'constant_provider.constant_provider_name'
-                )
-                    ->where('bets.created_by', auth('api')->user()->id)
-                    ->where('bets.constant_provider_id', 6)
-                    ->orderBy('bets.created_at', 'desc')->get();
-                // $this->playtechBet = $playBet->toArray();
-                $data = $this->paginate($playtechSlot->toArray(), $this->perPage);
+                // } elseif ($request->type == 'transaksiPlaytechSlot') { # History Transaksi Playtech Slot
+                //     $playtechSlot = $query->select(
+                //         'bets.bet',
+                //         'bets.game_info',
+                //         'bets.bet_id',
+                //         'bets.game_id',
+                //         'bets.deskripsi',
+                //         'bets.credit',
+                //         'bets.win',
+                //         'bets.type',
+                //         'bets.created_at',
+                //         'constant_provider.constant_provider_name'
+                //     )
+                //         ->where('bets.created_by', auth('api')->user()->id)
+                //         ->where('bets.constant_provider_id', 6)
+                //         ->orderBy('bets.created_at', 'desc')->get();
 
-                return [
-                    'status' => 'success',
-                    'playtechSlot' => $data,
-                ];
-            } elseif ($request->type == 'jdbSlot') {
+                //     $data = $this->paginate($playtechSlot->toArray(), $this->perPage);
+
+                //     return [
+                //         'status' => 'success',
+                //         'transaksiPlaytechSlot' => $data,
+                //     ];
+            } elseif ($request->type == 'transaksiJDBSlot') { # History Transaksi JDB Slot
                 $jdbSlot = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -467,9 +791,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'jdbSlot' => $data,
+                    'transaksiJDBSlot' => $data,
                 ];
-            } elseif ($request->type == 'jdbFish') {
+            } elseif ($request->type == 'transaksiJDBFish') { # History Transaksi JDB Fish
                 $jdbFish = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -491,9 +815,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'jdbFish' => $data,
+                    'transaksiJDBFish' => $data,
                 ];
-            } elseif ($request->type == 'sexyGCasino') {
+            } elseif ($request->type == 'transaksiSexyGamingLiveCasino') { # History Transaksi Sexy Gaming Live Casino
                 $sexyGCasino = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -515,9 +839,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'sexyGCasino' => $data,
+                    'transaksiSexyGamingLiveCasino' => $data,
                 ];
-            } elseif ($request->type == 'ionxCasino') {
+            } elseif ($request->type == 'transaksiIONXLiveCasino') { # History Transaksi IONX Live Casino
                 $ionxCasino = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -539,9 +863,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'ionxCasino' => $data,
+                    'transaksiIONXLiveCasino' => $data,
                 ];
-            } elseif ($request->type == 'oneGSlot') {
+            } elseif ($request->type == 'transaksiOneGameSlot') { # History Transaksi One Game Slot
                 $oneGSlot = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -563,9 +887,9 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'oneGSlot' => $data,
+                    'transaksiOneGameSlot' => $data,
                 ];
-            } elseif ($request->type == 'redTSlot') {
+            } elseif ($request->type == 'transaksiRedTigerSlot') { # History Transaksi Red Tiger Slot
                 $redTSlot = $query->select(
                     'bets.bet',
                     'bets.game_info',
@@ -587,12 +911,12 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'redTSlot' => $data,
+                    'transaksiRedTigerSlot' => $data,
                 ];
-            } elseif ($request->type == 'BonusPromo') {
+            } elseif ($request->type == 'transaksiBonusPromo') { # History Transaksi Bonus Promo
                 $bonusHistory = [];
                 foreach ($bonus->get() as $key => $value) {
-                    $status = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
+                    $status_bonus = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
                     $bonusHistory[] = [
                         'id' => $value->id,
                         'nama_bonus' => $value->nama_bonus,
@@ -600,7 +924,7 @@ class MemberController extends ApiController
                         'jumlah' => $value->jumlah,
                         'credit' => $value->credit ?? 0,
                         'hadiah' => $value->hadiah,
-                        'status_bonus' => $status,
+                        'status_bonus' => $status_bonus,
                         'created_at' => $value->created_at,
                         'member_id' => $value->member_id,
                     ];
@@ -611,16 +935,16 @@ class MemberController extends ApiController
 
                 return [
                     'status' => 'success',
-                    'BonusPromo' => $bonusArr,
+                    'transaksiBonusPromo' => $bonusArr,
                 ];
-            } elseif ($request->type == 'togel') {
+            } elseif ($request->type == 'transaksitogel') { # History Transaksi Togel Game
                 $togel = $this->paginate($this->getTogel(), $this->perPage);
 
                 return [
                     'status' => 'success',
-                    'togel' => $togel,
+                    'transaksitogel' => $togel,
                 ];
-            } else {
+            } else { # History All
                 # History bets
                 $providers = $query->where('bets.created_by', auth('api')->user()->id)
                     ->selectRaw("
@@ -708,67 +1032,67 @@ class MemberController extends ApiController
                     NULL as activityDeskripsi,
                     NULL as activityName,
                     NULL as detail
-                FROM
-                    deposit as a
-                LEFT JOIN members as b ON b.id = a.created_by
-                WHERE
-                    a.created_by = $id
-                    AND a.created_at BETWEEN '$fromDate' AND '$toDate'
-                UNION ALL
-                SELECT
-                    'Withdraw' as Tables,
-                    NULL as betsBet,
-                    NULL as betsWin,
-                    NULL as betsGameInfo,
-                    NULL as betsBetId,
-                    NULL as betsGameId,
-                    NULL as betsDeskripsi,
-                    NULL as betsCredit,
-                    a.created_at as created_at,
-                    NULL as betsProviderName,
-                    NULL as betsTogelHistoryId,
-                    NULL as betsTogelHistoryPasaran,
-                    NULL as betsTogelHistorDeskripsi,
-                    NULL as betsTogelHistoryDebit,
-                    NULL as betsTogelHistoryKredit,
-                    NULL as betsTogelHistoryBalance,
-                    NULL as betsTogelHistoryCreatedBy,
-                    NULL as depositCredit,
-                    NULL as depositJumlah,
-                    NULL as depositStatus,
-                    NULL as depositDescription,
-                    a.credit as withdrawCredit,
-                    a.jumlah as withdrawJumlah,
-                    a.approval_status as withdrawStatus,
-                    if (
-                        a.approval_status = 0
-                        , 'Pending'
-                        , if (
-                            a.approval_status = 1
-                            , 'Success'
+                    FROM
+                        deposit as a
+                    LEFT JOIN members as b ON b.id = a.created_by
+                    WHERE
+                        a.created_by = $id
+                        AND a.created_at BETWEEN '$fromDate' AND '$toDate'
+                    UNION ALL
+                    SELECT
+                        'Withdraw' as Tables,
+                        NULL as betsBet,
+                        NULL as betsWin,
+                        NULL as betsGameInfo,
+                        NULL as betsBetId,
+                        NULL as betsGameId,
+                        NULL as betsDeskripsi,
+                        NULL as betsCredit,
+                        a.created_at as created_at,
+                        NULL as betsProviderName,
+                        NULL as betsTogelHistoryId,
+                        NULL as betsTogelHistoryPasaran,
+                        NULL as betsTogelHistorDeskripsi,
+                        NULL as betsTogelHistoryDebit,
+                        NULL as betsTogelHistoryKredit,
+                        NULL as betsTogelHistoryBalance,
+                        NULL as betsTogelHistoryCreatedBy,
+                        NULL as depositCredit,
+                        NULL as depositJumlah,
+                        NULL as depositStatus,
+                        NULL as depositDescription,
+                        a.credit as withdrawCredit,
+                        a.jumlah as withdrawJumlah,
+                        a.approval_status as withdrawStatus,
+                        if (
+                            a.approval_status = 0
+                            , 'Pending'
                             , if (
-                                a.approval_status = 2
-                                , 'Rejected'
-                                , 'nulled'
+                                a.approval_status = 1
+                                , 'Success'
+                                , if (
+                                    a.approval_status = 2
+                                    , 'Rejected'
+                                    , 'nulled'
+                                )
                             )
-                        )
-                    ) as 'withdrawDescription',
-                    NULL as bonusHistoryNamaBonus,
-                    NULL as bonusHistoryType,
-                    NULL as bonusHistoryJumlah,
-                    NULL as bonusHistoryHadiah,
-                    NULL as bonusHistoryStatus,
-                    NULL as bonusHistoryCredit,
-                    NULL as activityDeskripsi,
-                    NULL as activityName,
-                    NULL as detail
-                FROM
-                    withdraw as a
-                LEFT JOIN members as b ON b.id = a.created_by
-                WHERE
-                    a.created_by = $id
-                    AND a.created_at BETWEEN '$fromDate' AND '$toDate'
-                ORDER BY created_at DESC"));
+                        ) as 'withdrawDescription',
+                        NULL as bonusHistoryNamaBonus,
+                        NULL as bonusHistoryType,
+                        NULL as bonusHistoryJumlah,
+                        NULL as bonusHistoryHadiah,
+                        NULL as bonusHistoryStatus,
+                        NULL as bonusHistoryCredit,
+                        NULL as activityDeskripsi,
+                        NULL as activityName,
+                        NULL as detail
+                    FROM
+                        withdraw as a
+                    LEFT JOIN members as b ON b.id = a.created_by
+                    WHERE
+                        a.created_by = $id
+                        AND a.created_at BETWEEN '$fromDate' AND '$toDate'
+                    ORDER BY created_at DESC"));
 
                 # Histori Login/Logout
                 $activity_members = DB::select("SELECT
@@ -859,8 +1183,8 @@ class MemberController extends ApiController
                         'betsTogelHistoryId' => $value['id'],
                         'betsTogelHistoryPasaran' => $value['Pasaran'],
                         'betsTogelHistorDeskripsi' => 'Bet : (' . $value['Game'] . ' => ' . $value['Nomor'] . ')',
-                        'betsTogelHistoryDebit' => $value['Bayar'],
-                        'betsTogelHistoryKredit' => $value['winTogel'],
+                        'betsTogelHistoryDebit' => $value['winTogel'],
+                        'betsTogelHistoryKredit' => $value['Bayar'],
                         'betsTogelHistoryBalance' => $value['balance'],
                         'betsTogelHistoryCreatedBy' => $value['created_by'],
                         'depositCredit' => null,
@@ -887,6 +1211,8 @@ class MemberController extends ApiController
                 # History Bonus
                 $bonusHistory = [];
                 foreach ($bonus->get() as $key => $value) {
+                    $status_bonus = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
+
                     $bonusHistory[] = [
                         'Tables' => 'Bonus History',
                         'betsBet' => null,
@@ -917,7 +1243,7 @@ class MemberController extends ApiController
                         'bonusHistoryType' => $value->type,
                         'bonusHistoryJumlah' => $value->jumlah,
                         'bonusHistoryHadiah' => $value->hadiah,
-                        'bonusHistoryStatus' => preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim')),
+                        'bonusHistoryStatus' => $status_bonus,
                         'bonusHistoryCredit' => $value->credit,
                         'activityDeskripsi' => null,
                         'activityName' => null,
@@ -925,50 +1251,700 @@ class MemberController extends ApiController
                     ];
                 }
 
+                $referalMembers = MembersModel::select('id')->where('id', $id)
+                    ->with([
+                        'referrals' => function ($query) use ($fromDate, $toDate) {
+                            $query->with([
+                                'betTogels' => function ($query) use ($fromDate, $toDate) {
+                                    $query->selectRaw("created_by, id as bet_id, bonus_daily_referal, balance_upline_referral, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                                },
+                                'bets' => function ($query) use ($fromDate, $toDate) {
+                                    $query->selectRaw("constant_provider_id, created_by, game_id as bet_id, bonus_daily_referal, credit_upline_referral, created_at")->where('bonus_daily_referal', '>', 0)->whereBetween('created_at', [$fromDate, $toDate])->orderBy('created_at', 'desc');
+                                },
+                            ])->select(['referrer_id', 'id', 'username']);
+                        }])->first()->toArray();
                 # History Togel Referral
                 $togelReferals = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bet_togels'] != []) {
+                        foreach ($item['bet_togels'] as $value) {
+                            $togelReferals[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Togel',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['balance_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+
+                # History Pragmatic Slot Referral
+                $PragmaticSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $PragmaticSlot = collect($item['bets'])->where('constant_provider_id', 1)->all();
+                        foreach ($PragmaticSlot as $value) {
+                            $PragmaticSlotReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+
+                # History Pragmatic Live Casino Referral
+                $PragmaticLiveCasinoReferal = [];
                 foreach ($referalMembers['referrals'] as $key => $value) {
-                    $togelReferal = [
-                        'Tables' => 'Referral Togel History',
-                        'betsBet' => null,
-                        'betsWin' => null,
-                        'betsGameInfo' => null,
-                        'betsBetId' => null,
-                        'betsGameId' => null,
-                        'betsDeskripsi' => null,
-                        'betsCredit' => null,
-                        'created_at' => Carbon::parse($value['created_at'])->format('Y-m-d H:i:s'),
-                        'betsProviderName' => null,
-                        'betsTogelHistoryId' => null,
-                        'betsTogelHistoryPasaran' => null,
-                        'betsTogelHistorDeskripsi' => 'Referral Togel dari : (' . $value['username'] . ' = ' . $value['bonus_referal'] . ')',
-                        'betsTogelHistoryDebit' => null,
-                        'betsTogelHistoryKredit' => $value['bonus_referal'],
-                        'betsTogelHistoryBalance' => null,
-                        'betsTogelHistoryCreatedBy' => null,
-                        'depositCredit' => null,
-                        'depositJumlah' => null,
-                        'depositStatus' => null,
-                        'depositDescription' => null,
-                        'withdrawCredit' => null,
-                        'withdrawJumlah' => null,
-                        'withdrawStatus' => null,
-                        'withdrawDescription' => null,
-                        'bonusHistoryNamaBonus' => null,
-                        'bonusHistoryType' => null,
-                        'bonusHistoryJumlah' => null,
-                        'bonusHistoryHadiah' => null,
-                        'bonusHistoryStatus' => null,
-                        'bonusHistoryCredit' => null,
-                        'activityDeskripsi' => null,
-                        'activityName' => null,
-                        'detail' => null,
-                    ];
-                    $togelReferals[] = $togelReferal;
+                    if ($item['bets'] != []) {
+                        $PragmaticLiveCasino = collect($item['bets'])->where('constant_provider_id', 10)->all();
+                        foreach ($PragmaticLiveCasino as $value) {
+                            $PragmaticLiveCasinoReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Pragmatic Live Casino',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+
+                    }
+                }
+
+                # History Habanero Slot Referral
+                $HabaneroSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $HabaneroSlot = collect($item['bets'])->where('constant_provider_id', 2)->all();
+                        foreach ($HabaneroSlot as $value) {
+                            $HabaneroSlotReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Habanero Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+
+                # History Joker Slot Referral
+                $JokerSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $JokerSlot = collect($item['bets'])->where('constant_provider_id', 3)->all();
+                        foreach ($JokerSlot as $value) {
+                            $JokerSlotReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History Joker Fish Referral
+                $JokerFishReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $JokerFish = collect($item['bets'])->where('constant_provider_id', 13)->all();
+                        foreach ($JokerFish as $value) {
+                            $JokerFishReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Joker Fish',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History Spade Slot Referral
+                $SpadeSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $SpadeSlot = collect($item['bets'])->where('constant_provider_id', 4)->all();
+                        foreach ($SpadeSlot as $value) {
+                            $SpadeSlotReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Spade Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History Spade Fish Referral
+                $SpadeFishReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $SpadeFish = collect($item['bets'])->where('constant_provider_id', 14)->all();
+                        foreach ($SpadeFish as $value) {
+                            $SpadeFishReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Spade Fish',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History PGSoft Slot Referral
+                $PGSoftSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $PGSoftSlot = collect($item['bets'])->where('constant_provider_id', 5)->all();
+                        foreach ($PGSoftSlot as $value) {
+                            $PGSoftSlotReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain PGSoft Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History JDB Slot Referral
+                $JDBSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $JDBSlot = collect($item['bets'])->where('constant_provider_id', 7)->all();
+                        foreach ($JDBSlot as $value) {
+                            $JDBSlotReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain JDB Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History JDB Fish Referral
+                $JDBFishReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $JDBFish = collect($item['bets'])->where('constant_provider_id', 15)->all();
+                        foreach ($JDBFish as $value) {
+                            $JDBFishReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain JDB Fish',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History Sexy Gaming Live Casino Referral
+                $SexyGamingLiveCasinoReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $SexyGamingLiveCasino = collect($item['bets'])->where('constant_provider_id', 11)->all();
+                        foreach ($SexyGamingLiveCasino as $value) {
+                            $SexyGamingLiveCasinoReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Sexy Gaming Live Casino',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History IONX Live Casino Referral
+                $IONXLiveCasinoReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $IONXLiveCasino = collect($item['bets'])->where('constant_provider_id', 8)->all();
+                        foreach ($IONXLiveCasino as $value) {
+                            $IONXLiveCasinoReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain IONX Live Casino',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History One Game Slot Referral
+                $OneGameSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $OneGameSlot = collect($item['bets'])->where('constant_provider_id', 9)->all();
+                        foreach ($OneGameSlot as $value) {
+                            $OneGameSlotReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain One Game Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+                # History Red Tiger Slot Referral
+                $RedTigerSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $RedTigerSlot = collect($item['bets'])->where('constant_provider_id', 12)->all();
+                        foreach ($RedTigerSlot as $value) {
+                            $RedTigerSlotReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain Red Tiger Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
                 }
 
                 # Combine all history
-                $alldata = array_merge($providers, $allProBet, $activitys, $bonusHistory, $betTogelHistories, $togelReferals);
+                $alldata = array_merge($providers, $allProBet, $activitys, $bonusHistory, $betTogelHistories, $togelReferals, $PragmaticSlotReferal, $PragmaticLiveCasinoReferal, $HabaneroSlotReferal, $JokerSlotReferal, $JokerFishReferal, $SpadeSlotReferal, $SpadeFishReferal, $PGSoftSlotReferal, $JDBSlotReferal, $JDBFishReferal, $SexyGamingLiveCasinoReferal, $IONXLiveCasinoReferal, $OneGameSlotReferal, $RedTigerSlotReferal);
                 $date = array_column($alldata, 'created_at');
                 array_multisort($date, SORT_DESC, $alldata);
                 $this->allProviderBet = $alldata;
@@ -1653,8 +2629,8 @@ class MemberController extends ApiController
                 'bets_togel_id' => $value->id,
                 'pasaran' => $value->Pasaran,
                 'description' => 'Bet : ' . $value->Game,
-                'debit' => $value->Bayar, #pay amount
-                'kredit' => $value->winTogel, #win
+                'debit' => $value->winTogel, #win
+                'kredit' => $value->Bayar, #pay amount
                 'balance' => $value->balance,
                 'created_by' => auth('api')->user()->username,
                 // 'url'       => "/endpoint/getDetailTransaksi?detail=$value->id",
@@ -3992,7 +4968,11 @@ class MemberController extends ApiController
             if ($bonus->count() < 1) {
                 return $this->successResponse(null, 'Tidak ada data', 200);
             } else {
-                return $this->successResponse($bonus, 'Bonus referal', 200);
+                $data[] = ["togel" => $bonus];
+                $data[] = ["slot" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id', [1, 2, 3, 4, 5, 7, 9, 12])->get()];
+                $data[] = ["tembak_ikan" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id', [13, 14, 15])->get()];
+                $data[] = ["live_casino" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id', [8, 10, 11])->get()];
+                return $this->successResponse($data, 'Bonus referal', 200);
             }
         } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);

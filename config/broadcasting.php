@@ -36,12 +36,17 @@ return [
             'secret' => env('PUSHER_APP_SECRET'),
             'app_id' => env('PUSHER_APP_ID'),
             'options' => [
-                'cluster' => env('PUSHER_APP_CLUSTER'),
-                'useTLS' => false,
-                'encrypted' => true,
-                'host' => env('HOST'),//'127.0.0.1',
-                'port' => env('LARAVEL_WEBSOCKETS_PORT', 6001),
-                'scheme' => env('PUSHER_APP_SCHEME')//'http'
+          'cluster' => env('PUSHER_APP_CLUSTER'),
+         'encrypted' => true,
+        'host' => 'member-api.cktch.top',
+        'port' => 6007,
+        'scheme' => 'https',
+        'useTLS' => true,
+
+        'curl_options' => [ // since we're only doing stuff locally this is fine
+                CURLOPT_SSL_VERIFYHOST => 0,
+                CURLOPT_SSL_VERIFYPEER => 0,
+            ], 
             ],
         ],
 
