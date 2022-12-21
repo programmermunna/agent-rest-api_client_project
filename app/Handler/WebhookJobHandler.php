@@ -18,8 +18,8 @@ class WebhookJobHandler extends ProcessWebhookJob
     {
         //You can perform an heavy logic here
 
-        Log::info($this->webhookCall->payload);
+        Log::info($this->webhookCall);
         sleep(10);
-        Log::info("Webhook message done");
+        Log::info("Webhook done");
     }
 }

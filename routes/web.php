@@ -19,6 +19,8 @@ Route::get('/', function () {
 
 // WEBHOOK START
 Route::webhooks('webhooks-message');
+Route::webhooks('webhooks-balance');
+
 Route::get('/test-webhook', function () {
     WebhookCall::create()
         ->url('http://localhost:8001/new-memo-event')
