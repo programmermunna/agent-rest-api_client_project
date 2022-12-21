@@ -3,10 +3,11 @@
 namespace App\Listeners;
 
 use App\Events\CreateDepositEvent;
+use Spatie\WebhookServer\WebhookCall;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Repositories\OrganizationServiceRepository;
 use App\Services\SyncApplicationEventsAmongServices;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
 class CreateDepositEventListener
 {
@@ -48,6 +49,11 @@ class CreateDepositEventListener
                     ]
                 );
             }
+            WebhookCall::create()
+            ->url(env('WEBHOOK_URL').'/create-deposit-event')
+            ->payload(['deposit_id' => $deposit->id])
+            ->useSecret('Cikatech')
+            ->dispatchSync();
         }
     }
 }
