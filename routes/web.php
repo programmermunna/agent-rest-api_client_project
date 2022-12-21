@@ -11,7 +11,7 @@
  */
 
 // Switch between the included languages
-use Carbon\Carbon;
+use Spatie\WebhookServer\WebhookCall;
 
 Route::get('/', function () {
     return json_encode('success');
@@ -19,6 +19,13 @@ Route::get('/', function () {
 
 // WEBHOOK START
 Route::webhooks('webhooks-message');
+Route::get('/test-webhook', function () {
+    WebhookCall::create()
+        ->url('http://localhost:8001/new-memo-event')
+        ->payload(['memo_id' => 5])
+        ->useSecret('Cikatech')
+        ->dispatch();
+});
 // WEBHOOK FINISH
 
 // todo remove this before PR to production
