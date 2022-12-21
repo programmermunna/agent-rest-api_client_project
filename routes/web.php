@@ -12,6 +12,7 @@
 
 // Switch between the included languages
 use Carbon\Carbon;
+use Spatie\WebhookServer\WebhookCall;
 
 Route::get('/', function(){
  return json_encode('success');
@@ -63,4 +64,37 @@ Route::get('/', function(){
 
 //     return 'withdrawal not created';
 // });
-// WEB SOCKET END
+// WEB SOCKET END\
+
+// webhook
+
+// Route::get('/test-webhook', function(){
+//     WebhookCall::create()
+//             ->url('http://localhost:8001/new-memo-event')
+//             ->payload(['memo_id' => 5])
+//             ->useSecret('Cikatech')
+//             ->dispatch();
+// });
+
+// Route::get('/withdrawal-create-event', function (Request $request) {
+
+//     if (config('app.env') !== 'production') {
+//                 \App\Models\MemoModel::create([
+//                     'member_id' => request('member_id') ?? 1,
+//                     'subject' => 'Test',
+//                     'content' => 'Test',
+//                     //'send_type' => 'Test',
+//                     'is_sent' => 1,
+//                     'is_reply' => 0,
+//                     'is_read' => false,
+//                     //'memo_id',
+//                     'is_bonus' => 0,
+//                     'sender_id' => request('sender_id') ?? 1,
+//                     'created_by' => request('created_by') ?? 1
+//                 ]);
+
+//                 return 'memo created';
+//             }
+
+//     return 'withdrawal not created';
+// });
