@@ -3,7 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\MemberUpdate;
-use Spatie\WebhookServer\WebhookCall;
+// use Spatie\WebhookServer\WebhookCall;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
@@ -29,11 +29,11 @@ class MemberUpdateListener
     {
         if ($event->getEmitAble()) {
             $member = $event->getMember();
-            WebhookCall::create()
-            ->url(env('WEBHOOK_URL').'/member-balance')
-            ->payload(['member' => $member])
-            ->useSecret('Cikatech')
-            ->dispatchSync();
+            // WebhookCall::create()
+            // ->url(env('WEBHOOK_URL').'/member-balance')
+            // ->payload(['member' => $member])
+            // ->useSecret('Cikatech')
+            // ->dispatchSync();
         }
     }
 }
