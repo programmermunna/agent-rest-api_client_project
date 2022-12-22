@@ -4,7 +4,6 @@ namespace App\Listeners;
 
 use App\Events\NotifyNewMemo;
 use Illuminate\Support\Facades\Log;
-use Spatie\WebhookServer\WebhookCall;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Repositories\OrganizationServiceRepository;
@@ -51,11 +50,11 @@ class DispatchNewMemoEventToExternalService
                     ]
                 );
             }
-            WebhookCall::create()
-            ->url(env('WEBHOOK_URL').'/new-memo-event')
-            ->payload(['memo_id' => $memo->id])
-            ->useSecret('Cikatech')
-            ->dispatchSync();
+            // WebhookCall::create()
+            // ->url(env('WEBHOOK_URL').'/new-memo-event')
+            // ->payload(['memo_id' => $memo->id])
+            // ->useSecret('Cikatech')
+            // ->dispatchSync();
         }
     }
 }

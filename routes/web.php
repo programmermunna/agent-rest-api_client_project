@@ -11,23 +11,23 @@
  */
 
 // Switch between the included languages
-use Spatie\WebhookServer\WebhookCall;
+// use Spatie\WebhookServer\WebhookCall;
 
 Route::get('/', function () {
     return json_encode('success');
 });
 
-// WEBHOOK START
-Route::webhooks('webhooks-message');
-Route::webhooks('webhooks-balance');
+// // WEBHOOK START
+// Route::webhooks('webhooks-message');
+// Route::webhooks('webhooks-balance');
 
-Route::get('/test-webhook', function () {
-    WebhookCall::create()
-        ->url('http://localhost:8001/new-memo-event')
-        ->payload(['memo_id' => 5])
-        ->useSecret('Cikatech')
-        ->dispatch();
-});
+// Route::get('/test-webhook', function () {
+//     WebhookCall::create()
+//         ->url('http://localhost:8001/new-memo-event')
+//         ->payload(['memo_id' => 5])
+//         ->useSecret('Cikatech')
+//         ->dispatch();
+// });
 // WEBHOOK FINISH
 
 // todo remove this before PR to production
