@@ -17,7 +17,7 @@ Route::get('/', function () {
     return json_encode('success');
 });
 
-// // WEBHOOK START
+// WEBHOOK START
 // Route::webhooks('webhooks-message');
 // Route::webhooks('webhooks-balance');
 
