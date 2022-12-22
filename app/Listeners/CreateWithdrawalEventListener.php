@@ -4,7 +4,6 @@ namespace App\Listeners;
 
 use App\Events\CreateDepositEvent;
 use App\Events\CreateWithdrawalEvent;
-use Spatie\WebhookServer\WebhookCall;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Repositories\OrganizationServiceRepository;
@@ -50,11 +49,11 @@ class CreateWithdrawalEventListener
                     ]
                 );
             }
-            WebhookCall::create()
-            ->url(env('WEBHOOK_URL').'/create-withdraw-event')
-            ->payload(['withdrawal_id' => $withdrawal->id])
-            ->useSecret('Cikatech')
-            ->dispatchSync();
+            // WebhookCall::create()
+            // ->url(env('WEBHOOK_URL').'/create-withdraw-event')
+            // ->payload(['withdrawal_id' => $withdrawal->id])
+            // ->useSecret('Cikatech')
+            // ->dispatchSync();
         }
     }
 }

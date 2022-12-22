@@ -31,7 +31,6 @@
         "spatie/laravel-activitylog": "^3.14",
         "spatie/laravel-permission": "^3.11",
         "spatie/laravel-ray": "^1.26",
-        "spatie/laravel-webhook-server": "^3.4",
         "tymon/jwt-auth": "^1.0"
     },
     "require-dev": {
