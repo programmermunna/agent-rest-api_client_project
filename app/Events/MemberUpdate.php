@@ -51,7 +51,7 @@ class MemberUpdate implements ShouldBroadcast
         ];
     }
 
-    public function broadcastAs(): string
+    public function broadcastAs()
     {
         return 'New-Balance-Member';
     }
