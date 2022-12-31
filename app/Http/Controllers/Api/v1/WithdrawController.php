@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
+use App\Events\MemberUpdate;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BonusSettingModel;
@@ -236,6 +237,11 @@ class WithdrawController extends ApiController
                 MembersModel::where('id', auth('api')->user()->id)->update([
                     'credit' => $member->credit - $jumlah,
                 ]);
+
+                // WEB SOCKET START
+                MemberUpdate::dispatch(auth('api')->user());                
+                // WEB SOCKET FINISH
+
                 # activity Log
                 $user = auth('api')->user();
                 UserLogModel::logMemberActivity(

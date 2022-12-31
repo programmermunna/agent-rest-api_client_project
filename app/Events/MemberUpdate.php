@@ -45,15 +45,12 @@ class MemberUpdate implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return [
-            new Channel("App.Models.User.{$this->member->id}"),
-            new Channel("App.Models.MembersModel.{$this->member->id}")
-        ];
+        return  new Channel("App.Models.MembersModel.{$this->member->id}");
     }
 
     public function broadcastAs(): string
     {
-        return 'member.update';
+        return 'New-Balance-Member';
     }
 
     public function broadcastWith(): array
