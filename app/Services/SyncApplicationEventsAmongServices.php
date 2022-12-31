@@ -95,9 +95,9 @@ class SyncApplicationEventsAmongServices
             } catch (\Throwable $exception) {
                 Log::error($exception);
 
-                return response('', 500)->json([
+                return response()->json([
                     'success' => false,
-                ]);
+                ],500);
             }
         });
     }
