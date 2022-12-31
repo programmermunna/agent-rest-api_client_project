@@ -36,17 +36,16 @@ return [
             'secret' => env('PUSHER_APP_SECRET'),
             'app_id' => env('PUSHER_APP_ID'),
             'options' => [
-          'cluster' => env('PUSHER_APP_CLUSTER'),
-         'encrypted' => true,
-        'host' => 'member-api.cktch.top',
-        'port' => 6007,
-        'scheme' => 'https',
-        'useTLS' => true,
-
-        'curl_options' => [ // since we're only doing stuff locally this is fine
-                CURLOPT_SSL_VERIFYHOST => 0,
-                CURLOPT_SSL_VERIFYPEER => 0,
-            ], 
+                'cluster' => env('PUSHER_APP_CLUSTER'),
+                'encrypted' => true,
+                'host' => 'member-api.cktch.top',
+                'port' => 6007,
+                'scheme' => 'https',
+                'useTLS' => true,
+                'curl_options' => [ // since we're only doing stuff locally this is fine
+                    CURLOPT_SSL_VERIFYHOST => 0,
+                    CURLOPT_SSL_VERIFYPEER => 0,
+                ], 
             ],
         ],
 

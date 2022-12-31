@@ -27,13 +27,6 @@ class MemberUpdateListener
      */
     public function handle(MemberUpdate $event)
     {
-        if ($event->getEmitAble()) {
-            $member = $event->getMember();
-            // WebhookCall::create()
-            // ->url(env('WEBHOOK_URL').'/member-balance')
-            // ->payload(['member' => $member])
-            // ->useSecret('Cikatech')
-            // ->dispatchSync();
-        }
+        // 
     }
 }
