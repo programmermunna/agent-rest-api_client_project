@@ -76,4 +76,16 @@ Route::get('/', function () {
 
 //     return 'withdrawal not created';
 // });
+Route::get('update-member-balance-event', function () {
+    if (config('app.env') !== 'production') {
+        $member_id = request('member_id') ?? 1;
+        $member = \App\Models\MembersModel::find($member_id);
+
+        $member->update(['credit' => 100000]);
+
+        return 'member account updated';
+    }
+
+    return 'member account not updated';
+});
 // WEB SOCKET END
