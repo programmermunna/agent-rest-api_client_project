@@ -17,13 +17,13 @@ class MemberUpdate implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     private MembersModel $member;
-    public bool $emitAble = true;
+    public bool $emitABle = true;
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(MembersModel $member, bool $emitAble = true)
+    public function __construct(MembersModel $member, bool $emitABle = true)
     {
         $this->member = $member;
     }
@@ -35,7 +35,7 @@ class MemberUpdate implements ShouldBroadcast
 
     public function getEmitAble(): bool
     {
-        return $this->emitAble;
+        return $this->emitABle;
     }
 
     /**
@@ -45,10 +45,7 @@ class MemberUpdate implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return  [
-            new Channel("test"),
-            new Channel("App.Models.MembersModel.{$this->member->id}")
-        ];
+        return new Channel("App.Models.MembersModel.{$this->member->id}");
     }
 
     public function broadcastAs()
