@@ -14,7 +14,7 @@ class MaintenanceStatusUpdate implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private bool $maintenanceStatus;
+    // private bool $maintenanceStatus;
     /**
      * Create a new event instance.
      *
@@ -22,12 +22,12 @@ class MaintenanceStatusUpdate implements ShouldBroadcast
      */
     public function __construct(bool $status)
     {
-        $this->maintenanceStatus = $status;
+        // $this->maintenanceStatus = $status;
     }
 
     public function getMaintenanceStatus(): bool
     {
-        return $this->maintenanceStatus;
+        // return $this->maintenanceStatus;
     }
 
     /**
@@ -37,21 +37,21 @@ class MaintenanceStatusUpdate implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return [
-            new Channel("maintenance.status"),
-            new Channel("all.auth.users")
-        ];
+        // return [
+        //     new Channel("maintenance.status"),
+        //     new Channel("all.auth.users")
+        // ];
     }
 
     public function broadcastAs(): string
     {
-        return 'maintenance.status';
+        // return 'maintenance.status';
     }
 
     public function broadcastWith(): array
     {
-        return [
-            'status' => $this->maintenanceStatus
-        ];
+        // return [
+        //     'status' => $this->maintenanceStatus
+        // ];
     }
 }
