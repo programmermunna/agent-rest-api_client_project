@@ -15,9 +15,9 @@ class CreateDepositEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private DepositModel $deposit;
+    // private DepositModel $deposit;
 
-    protected bool $emitAble = true;
+    // protected bool $emitAble = true;
 
     /**
      * Create a new event instance.
@@ -26,17 +26,17 @@ class CreateDepositEvent
      */
     public function __construct(DepositModel $deposit, bool $emitAble = true)
     {
-        $this->deposit = $deposit;
-        $this->emitAble = $emitAble;
+        // $this->deposit = $deposit;
+        // $this->emitAble = $emitAble;
     }
 
     public function getDeposit(): DepositModel
     {
-        return $this->deposit;
+        // return $this->deposit;
     }
 
     public function getEmitAble(): bool
     {
-        return $this->emitAble;
+        // return $this->emitAble;
     }
 }
