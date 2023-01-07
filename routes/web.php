@@ -11,11 +11,24 @@
  */
 
 // Switch between the included languages
-use Carbon\Carbon;
+// use Spatie\WebhookServer\WebhookCall;
 
-Route::get('/', function(){
- return json_encode('success');
+Route::get('/', function () {
+    return json_encode('success');
 });
+
+// WEBHOOK START
+// Route::webhooks('webhooks-message');
+// Route::webhooks('webhooks-balance');
+
+// Route::get('/test-webhook', function () {
+//     WebhookCall::create()
+//         ->url('http://localhost:8001/new-memo-event')
+//         ->payload(['memo_id' => 5])
+//         ->useSecret('Cikatech')
+//         ->dispatch();
+// });
+// WEBHOOK FINISH
 
 // todo remove this before PR to production
 // WEB SOCKET START
@@ -33,7 +46,7 @@ Route::get('/', function(){
 //             //'memo_id',
 //             'is_bonus' => 0,
 //             'sender_id' => request('sender_id') ?? 1,
-//             'created_by' => request('created_by') ?? 1
+//             'created_by' => request('created_by') ?? 1,
 //         ]);
 
 //         return 'memo created';
@@ -63,4 +76,16 @@ Route::get('/', function(){
 
 //     return 'withdrawal not created';
 // });
+Route::get('update-member-balance-event', function () {
+    if (config('app.env') !== 'production') {
+        $member_id = request('member_id') ?? 1;
+        $member = \App\Models\MembersModel::find($member_id);
+
+        $member->update(['credit' => 100000]);
+
+        return 'member account updated';
+    }
+
+    return 'member account not updated';
+});
 // WEB SOCKET END

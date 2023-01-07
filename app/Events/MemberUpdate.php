@@ -16,8 +16,8 @@ class MemberUpdate implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private MembersModel $member;
-    public bool $emitABle = true;
+    // private MembersModel $member;
+    // public bool $emitABle = true;
     /**
      * Create a new event instance.
      *
@@ -25,17 +25,17 @@ class MemberUpdate implements ShouldBroadcast
      */
     public function __construct(MembersModel $member, bool $emitABle = true)
     {
-        $this->member = $member;
+        // $this->member = $member;
     }
 
     public function getMember(): MembersModel
     {
-        return $this->member;
+        // return $this->member;
     }
 
     public function getEmitAble(): bool
     {
-        return $this->emitABle;
+        // return $this->emitABle;
     }
 
     /**
@@ -45,21 +45,18 @@ class MemberUpdate implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return [
-            new Channel("App.Models.User.{$this->member->id}"),
-            new Channel("App.Models.MembersModel.{$this->member->id}")
-        ];
+        // return new Channel("App.Models.MembersModel.{$this->member->id}");
     }
 
-    public function broadcastAs(): string
+    public function broadcastAs()
     {
-        return 'member.update';
+        // return 'New-Balance-Member';
     }
 
     public function broadcastWith(): array
     {
-        return [
-            'member' => $this->member
-        ];
+        // return [
+        //     'member' => $this->member
+        // ];
     }
 }

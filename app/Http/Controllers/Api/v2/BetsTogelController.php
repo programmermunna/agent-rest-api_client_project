@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v2;
 
+use App\Events\MemberUpdate;
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
 use App\Models\BetsTogel;
@@ -162,7 +163,7 @@ class BetsTogelController extends ApiController
                 $balance_upline_referral = 0;
 
                 # check if any referrer
-                if ($member->referrer_id) {
+                if ($member->referrer_id && $calculateReferal != 0) {
                     // calculate bonus have referrer
                     $referal = MembersModel::where('id', $member->referrer_id)->first();
                     $newCredit = $referal->credit + $calculateReferal;
@@ -224,6 +225,10 @@ class BetsTogelController extends ApiController
                     'bonus_referal' => $member->bonus_referal + $calculateReferal,
                 ]);
             }
+
+            // // WEB SOCKET START
+            // MemberUpdate::dispatch(MembersModel::find(auth('api')->user()->id));
+            // // WEB SOCKET FINISH
 
             # activity log
             $bet = BetsTogel::first();

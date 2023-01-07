@@ -3,8 +3,9 @@
 namespace App\Listeners;
 
 use App\Events\MemberUpdate;
-use Illuminate\Contracts\Queue\ShouldQueue;
+// use Spatie\WebhookServer\WebhookCall;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 class MemberUpdateListener
 {
@@ -26,6 +27,6 @@ class MemberUpdateListener
      */
     public function handle(MemberUpdate $event)
     {
-        //
+        // 
     }
 }

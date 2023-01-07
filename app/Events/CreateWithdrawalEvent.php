@@ -15,8 +15,8 @@ class CreateWithdrawalEvent
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private WithdrawModel $withdrawModel;
-    protected bool $emitAble;
+    // private WithdrawModel $withdrawModel;
+    // protected bool $emitAble;
 
     /**
      * Create a new event instance.
@@ -25,17 +25,17 @@ class CreateWithdrawalEvent
      */
     public function __construct(WithdrawModel $withdrawModel, bool $emitAble = true)
     {
-        $this->withdrawModel = $withdrawModel;
-        $this->emitAble = $emitAble;
+        // $this->withdrawModel = $withdrawModel;
+        // $this->emitAble = $emitAble;
     }
 
     public function getWithdrawModel(): WithdrawModel
     {
-        return $this->withdrawModel;
+        // return $this->withdrawModel;
     }
 
     public function getEmitAble(): bool
     {
-        return $this->emitAble;
+        // return $this->emitAble;
     }
 }
