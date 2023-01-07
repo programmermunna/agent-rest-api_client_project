@@ -238,9 +238,9 @@ class WithdrawController extends ApiController
                     'credit' => $member->credit - $jumlah,
                 ]);
 
-                // WEB SOCKET START
-                MemberUpdate::dispatch(auth('api')->user());                
-                // WEB SOCKET FINISH
+                // // WEB SOCKET START
+                // MemberUpdate::dispatch(auth('api')->user());                
+                // // WEB SOCKET FINISH
 
                 # activity Log
                 $user = auth('api')->user();

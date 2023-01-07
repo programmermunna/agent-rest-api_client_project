@@ -226,9 +226,9 @@ class BetsTogelController extends ApiController
                 ]);
             }
 
-            // WEB SOCKET START
-            MemberUpdate::dispatch(MembersModel::find(auth('api')->user()->id));
-            // WEB SOCKET FINISH
+            // // WEB SOCKET START
+            // MemberUpdate::dispatch(MembersModel::find(auth('api')->user()->id));
+            // // WEB SOCKET FINISH
 
             # activity log
             $bet = BetsTogel::first();
