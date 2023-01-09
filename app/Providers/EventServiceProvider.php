@@ -9,11 +9,15 @@ use App\Events\CreateWithdrawalEvent;
 use App\Events\MaintenanceStatusUpdate;
 use App\Events\MemberUpdate;
 use App\Events\NotifyNewMemo;
+use App\Events\BetTogelBalanceEvent;
+use App\Events\WithdrawalCreateBalanceEvent;
 use App\Listeners\DispatchNewMemoEventToExternalService;
 use App\Listeners\CreateDepositEventListener;
 use App\Listeners\CreateWithdrawalEventListener;
 use App\Listeners\MemberUpdateListener;
 use App\Listeners\MaintenanceStatusUpdateListener;
+use App\Listeners\BetTogelBalanceEventListener;
+use App\Listeners\WithdrawalCreateBalanceEventListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -47,6 +51,12 @@ class EventServiceProvider extends ServiceProvider
          ],
          CreateWithdrawalEvent::class => [
              CreateWithdrawalEventListener::class
+         ],
+         WithdrawalCreateBalanceEvent::class => [
+             WithdrawalCreateBalanceEventListener::class
+         ],
+         BetTogelBalanceEvent::class => [
+             BetTogelBalanceEventListener::class
          ]
     ];
 

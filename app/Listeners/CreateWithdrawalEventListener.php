@@ -29,26 +29,6 @@ class CreateWithdrawalEventListener
      */
     public function handle(CreateWithdrawalEvent $event)
     {
-        // if ($event->getEmitAble()) {
-        //     $withdrawal = $event->getWithdrawModel();
-        //     //sends api call with payload to intending listener
-        //     $externalServices = (new OrganizationServiceRepository())->getAllItems();
-
-        //     $externalServicesEventDispatcher = new SyncApplicationEventsAmongServices();
-        //     foreach ($externalServices as $service) {
-        //         $url = config('app.env') === 'production' ?
-        //             "{$service->production_url}{$service->events_endpoint}" :
-        //             "{$service->staging_url}{$service->events_endpoint}";
-
-        //         $externalServicesEventDispatcher->notifyOverREST(
-        //             $url,
-        //             [
-        //                 'event' => CreateWithdrawalEvent::class,
-        //                 'withdrawal_id' => $withdrawal->id,
-        //                 'has_model' => true
-        //             ]
-        //         );
-        //     }
-        // }
+        //
     }
 }
