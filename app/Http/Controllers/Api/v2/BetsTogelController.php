@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\v2;
 
-use App\Events\MemberUpdate;
+use App\Events\BetTogelBalanceEvent;
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
 use App\Models\BetsTogel;
@@ -226,8 +226,14 @@ class BetsTogelController extends ApiController
                 ]);
             }
 
+            $user = auth('api')->user();
+
             // WEB SOCKET START
-            MemberUpdate::dispatch(MembersModel::find(auth('api')->user()->id));
+            BetTogelBalanceEvent::dispatch([
+                'id' => $user->id,
+                'credit' => $user->credit,
+                'username' => $user->username,
+            ]);
             // WEB SOCKET FINISH
 
             # activity log

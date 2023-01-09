@@ -25,7 +25,7 @@
         "laravel/tinker": "^2.0",
         "nesbot/carbon": "^2.41",
         "pragmarx/firewall": "^2.3",
-        "pusher/pusher-php-server": "^7.2",
+        "pusher/pusher-php-server": "^7.0.2",
         "rappasoft/laravel-livewire-tables": "^1.7",
         "sentry/sentry-laravel": "^2.8",
         "spatie/laravel-activitylog": "^3.14",

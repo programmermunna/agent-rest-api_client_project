@@ -2,11 +2,11 @@
 
 namespace App\Listeners;
 
-use App\Events\MemberUpdate;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Events\BetTogelBalanceEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class MemberUpdateListener
+class BetTogelBalanceEventListener
 {
     /**
      * Create the event listener.
@@ -21,11 +21,11 @@ class MemberUpdateListener
     /**
      * Handle the event.
      *
-     * @param  \App\Events\MemberUpdate  $event
+     * @param  \App\Events\BetTogelBalanceEvent  $event
      * @return void
      */
-    public function handle(MemberUpdate $event)
+    public function handle(BetTogelBalanceEvent $event)
     {
-        // 
+        //
     }
 }

@@ -22,8 +22,6 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
  */
-//this is only used for internal services
-\App\Services\SyncApplicationEventsAmongServices::routes();
 
 Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function () {
     Route::post('/member/login', 'JWTAuthController@authenticate');
@@ -57,14 +55,14 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         Route::post('/deposit/create', 'DepositController@create');
 
         // Bonus
-        Route::group(['prefix' => 'bonus'],function () {
-            # Bonus Freebet    
-            Route::get('/setting-bonus-freebet', 'DepositController@settingBonusFreebet');        
+        Route::group(['prefix' => 'bonus'], function () {
+            # Bonus Freebet
+            Route::get('/setting-bonus-freebet', 'DepositController@settingBonusFreebet');
             Route::get('/freebet-list', 'DepositController@freebetBonus');
             Route::post('/bonus-freebet-giveup', 'DepositController@BonusFreebetGivUp');
 
-            # Bonus Freebet    
-            Route::get('/setting-bonus-deposit', 'DepositController@settingBonusDeposit');        
+            # Bonus Freebet
+            Route::get('/setting-bonus-deposit', 'DepositController@settingBonusDeposit');
             Route::get('/deposit-list', 'DepositController@depositBonus');
             Route::post('/bonus-deposit-giveup', 'DepositController@BonusDepositGivUp');
         });
