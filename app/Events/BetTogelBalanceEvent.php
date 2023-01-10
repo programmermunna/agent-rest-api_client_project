@@ -9,12 +9,12 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class BetTogelBalanceEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    public $data;
+    public $data = [];
 
     /**
      * Create a new event instance.
@@ -42,7 +42,7 @@ class BetTogelBalanceEvent implements ShouldBroadcast
         return 'MemberSocket-Event-Balance-BetTogel';
     }
 
-    public function broadcastWith()
+    public function broadcastWith():array
     {
         return $this->data;
     }

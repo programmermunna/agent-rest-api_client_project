@@ -9,11 +9,12 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class WithdrawalCreateBalanceEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    public $data;
+    public $data = [];
 
     /**
      * Create a new event instance.
@@ -41,7 +42,7 @@ class WithdrawalCreateBalanceEvent implements ShouldBroadcast
         return 'MemberSocket-Event-Balance-WithdrawCreate';
     }
 
-    public function broadcastWith()
+    public function broadcastWith(): array
     {
         return $this->data;
     }
