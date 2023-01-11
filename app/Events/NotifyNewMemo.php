@@ -14,8 +14,8 @@ class NotifyNewMemo implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    // private $memo;
-    // protected $emitABle;
+    private $memo;
+    protected $emitABle;
     /**
      * Create a new event instance.
      *
@@ -23,18 +23,18 @@ class NotifyNewMemo implements ShouldBroadcast
      */
     public function __construct(MemoModel $memoModel, bool $emitABle = true)
     {
-        // $this->memo = $memoModel;
-        // $this->emitABle = $emitABle;
+        $this->memo = $memoModel;
+        $this->emitABle = $emitABle;
     }
 
     public function getMemo()
     {
-        // return $this->memo;
+        return $this->memo;
     }
 
     public function emitAble()
     {
-        // return $this->emitABle;
+        return $this->emitABle;
     }
 
     /**
@@ -44,16 +44,16 @@ class NotifyNewMemo implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        // Log::info("broadcast intiated");
-        // //@todo for some reasons it needs more than 1 channel before it works
-        // return [
-        //     new Channel("test"),
-        //     new Channel("App.Models.MembersModel.{$this->memo->member_id}")
-        // ];
+        Log::info("broadcast intiated");
+        //@todo for some reasons it needs more than 1 channel before it works
+        return [
+            new Channel("test"),
+            new Channel("MemberSocket-Channel-Message-{$this->memo->member_id}")
+        ];
     }
 
     public function broadcastAs()
     {
-        // return 'New-Memo';
+        return 'MemberSocket-Event-Message-CreateMessage';
     }
 }
