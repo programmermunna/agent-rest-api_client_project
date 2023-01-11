@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Events\NotifyNewMemo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -33,15 +32,11 @@ class MemoModel extends Model
         'deleted_at',
     ];
 
-     protected $dispatchesEvents = [
-         'created' => NotifyNewMemo::class
-     ];
-
     protected $casts = [
         'is_read' => 'boolean',
     ];
 
-    public function member() : BelongsTo
+    public function member(): BelongsTo
     {
         return $this->belongsTo(MembersModel::class, 'member_id');
     }
@@ -51,12 +46,12 @@ class MemoModel extends Model
         return $this->belongsTo(MembersModel::class, 'sender_id');
     }
 
-    public function parentMemo() : BelongsTo
+    public function parentMemo(): BelongsTo
     {
         return $this->belongsTo(MemoModel::class, 'memo_id', 'id');
     }
 
-    public function subMemos() : HasMany
+    public function subMemos(): HasMany
     {
         return $this->hasMany(MemoModel::class, 'memo_id')->orderByDesc('created_at');
     }

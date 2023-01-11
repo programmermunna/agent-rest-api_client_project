@@ -4,19 +4,19 @@ namespace App\Providers;
 
 use App\Domains\Auth\Listeners\RoleEventListener;
 use App\Domains\Auth\Listeners\UserEventListener;
+use App\Events\BetTogelBalanceEvent;
 use App\Events\CreateDepositEvent;
 use App\Events\CreateWithdrawalEvent;
 use App\Events\MaintenanceStatusUpdate;
-use App\Events\MemberUpdate;
 use App\Events\NotifyNewMemo;
-use App\Events\BetTogelBalanceEvent;
+use App\Events\NotifyReplyMessageEvent;
 use App\Events\WithdrawalCreateBalanceEvent;
-use App\Listeners\DispatchNewMemoEventToExternalService;
+use App\Listeners\BetTogelBalanceEventListener;
 use App\Listeners\CreateDepositEventListener;
 use App\Listeners\CreateWithdrawalEventListener;
-use App\Listeners\MemberUpdateListener;
+use App\Listeners\DispatchNewMemoEventToExternalService;
 use App\Listeners\MaintenanceStatusUpdateListener;
-use App\Listeners\BetTogelBalanceEventListener;
+use App\Listeners\NotifyReplyMessageEventListener;
 use App\Listeners\WithdrawalCreateBalanceEventListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -36,28 +36,29 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-
-         NotifyNewMemo::class => [
-             DispatchNewMemoEventToExternalService::class
-         ],
-         MemberUpdate::class => [
-             MemberUpdateListener::class
-         ],
-         MaintenanceStatusUpdate::class => [
-             MaintenanceStatusUpdateListener::class
-         ],
-         CreateDepositEvent::class => [
-             CreateDepositEventListener::class
-         ],
-         CreateWithdrawalEvent::class => [
-             CreateWithdrawalEventListener::class
-         ],
-         WithdrawalCreateBalanceEvent::class => [
-             WithdrawalCreateBalanceEventListener::class
-         ],
-         BetTogelBalanceEvent::class => [
-             BetTogelBalanceEventListener::class
-         ]
+        // WEB SOCKET START
+        NotifyNewMemo::class => [
+            DispatchNewMemoEventToExternalService::class,
+        ],
+        NotifyReplyMessageEvent::class => [
+            NotifyReplyMessageEventListener::class,
+        ],
+        MaintenanceStatusUpdate::class => [
+            MaintenanceStatusUpdateListener::class,
+        ],
+        CreateDepositEvent::class => [
+            CreateDepositEventListener::class,
+        ],
+        CreateWithdrawalEvent::class => [
+            CreateWithdrawalEventListener::class,
+        ],
+        WithdrawalCreateBalanceEvent::class => [
+            WithdrawalCreateBalanceEventListener::class,
+        ],
+        BetTogelBalanceEvent::class => [
+            BetTogelBalanceEventListener::class,
+        ],
+        // WEB SOCKET FINISH
     ];
 
     /**

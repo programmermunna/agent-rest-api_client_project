@@ -8,13 +8,12 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 
 class NotifyNewMemo implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    private $memo;
+    public $memo;
     protected $emitABle;
     /**
      * Create a new event instance.
@@ -44,12 +43,7 @@ class NotifyNewMemo implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        Log::info("broadcast intiated");
-        //@todo for some reasons it needs more than 1 channel before it works
-        return [
-            new Channel("test"),
-            new Channel("MemberSocket-Channel-Message")
-        ];
+        return new Channel("MemberSocket-Channel-Message");
     }
 
     public function broadcastAs()
