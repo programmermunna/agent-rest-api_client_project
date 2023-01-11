@@ -54,6 +54,6 @@ class NotifyNewMemo implements ShouldBroadcast
 
     public function broadcastAs()
     {
-        return 'MemberSocket-Event-Message-CreateMessage';
+        return 'MemberSocket-Event-Message-ReplayMessage';
     }
 }
