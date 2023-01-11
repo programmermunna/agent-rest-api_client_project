@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log; # pagination pake ini
 use Illuminate\Support\Facades\Validator; # pagination pake ini
 use Illuminate\Support\Str; # pagination pake ini
 use Livewire\WithPagination;
+use App\Events\NotifyReplyMemo;
 
 class MemoController extends ApiController
 {
@@ -199,7 +200,7 @@ class MemoController extends ApiController
             //     'Processed_at_member_api' => true,
             //     'Proccessed_at_agent_api' => false,
             // ]);
-
+            NotifyReplyMemo::dispath();
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
                 'Memo Created',
