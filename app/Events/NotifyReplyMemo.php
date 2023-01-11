@@ -48,7 +48,7 @@ class NotifyNewMemo implements ShouldBroadcast
         //@todo for some reasons it needs more than 1 channel before it works
         return [
             new Channel("test"),
-            new Channel("MemberSocket-Channel-Message-{$this->memo->memo_id}")
+            new Channel("MemberSocket-Channel-Message")
         ];
     }
 
