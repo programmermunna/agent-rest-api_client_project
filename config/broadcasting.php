@@ -38,14 +38,14 @@ return [
             'options' => [
                 'cluster' => env('PUSHER_APP_CLUSTER'),
                 'encrypted' => true,
-                'host' => 'member-api.cktch.top',
-                'port' => 6007,
-                'scheme' => 'https',
+                'host' => env('PUSHER_APP_HOST', 'member-api.cktch.top'),
+                'port' => env('PUSHER_APP_PORT', 6007),
+                'scheme' => env('PUSHER_APP_SCHEME', 'https'),
                 'useTLS' => true,
                 'curl_options' => [ // since we're only doing stuff locally this is fine
                     CURLOPT_SSL_VERIFYHOST => 0,
                     CURLOPT_SSL_VERIFYPEER => 0,
-                ], 
+                ],
             ],
         ],
 
