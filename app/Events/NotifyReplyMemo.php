@@ -10,7 +10,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
-class NotifyNewMemo implements ShouldBroadcast
+class NotifyReplyMemo implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
