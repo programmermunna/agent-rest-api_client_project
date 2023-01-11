@@ -11,10 +11,9 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Collection; # pagination pake ini
 use Illuminate\Support\Facades\Log; # pagination pake ini
 use Illuminate\Support\Facades\Validator; # pagination pake ini
-use Illuminate\Support\Str; # pagination pake ini
 use Livewire\WithPagination;
 
 class MemoController extends ApiController

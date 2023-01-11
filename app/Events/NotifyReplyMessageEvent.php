@@ -13,6 +13,7 @@ class NotifyReplyMessageEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
     public $memo;
+    public $notify;
     protected $emitABle;
 
     /**
@@ -22,7 +23,9 @@ class NotifyReplyMessageEvent implements ShouldBroadcast
      */
     public function __construct(MemoModel $memoModel, bool $emitABle = true)
     {
+        $notify = MemoModel::where('is_read', false)->where('send_type', 'Member')->count();
         $this->memo = $memoModel;
+        $this->notify = $notify > 9 ? '9+' : $notify;
         $this->emitABle = $emitABle;
     }
 
