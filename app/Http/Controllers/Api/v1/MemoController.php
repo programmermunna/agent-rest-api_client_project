@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Events\NotifyNewMemo;
+use App\Events\NotifyReplyMessageEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\MemoModel;
 use App\Models\UserLogModel;
@@ -9,10 +11,9 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Collection; # pagination pake ini
 use Illuminate\Support\Facades\Log; # pagination pake ini
 use Illuminate\Support\Facades\Validator; # pagination pake ini
-use Illuminate\Support\Str; # pagination pake ini
 use Livewire\WithPagination;
 
 class MemoController extends ApiController
@@ -49,21 +50,13 @@ class MemoController extends ApiController
                 'created_at' => Carbon::now(),
             ]);
 
-            # insert to table Jobs Transaction
-            // $array = [
-            //     'uuid' => (string) Str::uuid(),
-            //     'class_name' => 'App\Models\MemoModel',
-            //     'id' => $createAndGetId,
-            //     'member_id' => auth('api')->user()->id,
-            //     'activity' => 'Create Memo',
-            // ];
-            // JobTransactionModel::create([
-            //     'payload' => json_encode($array),
-            //     'Processed_at_member_api' => true,
-            //     'Proccessed_at_agent_api' => false,
-            // ]);
-
             $memo = MemoModel::where('id', $createAndGetId)->first();
+
+            // WEB SOCKET START
+            // ========================================================
+            NotifyNewMemo::dispatch($memo);
+            // ========================================================
+            // WEB SOCKET FINISH
 
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
@@ -77,11 +70,7 @@ class MemoController extends ApiController
                 ],
                 "$user->username Created a Memo"
             );
-            // auth('api')->user()->update([
-            //     'last_login_ip' => $request->ip,
-            // ]);
 
-            // MemoModel::insert($create);
             return $this->successResponse(null, 'Berhasil membuat memo', 200);
         } catch (\Exception$e) {
             return $this->errorResponse('Internal Server Error', 500);
@@ -186,19 +175,12 @@ class MemoController extends ApiController
 
             $memo = MemoModel::where('id', $createAndGetId)->first();
 
-            # insert to table Jobs Transaction
-            // $array = [
-            //     'uuid' => (string) Str::uuid(),
-            //     'class_name' => 'App\Models\MemoModel',
-            //     'id' => $createAndGetId,
-            //     'member_id' => auth('api')->user()->id,
-            //     'activity' => 'Replay Memo',
-            // ];
-            // JobTransactionModel::create([
-            //     'payload' => json_encode($array),
-            //     'Processed_at_member_api' => true,
-            //     'Proccessed_at_agent_api' => false,
-            // ]);
+            // WEB SOCKET START
+            // ========================================================
+            NotifyReplyMessageEvent::dispatch($memo);
+            // ========================================================
+            // WEB SOCKET FINISH
+            
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
                 'Memo Created',
@@ -214,7 +196,7 @@ class MemoController extends ApiController
             auth('api')->user()->update([
                 'last_login_ip' => $request->ip,
             ]);
-            // MemoModel::insert($create);
+
             return $this->successResponse(null, 'Berhasil membalas memo', 200);
         } catch (\Exception$e) {
             return $this->errorResponse('Internal Server Error', 500);

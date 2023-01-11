@@ -1,8 +1,11 @@
 <?php
 
 use App\Events\BetTogelBalanceEvent;
+use App\Events\NotifyNewMemo;
+use App\Events\NotifyReplyMessageEvent;
 use App\Events\WithdrawalCreateBalanceEvent;
 use App\Models\MembersModel;
+use App\Models\MemoModel;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,5 +30,16 @@ Route::get('event-balance-test', function (Request $request) {
         WithdrawalCreateBalanceEvent::dispatch($user->toArray());
     }
     return $user;
+});
+# Test Event memo
+Route::get('event-memo-test', function (Request $request) {
+    $memo = MemoModel::first();
+    if (request('event') == 'replay') {
+        NotifyReplyMessageEvent::dispatch($memo);
+    }
+    if (request('event') == 'create') {
+        NotifyNewMemo::dispatch($memo);
+    }
+    return 'Send Event Memo';
 });
 // WEB SOCKET FINISH
