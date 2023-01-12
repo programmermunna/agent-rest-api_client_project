@@ -87,10 +87,8 @@ class MemoController extends ApiController
                 ->where('memo_id', null)
                 ->with(['subMemos' => function ($query) {
                     $query->select('memo_id', 'id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at');
-                }])
-                ->get();
-            $this->inbox = $memo->toArray();
-            $inbox = $this->paginate($this->inbox, $this->perPage);
+                }]);
+            $inbox = $memo->simplePaginate($this->perPage)->withPath('');
             return $this->successResponse($inbox, 200);
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
@@ -113,10 +111,8 @@ class MemoController extends ApiController
                 ->where('memo_id', null)
                 ->with(['subMemos' => function ($query) {
                     $query->select('memo_id', 'id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at');
-                }])
-                ->get();
-            $this->inbox = $memo->toArray();
-            $inbox = $this->paginate($this->inbox, $this->perPage);
+                }]);
+            $inbox = $memo->simplePaginate($this->perPage)->withPath('/');
             return $this->successResponse($inbox, 200);
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
@@ -135,7 +131,7 @@ class MemoController extends ApiController
                 return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
             }
 
-            $memo = MemoModel::select('id','is_read', 'memo_id')->find($request->id);
+            $memo = MemoModel::select('id', 'is_read', 'memo_id')->find($request->id);
             if ($memo->memo_id != null) {
                 $memo->update([
                     'is_read' => 1,
@@ -231,6 +227,7 @@ class MemoController extends ApiController
         ];
         return $this->successResponse($data, 'Detail memo', 201);
     }
+
     public function NotifyMemo()
     {
         try {
@@ -239,10 +236,10 @@ class MemoController extends ApiController
                 'status' => 'success',
                 'message' => null,
                 'data' => [
-                    'notify' => $notify > 9 ? '9+' : $notify
-                ]
+                    'notify' => $notify > 9 ? '9+' : $notify,
+                ],
             ]);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             Log::error($th->getMessage());
             return response()->json([
                 'status' => 'error',

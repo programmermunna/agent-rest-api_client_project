@@ -16,19 +16,20 @@ use App\Models\WithdrawModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class WithdrawController extends ApiController
 {
     public function create(Request $request)
     {
         try {
-            $cek_status_wd = WithdrawModel::where('members_id', auth('api')->user()->id)
+            $memberId = auth('api')->user()->id; // atau bisa juga Auth::user()->id,
+            $cek_status_wd = WithdrawModel::where('members_id', $memberId)
                 ->where('approval_status', 0)
                 ->first();
             if ($cek_status_wd) {
                 return $this->errorResponse("Maaf Anda masih ada transaksi withdraw yang belum selesai.", 400);
             }
-            $memberId = auth('api')->user()->id; // atau bisa juga Auth::user()->id,
             $jumlah = str_replace(',', '', $request->jumlah);
 
             # filter dulu di sini
@@ -52,7 +53,7 @@ class WithdrawController extends ApiController
             $bankAsalTransferForWd = RekeningModel::where('constant_rekening_id', $request->constant_rekening_id)
                 ->where('is_wd', 1)
                 ->first();
-            $rekMember = RekMemberModel::where('rek_member.created_by', auth('api')->user()->id)
+            $rekMember = RekMemberModel::where('rek_member.created_by', $memberId)
                 ->select('id')
                 ->where('is_wd', 1)
                 ->first();
@@ -64,7 +65,7 @@ class WithdrawController extends ApiController
                     $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
                     $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                     $today = Carbon::now()->format('Y-m-d 23:59:59');
-                    $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)
+                    $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $memberId)
                         ->where('approval_status', 1)
                         ->where('is_claim_bonus', 4)
                         ->where('status_bonus', 0)
@@ -74,17 +75,17 @@ class WithdrawController extends ApiController
                         if (!in_array(16, $providerId)) {
                             $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                                 ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                                ->where('created_by', auth('api')->user()->id)
+                                ->where('created_by', $memberId)
                                 ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
                             $TOMember = $TOSlotCasinoFish;
                         } else {
                             $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                                 ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                                ->where('created_by', auth('api')->user()->id)
+                                ->where('created_by', $memberId)
                                 ->where('game_info', 'slot')->sum('bet');
                             $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                                ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+                                ->where('created_by', $memberId)->sum('pay_amount');
 
                             $TOMember = $TOSlotCasinoFish + $TOTogel;
                         }
@@ -113,27 +114,23 @@ class WithdrawController extends ApiController
                         $withdrawal = WithdrawModel::create($payload);
 
                         # update balance member
-                        $member = MembersModel::find(auth('api')->user()->id);
-                        MembersModel::where('id', auth('api')->user()->id)->update([
+                        $member = MembersModel::find($memberId);
+                        MembersModel::where('id', $memberId)->update([
                             'credit' => $member->credit - $jumlah,
                         ]);
 
                         # activity Log
-                        $user = auth('api')->user();
                         UserLogModel::logMemberActivity(
                             'Withdrawal Created',
-                            $user,
+                            $member,
                             $withdrawal,
                             [
                                 'target' => 'Withdrawal',
                                 'activity' => 'Create',
-                                'ip_member' => auth('api')->user()->last_login_ip,
+                                'ip_member' => $member->last_login_ip,
                             ],
-                            "$user->username Created a Withdrawal with amount {$withdrawal->jumlah}"
+                            "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                         );
-                        auth('api')->user()->update([
-                            'last_login_ip' => $request->ip,
-                        ]);
 
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
@@ -143,7 +140,7 @@ class WithdrawController extends ApiController
                     $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
                     $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                     $today = Carbon::now()->format('Y-m-d 23:59:59');
-                    $Check_deposit_claim_bonus_deposit = DepositModel::where('members_id', auth('api')->user()->id)
+                    $Check_deposit_claim_bonus_deposit = DepositModel::where('members_id', $memberId)
                         ->where('approval_status', 1)
                         ->where('is_claim_bonus', 6)
                         ->where('status_bonus', 0)
@@ -153,17 +150,17 @@ class WithdrawController extends ApiController
                         if (!in_array(16, $providerId)) {
                             $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                                 ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                                ->where('created_by', auth('api')->user()->id)
+                                ->where('created_by', $memberId)
                                 ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
                             $TOMember = $TOSlotCasinoFish;
                         } else {
                             $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                                 ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                                ->where('created_by', auth('api')->user()->id)
+                                ->where('created_by', $memberId)
                                 ->where('game_info', 'slot')->sum('bet');
                             $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                                ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+                                ->where('created_by', $memberId)->sum('pay_amount');
 
                             $TOMember = $TOSlotCasinoFish + $TOTogel;
                         }
@@ -196,27 +193,23 @@ class WithdrawController extends ApiController
                         $withdrawal = WithdrawModel::create($payload);
 
                         # update balance member
-                        $member = MembersModel::find(auth('api')->user()->id);
-                        MembersModel::where('id', auth('api')->user()->id)->update([
+                        $member = MembersModel::find($memberId);
+                        MembersModel::where('id', $memberId)->update([
                             'credit' => $member->credit - $jumlah,
                         ]);
 
                         # activity Log
-                        $user = auth('api')->user();
                         UserLogModel::logMemberActivity(
                             'Withdrawal Created',
-                            $user,
+                            $member,
                             $withdrawal,
                             [
                                 'target' => 'Withdrawal',
                                 'activity' => 'Create',
-                                'ip_member' => auth('api')->user()->last_login_ip,
+                                'ip_member' => $member->last_login_ip,
                             ],
-                            "$user->username Created a Withdrawal with amount {$withdrawal->jumlah}"
+                            "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                         );
-                        auth('api')->user()->update([
-                            'last_login_ip' => $request->ip,
-                        ]);
 
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
@@ -233,20 +226,10 @@ class WithdrawController extends ApiController
                 ];
                 $withdrawal = WithdrawModel::create($payload);
                 # update balance member
-                $member = MembersModel::find(auth('api')->user()->id);
-                MembersModel::where('id', auth('api')->user()->id)->update([
+                $member = MembersModel::find($memberId);
+                MembersModel::where('id', $memberId)->update([
                     'credit' => $member->credit - $jumlah,
                 ]);
-
-                $user = auth('api')->user();
-
-                // WEB SOCKET START
-                WithdrawalCreateBalanceEvent::dispatch([
-                    'id' => $user->id,
-                    'credit' => $user->credit,
-                    'username' => $user->username,
-                ]);
-                // WEB SOCKET FINISH
 
                 # activity Log
                 UserLogModel::logMemberActivity(
@@ -256,15 +239,20 @@ class WithdrawController extends ApiController
                     [
                         'target' => 'Withdrawal',
                         'activity' => 'Create',
-                        'ip_member' => auth('api')->user()->last_login_ip,
+                        'ip_member' => $member->last_login_ip,
                     ],
-                    "$user->username Created a Withdrawal with amount {$withdrawal->jumlah}"
+                    "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                 );
                 return $this->successResponse(null, 'Berhasil request withdraw');
             }
+
+            // WEB SOCKET START
+            WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+            // WEB SOCKET FINISH
+
             return $this->errorResponse('Bank Tujuan Untuk Withdraw Sedang Offline, Silahkan Hubungi Customer service', 400);
         } catch (\Throwable$th) {
-            dd($th->getMessage());
+            Log::error($th->getMessage());
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
