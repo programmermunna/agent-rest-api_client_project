@@ -189,7 +189,7 @@ class MemoController extends ApiController
             NotifyReplyMessageEvent::dispatch($memo);
             // ========================================================
             // WEB SOCKET FINISH
-
+            
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
                 'Memo Created',
