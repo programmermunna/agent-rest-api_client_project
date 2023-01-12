@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Events\NotifyNewMemo;
+use App\Events\NotifyReadMessageEvent;
 use App\Events\NotifyReplyMessageEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\MemoModel;
@@ -89,7 +90,6 @@ class MemoController extends ApiController
                 }])
                 ->get();
             $this->inbox = $memo->toArray();
-            // dd($this->inbox);
             $inbox = $this->paginate($this->inbox, $this->perPage);
             return $this->successResponse($inbox, 200);
         } catch (\Throwable$th) {
@@ -130,21 +130,30 @@ class MemoController extends ApiController
             $validator = Validator::make($request->all(), [
                 'id' => 'required',
             ]);
-            MemoModel::where('id', $request->id)->orWhere('memo_id', $request->id)
-                ->update([
-                    'is_read' => 1,
-                ]);
-
+            
             if ($validator->fails()) {
                 return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
             }
 
+            $memo = MemoModel::select('id','is_read', 'memo_id')->find($request->id);
+            if ($memo->memo_id != null) {
+                $memo->update([
+                    'is_read' => 1,
+                ]);
+            }
+
+            // WEB SOCKET START
+            NotifyReadMessageEvent::dispatch(MemoModel::find($request->id));
+            // WEB SOCKET FINISH
+
             return $this->successResponse($request->id);
         } catch (\Throwable$th) {
+            Log::error($th->getMessage());
             return $this->errorResponse('Internal Server Error', 500);
         }
 
     }
+
     // post
     public function reply(Request $request)
     {
@@ -202,6 +211,7 @@ class MemoController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
+
     public function detail($index)
     {
         # detail u/ di header
