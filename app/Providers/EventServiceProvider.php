@@ -9,6 +9,7 @@ use App\Events\CreateDepositEvent;
 use App\Events\CreateWithdrawalEvent;
 use App\Events\MaintenanceStatusUpdate;
 use App\Events\NotifyNewMemo;
+use App\Events\NotifyReadMessageEvent;
 use App\Events\NotifyReplyMessageEvent;
 use App\Events\WithdrawalCreateBalanceEvent;
 use App\Listeners\BetTogelBalanceEventListener;
@@ -16,6 +17,7 @@ use App\Listeners\CreateDepositEventListener;
 use App\Listeners\CreateWithdrawalEventListener;
 use App\Listeners\DispatchNewMemoEventToExternalService;
 use App\Listeners\MaintenanceStatusUpdateListener;
+use App\Listeners\NotifyReadMessageEventListener;
 use App\Listeners\NotifyReplyMessageEventListener;
 use App\Listeners\WithdrawalCreateBalanceEventListener;
 use Illuminate\Auth\Events\Registered;
@@ -42,6 +44,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         NotifyReplyMessageEvent::class => [
             NotifyReplyMessageEventListener::class,
+        ],
+        NotifyReadMessageEvent::class => [
+            NotifyReadMessageEventListener::class,
         ],
         MaintenanceStatusUpdate::class => [
             MaintenanceStatusUpdateListener::class,

@@ -5,38 +5,28 @@ namespace App\Events;
 use App\Models\MemoModel;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class NotifyReplyMessageEvent implements ShouldBroadcast
+class NotifyReadMessageEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
     public $memo;
     public $notify;
-    protected $emitABle;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(MemoModel $memoModel, bool $emitABle = true)
+    public function __construct(MemoModel $memoModel)
     {
         $notify = MemoModel::where('is_read', false)->where('send_type', 'Member')->count();
         $this->memo = $memoModel;
         $this->notify = $notify > 9 ? '9+' : $notify;
-        $this->emitABle = $emitABle;
-    }
-
-    public function getMemo()
-    {
-        return $this->memo;
-    }
-
-    public function emitAble()
-    {
-        return $this->emitABle;
     }
 
     /**
@@ -46,11 +36,11 @@ class NotifyReplyMessageEvent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel("MemberSocket-Channel-Message");
+        return new Channel("MemberSocket-Channel-Message-{$this->memo->member_id}");
     }
 
     public function broadcastAs()
     {
-        return 'MemberSocket-Event-Message-ReplyMessage';
+        return 'MemberSocket-Event-Message-ReadMessage';
     }
 }
