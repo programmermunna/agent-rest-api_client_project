@@ -46,11 +46,11 @@ class NotifyReplyMessageEvent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel("MemberSocket-Channel-Message");
+        return new Channel("MemberSocket-Channel-ReplyMessage");
     }
 
     public function broadcastAs()
     {
-        return 'MemberSocket-Event-Message-ReplayMessage';
+        return 'MemberSocket-Event-Message-ReplyMessage';
     }
 }
