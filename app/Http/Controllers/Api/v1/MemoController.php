@@ -88,7 +88,7 @@ class MemoController extends ApiController
                 ->with(['subMemos' => function ($query) {
                     $query->select('memo_id', 'id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at');
                 }]);
-            $inbox = $memo->simplePaginate($this->perPage)->withPath('');
+            $inbox = $memo->paginate($this->perPage)->withPath('');
             return $this->successResponse($inbox, 200);
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
@@ -112,7 +112,7 @@ class MemoController extends ApiController
                 ->with(['subMemos' => function ($query) {
                     $query->select('memo_id', 'id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at');
                 }]);
-            $inbox = $memo->simplePaginate($this->perPage)->withPath('/');
+            $inbox = $memo->paginate($this->perPage)->withPath('/');
             return $this->successResponse($inbox, 200);
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);

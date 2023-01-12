@@ -119,6 +119,10 @@ class WithdrawController extends ApiController
                             'credit' => $member->credit - $jumlah,
                         ]);
 
+                        // WEB SOCKET START
+                        WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+                        // WEB SOCKET FINISH
+
                         # activity Log
                         UserLogModel::logMemberActivity(
                             'Withdrawal Created',
@@ -198,6 +202,10 @@ class WithdrawController extends ApiController
                             'credit' => $member->credit - $jumlah,
                         ]);
 
+                        // WEB SOCKET START
+                        WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+                        // WEB SOCKET FINISH
+
                         # activity Log
                         UserLogModel::logMemberActivity(
                             'Withdrawal Created',
@@ -231,10 +239,14 @@ class WithdrawController extends ApiController
                     'credit' => $member->credit - $jumlah,
                 ]);
 
+                // WEB SOCKET START
+                WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+                // WEB SOCKET FINISH
+
                 # activity Log
                 UserLogModel::logMemberActivity(
                     'Withdrawal Created',
-                    $user,
+                    $member,
                     $withdrawal,
                     [
                         'target' => 'Withdrawal',
@@ -246,13 +258,9 @@ class WithdrawController extends ApiController
                 return $this->successResponse(null, 'Berhasil request withdraw');
             }
 
-            // WEB SOCKET START
-            WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
-            // WEB SOCKET FINISH
-
             return $this->errorResponse('Bank Tujuan Untuk Withdraw Sedang Offline, Silahkan Hubungi Customer service', 400);
         } catch (\Throwable$th) {
-            Log::error($th->getMessage());
+            Log::error($th);
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
