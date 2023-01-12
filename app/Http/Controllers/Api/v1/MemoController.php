@@ -130,7 +130,7 @@ class MemoController extends ApiController
             $validator = Validator::make($request->all(), [
                 'id' => 'required',
             ]);
-            
+
             if ($validator->fails()) {
                 return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
             }
@@ -189,7 +189,7 @@ class MemoController extends ApiController
             NotifyReplyMessageEvent::dispatch($memo);
             // ========================================================
             // WEB SOCKET FINISH
-            
+
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
                 'Memo Created',
@@ -230,5 +230,25 @@ class MemoController extends ApiController
             'modMemberId' => $this->modMemberId,
         ];
         return $this->successResponse($data, 'Detail memo', 201);
+    }
+    public function NotifyMemo()
+    {
+        try {
+            $notify = MemoModel::select('id')->where('is_read', false)->whereIn('send_type', ['Admin', 'System'])->count();
+            return response()->json([
+                'status' => 'success',
+                'message' => null,
+                'data' => [
+                    'notify' => $notify > 9 ? '9+' : $notify
+                ]
+            ]);
+        } catch (\Throwable $th) {
+            Log::error($th->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bad request',
+                'data' => null,
+            ], 500);
+        }
     }
 }

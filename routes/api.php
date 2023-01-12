@@ -80,6 +80,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::post('/read', 'MemoController@read');
             Route::post('/reply', 'MemoController@reply');
             Route::get('/detail/{id}', 'MemoController@detail');
+            Route::get('/notify-memo', 'MemoController@NotifyMemo');
         });
 
         // statement slot-fish
