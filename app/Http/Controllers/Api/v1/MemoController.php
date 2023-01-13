@@ -119,6 +119,7 @@ class MemoController extends ApiController
         $items = $items instanceof Collection ? $items : Collection::make($items);
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
     }
+
     public function sent()
     {
         try {
@@ -137,6 +138,7 @@ class MemoController extends ApiController
         }
 
     }
+
     // post
     public function read(Request $request)
     {
@@ -149,8 +151,8 @@ class MemoController extends ApiController
                 return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
             }
 
-            $memo = MemoModel::select('id', 'is_read', 'memo_id')->find($request->id);
-            if ($memo->memo_id != null) {
+            $memo = MemoModel::select('id', 'is_read', 'send_type')->find($request->id);
+            if ($memo->send_type == 'Admin') {
                 $memo->update([
                     'is_read' => 1,
                 ]);
