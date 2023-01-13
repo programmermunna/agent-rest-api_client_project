@@ -27,8 +27,19 @@ class MemoController extends ApiController
     public $modMemberId;
     public $subject;
     public $modMemberName;
+    public $memberActive;
+    public $memberID;
+    public $memberUsername;
+    public $memberIP;
 
-    // post
+    public function __construct()
+    {
+        $member = auth('api')->user();
+        $this->memberActive = $member;
+        $this->memberID = $member->id;
+        $this->memberUsername = $member->username;
+        $this->memberIP = $member->last_login_ip;
+    }
 
     public function create(Request $request)
     {
@@ -41,9 +52,9 @@ class MemoController extends ApiController
             return $this->errorResponse('Kesalahan Validasi', 422, $validator->errors()->first());
         }
         try {
-            $createAndGetId = MemoModel::insertGetId([
-                'member_id' => auth('api')->user()->id,
-                'sender_id' => auth('api')->user()->id,
+            $memo = MemoModel::create([
+                'member_id' => $this->memberID,
+                'sender_id' => $this->memberID,
                 'send_type' => 'Member',
                 'subject' => $request->subject,
                 'is_sent' => 1,
@@ -51,15 +62,21 @@ class MemoController extends ApiController
                 'created_at' => Carbon::now(),
             ]);
 
-            $memo = MemoModel::where('id', $createAndGetId)->first();
-
             // WEB SOCKET START
             // ========================================================
-            NotifyNewMemo::dispatch($memo);
+            NotifyNewMemo::dispatch([
+                'nomor' => 1,
+                'id' => $memo->id,
+                'username' => $this->memberUsername,
+                'member_id' => $this->memberID,
+                'subject' => $memo->subject,
+                'created_at' => $memo->created_at,
+                'member' => [],
+            ]);
             // ========================================================
             // WEB SOCKET FINISH
 
-            $user = auth('api')->user();
+            $user = $this->memberActive;
             UserLogModel::logMemberActivity(
                 'Memo Created',
                 $user,
@@ -67,13 +84,14 @@ class MemoController extends ApiController
                 [
                     'target' => "memo {$memo->subject}",
                     'activity' => 'Create',
-                    'ip_member' => auth('api')->user()->last_login_ip,
+                    'ip_member' => $this->memberIP,
                 ],
                 "$user->username Created a Memo"
             );
 
             return $this->successResponse(null, 'Berhasil membuat memo', 200);
         } catch (\Exception$e) {
+            dd($e);
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -82,7 +100,7 @@ class MemoController extends ApiController
     {
         try {
             $memo = MemoModel::select(['id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at'])
-                ->where('member_id', auth('api')->user()->id)
+                ->where('member_id', $this->memberID)
                 ->orderBy('id', 'desc')
                 ->where('memo_id', null)
                 ->with(['subMemos' => function ($query) {
@@ -105,7 +123,7 @@ class MemoController extends ApiController
     {
         try {
             $memo = MemoModel::select(['id', 'member_id', 'sender_id', 'is_read', 'subject', 'content', 'created_at'])
-                ->where('member_id', auth('api')->user()->id)
+                ->where('member_id', $this->memberID)
                 ->orderBy('id', 'desc')
                 ->where('is_sent', 1)
                 ->where('memo_id', null)
@@ -164,10 +182,10 @@ class MemoController extends ApiController
         }
         try {
             $createAndGetId = MemoModel::insertGetId([
-                'member_id' => auth('api')->user()->id,
+                'member_id' => $this->memberID,
                 'memo_id' => $request->memoId,
                 'is_sent' => 1,
-                'sender_id' => auth('api')->user()->id,
+                'sender_id' => $this->memberID,
                 'send_type' => 'Member',
                 'subject' => $request->subject,
                 'content' => $request->content,
@@ -194,13 +212,10 @@ class MemoController extends ApiController
                 [
                     'target' => "memo {$memo->subject}",
                     'activity' => 'Replied to a memo',
-                    'ip_member' => auth('api')->user()->last_login_ip,
+                    'ip_member' => $this->memberIP,
                 ],
                 "$user->username Replied a Memo"
             );
-            auth('api')->user()->update([
-                'last_login_ip' => $request->ip,
-            ]);
 
             return $this->successResponse(null, 'Berhasil membalas memo', 200);
         } catch (\Exception$e) {

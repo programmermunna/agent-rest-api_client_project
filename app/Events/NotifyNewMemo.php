@@ -21,7 +21,7 @@ class NotifyNewMemo implements ShouldBroadcast
      *
      * @return void
      */
-    public function __construct(MemoModel $memoModel, bool $emitABle = true)
+    public function __construct(array $memoModel, bool $emitABle = true)
     {
         $notify = MemoModel::where('is_read', false)->where('send_type', 'Member')->count();
         $this->memo = $memoModel;
