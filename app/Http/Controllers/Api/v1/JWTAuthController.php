@@ -37,6 +37,13 @@ class JWTAuthController extends ApiController
     use WithPagination;
     public $perPage = 20;
     public $history = [];
+    public $memberID;
+
+    public function __construct()
+    {
+        $this->memberID = auth('api')->user()->id ?? null;
+    }
+
     public function authenticate(Request $request)
     {
         $input = $request->all();
@@ -146,7 +153,7 @@ class JWTAuthController extends ApiController
     public function getAuthenticatedMember()
     {
         try {
-            $member = MembersModel::select(['id', 'username', 'last_login_at', 'last_login_ip'])->where('id', auth('api')->user()->id)->first();
+            $member = MembersModel::select(['id', 'username', 'last_login_at', 'last_login_ip'])->where('id', $this->memberID)->first();
             if (!$member) {
                 return $this->errorResponse('Member tidak ditemukan', 404);
             }
@@ -164,7 +171,8 @@ class JWTAuthController extends ApiController
     public function getBalanceMember()
     {
         try {
-            $balance = ['balance' => (float) auth('api')->user()->credit];
+            $member = MembersModel::select(['credit'])->where('id', $this->memberID)->first();
+            $balance = ['balance' => (float) $member->credit];
             return $this->successResponse($balance);
         } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
             return $this->errorResponse('Token expired', 404);
