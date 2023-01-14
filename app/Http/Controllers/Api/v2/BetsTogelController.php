@@ -155,7 +155,7 @@ class BetsTogelController extends ApiController
                 }
             }
 
-            $betAmount = [];
+            $betTransaction = [];
             foreach ($this->checkBlokednumber($request, $provider) as $togel) {
                 # definition of bonus referal
                 $calculateReferal = ($bonus["$pasaran->name_initial"] * $togel['pay_amount']) / 100;
@@ -192,7 +192,6 @@ class BetsTogelController extends ApiController
                 }
 
                 $payBetTogel = $togel['pay_amount'];
-                $betAmount[] = $payAmount;
                 $beforeBets = array_merge($togel, [
                     'balance' => $member->credit - $payBetTogel,
                     'period' => $periodProvider->period,
@@ -204,6 +203,10 @@ class BetsTogelController extends ApiController
                     'created_by' => $memberID, // Laravel Can Handler which user has login please cek config.auth folder
                     'created_at' => now(),
                 ]);
+                $betTransaction[] = [
+                    'bet' => $payAmount,
+                    'created_at' => $beforeBets['created_at'],
+                ];
 
                 # check is buangan
                 $afterBet = DB::table('bets_togel')->insertGetId($beforeBets);
@@ -239,7 +242,7 @@ class BetsTogelController extends ApiController
             // -----------------------------------------------------------------------------
             LastBetWinEvent::dispatch([
                 'id' => $memberID,
-                'bet' => end($betAmount),
+                'lastBet' => end($betTransaction),
             ]);
             // =============================================================================
             // WEB SOCKET FINISH
