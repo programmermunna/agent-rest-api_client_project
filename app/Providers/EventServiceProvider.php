@@ -7,6 +7,7 @@ use App\Domains\Auth\Listeners\UserEventListener;
 use App\Events\BetTogelBalanceEvent;
 use App\Events\CreateDepositEvent;
 use App\Events\CreateWithdrawalEvent;
+use App\Events\LastBetWinEvent;
 use App\Events\MaintenanceStatusUpdate;
 use App\Events\NotifyNewMemo;
 use App\Events\NotifyReadMessageEvent;
@@ -16,6 +17,7 @@ use App\Listeners\BetTogelBalanceEventListener;
 use App\Listeners\CreateDepositEventListener;
 use App\Listeners\CreateWithdrawalEventListener;
 use App\Listeners\DispatchNewMemoEventToExternalService;
+use App\Listeners\LastBetWinListener;
 use App\Listeners\MaintenanceStatusUpdateListener;
 use App\Listeners\NotifyReadMessageEventListener;
 use App\Listeners\NotifyReplyMessageEventListener;
@@ -62,6 +64,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         BetTogelBalanceEvent::class => [
             BetTogelBalanceEventListener::class,
+        ],
+        LastBetWinEvent::class => [
+            LastBetWinListener::class,
         ],
         // WEB SOCKET FINISH
     ];

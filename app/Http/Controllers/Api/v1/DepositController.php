@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Events\CreateDepositEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
@@ -20,6 +21,17 @@ use Illuminate\Support\Facades\Validator;
 
 class DepositController extends ApiController
 {
+    public $memberActive;
+
+    public function __construct()
+    {
+        try {
+            $this->memberActive = auth('api')->user();
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Token is Invalid or Expired', 401);
+        }
+    }
+
     public function create(Request $request)
     {
         try {
@@ -42,7 +54,7 @@ class DepositController extends ApiController
                 }
             }
 
-            $cek_status_depo = DepositModel::where('members_id', auth('api')->user()->id)
+            $cek_status_depo = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 0)
                 ->first();
             if ($cek_status_depo) {
@@ -54,7 +66,7 @@ class DepositController extends ApiController
                 $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                 $today = Carbon::now()->format('Y-m-d 23:59:59');
-                $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
+                $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)
                     ->whereIn('is_claim_bonus', [4, 6])
                     ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
@@ -85,7 +97,7 @@ class DepositController extends ApiController
                 $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                 $today = Carbon::now()->format('Y-m-d 23:59:59');
-                $check_claim_bonus = DepositModel::where('members_id', auth('api')->user()->id)
+                $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)
                     ->whereIn('is_claim_bonus', [4, 6])
                     ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
@@ -112,17 +124,17 @@ class DepositController extends ApiController
                 $claimBonus = $bonus_deposit->status_bonus == 1 ? $request->is_claim_bonus : 0;
             }
 
-            $active_rek = RekMemberModel::where([['created_by', auth('api')->user()->id], ['is_depo', 1]])->first();
+            $active_rek = RekMemberModel::where([['created_by', $this->memberActive->id], ['is_depo', 1]])->first();
             $payload = [
                 'rek_member_id' => $request->rekening_member_id,
-                'members_id' => auth('api')->user()->id,
+                'members_id' => $this->memberActive->id,
                 'rekening_id' => $request->rekening_id,
                 'jumlah' => $request->jumlah,
-                'credit' => MembersModel::where('id', auth('api')->user()->id)->first()->credit,
+                'credit' => MembersModel::where('id', $this->memberActive->id)->first()->credit,
                 'is_claim_bonus' => $claimBonus ?? 0,
                 'bonus_amount' => $bonus_amount ?? 0,
                 'note' => $request->note,
-                'created_by' => auth('api')->user()->id,
+                'created_by' => $this->memberActive->id,
                 'created_at' => Carbon::now(),
             ];
 
@@ -140,12 +152,13 @@ class DepositController extends ApiController
 
             $depositCreate = DepositModel::create($payload);
 
-            // MembersModel::where('id', auth('api')->user()->id)
-            //         ->update([
-            //             'rekening_id_tujuan_depo' => $request->rekening_id,
-            //         ]);
+            // WEB SOCKET START
+            // ==================================================================
+            CreateDepositEvent::dispatch($depositCreate);
+            // ==================================================================
+            // WEB SOCKET FINISh
 
-            $user = auth('api')->user();
+            $user = $this->memberActive;
             UserLogModel::logMemberActivity(
                 'Deposit Created',
                 $user,
@@ -153,7 +166,7 @@ class DepositController extends ApiController
                 [
                     'target' => 'Deposit',
                     'activity' => 'Create Deposit',
-                    'ip_member' => auth('api')->user()->last_login_ip,
+                    'ip_member' => $this->memberActive->last_login_ip,
                 ],
                 $user->username . ' Created a Deposit with amount ' . number_format($depositCreate->jumlah)
             );
@@ -190,7 +203,7 @@ class DepositController extends ApiController
     public function settingBonusFreebet()
     {
         try {
-            $userId = auth('api')->user()->id;
+            $userId = $this->memberActive->id;
             $dataSetting = BonusSettingModel::join('constant_bonus', 'constant_bonus.id', 'bonus_setting.constant_bonus_id')
                 ->select(
                     'constant_bonus.nama_bonus',
@@ -249,7 +262,7 @@ class DepositController extends ApiController
     public function settingBonusDeposit()
     {
         try {
-            $userId = auth('api')->user()->id;
+            $userId = $this->memberActive->id;
             $dataSetting = BonusSettingModel::join('constant_bonus', 'constant_bonus.id', 'bonus_setting.constant_bonus_id')
                 ->select(
                     'constant_bonus.nama_bonus',
@@ -322,7 +335,7 @@ class DepositController extends ApiController
             $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
-            $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)
+            $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 4)
                 ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
@@ -331,17 +344,17 @@ class DepositController extends ApiController
                 if (!in_array(16, $providerId)) {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
+                        ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
                     $TOMember = $TOSlotCasinoFish;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
+                        ->where('created_by', $this->memberActive->id)
                         ->where('game_info', 'slot')->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
                     $TOMember = $TOSlotCasinoFish + $TOTogel;
                 }
@@ -416,7 +429,7 @@ class DepositController extends ApiController
             $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
-            $Check_deposit_claim_bonus_deposit = DepositModel::where('members_id', auth('api')->user()->id)
+            $Check_deposit_claim_bonus_deposit = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 6)
                 ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
@@ -425,17 +438,17 @@ class DepositController extends ApiController
                 if (!in_array(16, $providerId)) {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
+                        ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
                     $TOMember = $TOSlotCasinoFish;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
+                        ->where('created_by', $this->memberActive->id)
                         ->where('game_info', 'slot')->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
                     $TOMember = $TOSlotCasinoFish + $TOTogel;
                 }
@@ -500,7 +513,7 @@ class DepositController extends ApiController
     public function BonusFreebetGivUp(Request $request)
     {
         try {
-            $memberId = auth('api')->user()->id;
+            $memberId = $this->memberActive->id;
             $bonus_freebet = BonusSettingModel::select(
                 'min_depo',
                 'max_depo',
@@ -515,7 +528,7 @@ class DepositController extends ApiController
             $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
-            $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', auth('api')->user()->id)
+            $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 4)
                 ->where('status_bonus', 0)
@@ -526,19 +539,19 @@ class DepositController extends ApiController
                 if (!in_array(16, $providerId)) {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
+                        ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
                     $TOmember = $TOSlotCasinoFish + $TOTogel;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
+                        ->where('created_by', $this->memberActive->id)
                         ->where('game_info', 'slot')->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
                     $TOmember = $TOSlotCasinoFish + $TOTogel;
                 }
@@ -560,7 +573,7 @@ class DepositController extends ApiController
                 MembersModel::where('id', $memberId)
                     ->update([
                         'credit' => $credit,
-                        'updated_by' => auth('api')->user()->id,
+                        'updated_by' => $this->memberActive->id,
                         'updated_at' => Carbon::now(),
                     ]);
 
@@ -568,7 +581,7 @@ class DepositController extends ApiController
                     ->update([
                         'status_bonus' => 2,
                         'reason_bonus' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO,
-                        'updated_by' => auth('api')->user()->id,
+                        'updated_by' => $this->memberActive->id,
                         'updated_at' => Carbon::now(),
                     ]);
 
@@ -579,7 +592,7 @@ class DepositController extends ApiController
                     'constant_bonus_id' => 4,
                     'jumlah' => $bonus,
                     'credit' => MembersModel::where('id', $memberId)->first()->credit,
-                    'member_id' => auth('api')->user()->id,
+                    'member_id' => $this->memberActive->id,
                     'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'type' => 'uang',
                     'created_by' => 0,
@@ -587,7 +600,7 @@ class DepositController extends ApiController
                 ]);
 
                 MemoModel::create([
-                    'member_id' => auth('api')->user()->id,
+                    'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
                     'subject' => 'Bonus Freebet',
@@ -604,13 +617,11 @@ class DepositController extends ApiController
                     [
                         'target' => 'Bonus FreeBet',
                         'activity' => 'Bonus FreeBet Giveup',
-                        'ip_member' => auth('api')->user()->last_login_ip,
+                        'ip_member' => $this->memberActive->last_login_ip,
                     ],
                     $member->username . 'Deducted Bonus FreeBet amount from member balance  ' . number_format($Check_deposit_claim_bonus_freebet->bonus_freebet_amount)
                 );
-                auth('api')->user()->update([
-                    'last_login_ip' => $request->ip,
-                ]);
+                
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Penyerahan bonus Freebet berhasil.',
@@ -627,7 +638,7 @@ class DepositController extends ApiController
     public function BonusDepositGivUp(Request $request)
     {
         try {
-            $memberId = auth('api')->user()->id;
+            $memberId = $this->memberActive->id;
             $bonus_deposit = BonusSettingModel::select(
                 'min_depo',
                 'max_depo',
@@ -643,7 +654,7 @@ class DepositController extends ApiController
             $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
-            $Check_deposit_claim_bonus_deposit = DepositModel::where('members_id', auth('api')->user()->id)
+            $Check_deposit_claim_bonus_deposit = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 6)
                 ->where('status_bonus', 0)
@@ -654,19 +665,19 @@ class DepositController extends ApiController
                 if (!in_array(16, $providerId)) {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
+                        ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
                     $TOmember = $TOSlotCasinoFish + $TOTogel;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)
+                        ->where('created_by', $this->memberActive->id)
                         ->where('game_info', 'slot')->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', auth('api')->user()->id)->sum('pay_amount');
+                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
                     $TOmember = $TOSlotCasinoFish + $TOTogel;
                 }
@@ -693,7 +704,7 @@ class DepositController extends ApiController
                 MembersModel::where('id', $memberId)
                     ->update([
                         'credit' => $credit,
-                        'updated_by' => auth('api')->user()->id,
+                        'updated_by' => $this->memberActive->id,
                         'updated_at' => Carbon::now(),
                     ]);
 
@@ -701,7 +712,7 @@ class DepositController extends ApiController
                     ->update([
                         'status_bonus' => 2,
                         'reason_bonus' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO,
-                        'updated_by' => auth('api')->user()->id,
+                        'updated_by' => $this->memberActive->id,
                         'updated_at' => Carbon::now(),
                     ]);
 
@@ -712,7 +723,7 @@ class DepositController extends ApiController
                     'constant_bonus_id' => 6,
                     'jumlah' => $bonus,
                     'credit' => MembersModel::where('id', $memberId)->first()->credit,
-                    'member_id' => auth('api')->user()->id,
+                    'member_id' => $this->memberActive->id,
                     'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'type' => 'uang',
                     'created_by' => 0,
@@ -720,7 +731,7 @@ class DepositController extends ApiController
                 ]);
 
                 MemoModel::create([
-                    'member_id' => auth('api')->user()->id,
+                    'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
                     'subject' => 'Bonus Deposit',
@@ -737,13 +748,11 @@ class DepositController extends ApiController
                     [
                         'target' => 'Bonus Deposit',
                         'activity' => 'Bonus Deposit Giveup',
-                        'ip_member' => auth('api')->user()->last_login_ip,
+                        'ip_member' => $this->memberActive->last_login_ip,
                     ],
                     $member->username . 'Deducted Bonus Deposit amount from member balance  ' . number_format($Check_deposit_claim_bonus_deposit->bonus_deposit_amount)
                 );
-                auth('api')->user()->update([
-                    'last_login_ip' => $request->ip,
-                ]);
+                
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Penyerahan bonus Deposit berhasil.',

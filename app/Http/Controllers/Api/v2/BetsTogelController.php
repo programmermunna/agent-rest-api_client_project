@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v2;
 
 use App\Events\BetTogelBalanceEvent;
+use App\Events\LastBetWinEvent;
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
 use App\Models\BetsTogel;
@@ -154,6 +155,7 @@ class BetsTogelController extends ApiController
                 }
             }
 
+            $betAmount = [];
             foreach ($this->checkBlokednumber($request, $provider) as $togel) {
                 # definition of bonus referal
                 $calculateReferal = ($bonus["$pasaran->name_initial"] * $togel['pay_amount']) / 100;
@@ -190,6 +192,7 @@ class BetsTogelController extends ApiController
                 }
 
                 $payBetTogel = $togel['pay_amount'];
+                $betAmount[] = $payAmount;
                 $beforeBets = array_merge($togel, [
                     'balance' => $member->credit - $payBetTogel,
                     'period' => $periodProvider->period,
@@ -227,7 +230,18 @@ class BetsTogelController extends ApiController
             }
 
             // WEB SOCKET START
+            // =============================================================================
+            // Call Event Last Balance
+            // -----------------------------------------------------------------------------
             BetTogelBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberID)->toArray());
+            // =============================================================================
+            // Call Event Last Bet
+            // -----------------------------------------------------------------------------
+            LastBetWinEvent::dispatch([
+                'id' => $memberID,
+                'bet' => end($betAmount),
+            ]);
+            // =============================================================================
             // WEB SOCKET FINISH
 
             # activity log

@@ -12,10 +12,6 @@ class DepositModel extends Model
 
     protected $connection = 'mysql';
 
-     protected $dispatchesEvents = [
-         'created' => CreateDepositEvent::class
-     ];
-
     protected $dates = ['deleted_at'];
 
     /**
