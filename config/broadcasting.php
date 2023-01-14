@@ -38,7 +38,7 @@ return [
             'options' => [
                 'cluster' => env('PUSHER_APP_CLUSTER'),
                 'encrypted' => true,
-                'host' => env('PUSHER_APP_HOST', 'member-api.cktch.top'),
+                'host' => env('PUSHER_APP_HOST'),
                 'port' => env('PUSHER_APP_PORT', 6007),
                 'scheme' => env('PUSHER_APP_SCHEME', 'https'),
                 'useTLS' => true,
