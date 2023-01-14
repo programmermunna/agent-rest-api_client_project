@@ -34,11 +34,15 @@ class MemoController extends ApiController
 
     public function __construct()
     {
-        $member = auth('api')->user();
-        $this->memberActive = $member;
-        $this->memberID = $member->id;
-        $this->memberUsername = $member->username;
-        $this->memberIP = $member->last_login_ip;
+        try {
+            $member = auth('api')->user();
+            $this->memberActive = $member;
+            $this->memberID = $member->id;
+            $this->memberUsername = $member->username;
+            $this->memberIP = $member->last_login_ip;
+        } catch (\Throwable$th) {
+            return $this->errorResponse('Token is Invalid or Expired', 401);
+        }
     }
 
     public function create(Request $request)
@@ -248,7 +252,7 @@ class MemoController extends ApiController
     public function NotifyMemo()
     {
         try {
-            $notify = MemoModel::select('id')->where('is_read', false)->whereIn('send_type', ['Admin', 'System'])->count();
+            $notify = MemoModel::select('id')->where('is_read', false)->whereIn('send_type', ['Admin', 'System'])->where('member_id', $this->memberID)->count();
             return response()->json([
                 'status' => 'success',
                 'message' => null,
