@@ -30,9 +30,7 @@ class AuthServiceProvider extends ServiceProvider
 
         // Define Websocket Dashboard on Prod
         Gate::define('viewWebSocketsDashboard', function ($user = null) {
-            return in_array($user->email, [
-                //
-            ]);
+            return true;
         });
 
         // Implicitly grant "Admin" role all permissions
