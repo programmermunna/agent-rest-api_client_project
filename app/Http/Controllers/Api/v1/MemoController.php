@@ -155,12 +155,10 @@ class MemoController extends ApiController
                 return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
             }
 
-            $memo = MemoModel::select('id', 'is_read', 'send_type')->find($request->id);
-            if ($memo->send_type == 'Admin') {
-                $memo->update([
-                    'is_read' => 1,
-                ]);
-            }
+            $memo = MemoModel::select('id', 'is_read')->whereIn('send_type', ['Admin', 'System'])->where('id', $request->id)->orWhere('memo_id', $request->id)
+            ->update([
+                'is_read' => 1,
+            ]);
 
             // WEB SOCKET START
             NotifyReadMessageEvent::dispatch(MemoModel::find($request->id));
