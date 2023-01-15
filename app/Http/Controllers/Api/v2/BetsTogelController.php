@@ -243,6 +243,7 @@ class BetsTogelController extends ApiController
             LastBetWinEvent::dispatch([
                 'id' => $memberID,
                 'lastBet' => end($betTransaction),
+                'lastWin' => null,
             ]);
             // =============================================================================
             // WEB SOCKET FINISH
