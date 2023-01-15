@@ -24,7 +24,7 @@ class NotifyReadMessageEvent implements ShouldBroadcast
      */
     public function __construct(MemoModel $memoModel)
     {
-        $notify = MemoModel::where('is_read', false)->where('send_type', 'Member')->count();
+        $notify = MemoModel::where('is_read', false)->whereIn('send_type', ['Admin','System'])->where('member_id', $memoModel->member_id)->count();
         $this->memo = $memoModel;
         $this->notify = $notify > 9 ? '9+' : $notify;
     }
