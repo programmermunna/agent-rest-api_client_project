@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Events\WithdrawalCreateBalanceEvent;
-use App\Http\Controllers\ApiController;
+use Carbon\Carbon;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
-use App\Models\BonusSettingModel;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
-use App\Models\RekeningModel;
-use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
-use App\Models\WithdrawModel;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Models\RekeningModel;
+use App\Models\WithdrawModel;
+use App\Models\RekMemberModel;
+use App\Models\BonusSettingModel;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use App\Events\CreateWithdrawalEvent;
+use App\Http\Controllers\ApiController;
+use App\Events\WithdrawalCreateBalanceEvent;
 
 class WithdrawController extends ApiController
 {
@@ -121,6 +122,7 @@ class WithdrawController extends ApiController
 
                         // WEB SOCKET START
                         WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+                        CreateWithdrawalEvent::dispatch($withdrawal->toArray());
                         // WEB SOCKET FINISH
 
                         # activity Log
