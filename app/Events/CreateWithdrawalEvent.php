@@ -11,31 +11,35 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CreateWithdrawalEvent
+class CreateWithdrawalEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    // private WithdrawModel $withdrawModel;
-    // protected bool $emitAble;
+    public $withdraw;
+    public $notify;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(WithdrawModel $withdrawModel, bool $emitAble = true)
+    public function __construct(WithdrawModel $withdraw)
     {
-        // $this->withdrawModel = $withdrawModel;
-        // $this->emitAble = $emitAble;
+        $notify = WithdrawModel::select('id')->where('approval_status', 0)->count();
+        $this->withdraw = $withdraw;
+        $this->notify = $notify > 9 ? '9+' : $notify;
     }
 
-    public function getWithdrawModel(): WithdrawModel
+    public function broadcastOn()
     {
-        // return $this->withdrawModel;
+        return [
+            new Channel('MemberSocket-Channel-Withdraw-'.$this->withdraw->members_id),
+            new Channel('MemberSocket-Channel-Withdraw'),
+        ];
     }
 
-    public function getEmitAble(): bool
+    public function broadcastAs()
     {
-        // return $this->emitAble;
+        return 'MemberSocket-Event-Withdraw-CreateWithdraw';
     }
 }
