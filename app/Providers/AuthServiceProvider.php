@@ -27,6 +27,11 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->registerPolicies();
+        
+        // Define Websocket Dashboard on Prod
+        Gate::define('viewWebSocketsDashboard', function ($user = null) {
+            return $user != null;
+        });
 
         // Implicitly grant "Admin" role all permissions
         // This works in the app by using gate-related functions like auth()->user->can() and @can()
