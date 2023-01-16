@@ -146,7 +146,7 @@ class JWTAuthController extends ApiController
         auth('api')->user()->authTokens()->create([
             'token' => $token,
         ]);
-        return $this->createNewToken($token);
+        return $this->createNewToken($token, $user);
     }
 
     public function getAuthenticatedMember()
@@ -507,7 +507,7 @@ class JWTAuthController extends ApiController
             'token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL(),
-            // 'user' => $userData,
+            'user' => $userData,
             // 'member' => auth('api')->user(),
         ]);
     }
