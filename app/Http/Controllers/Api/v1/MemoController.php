@@ -40,12 +40,8 @@ class MemoController extends ApiController
             $this->memberID = $member->id;
             $this->memberUsername = $member->username;
             $this->memberIP = $member->last_login_ip;
-        }  catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-            return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
-            return $this->errorResponse('Token absent', 500);
         }
     }
 
