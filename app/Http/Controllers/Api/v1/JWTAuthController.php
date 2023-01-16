@@ -69,7 +69,7 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
         }
 
-        $member = MembersModel::select('id', 'status')->where('email', $input['user_account'])
+        $member = MembersModel::select('id', 'status', 'password')->where('email', $input['user_account'])
             ->orWhere('username', $input['user_account'])
             ->first();
         if ($member) {
@@ -95,8 +95,11 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse('Akun anda telah di blokir', 401);
             } elseif ($member->status == 2) {
                 return $this->errorResponse('Akun anda telah di tangguhkan', 401);
-            } elseif ($member->status == 1) {
+            } elseif (Hash::check($input['password'], $member->password)) {
+                SessionEvent::dispatch($member->id);
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
+            } else {
+                return $this->errorResponse('Password anda salah', 401);
             }
 
             \Config::set('auth.defaults.guard', 'api');
@@ -134,7 +137,6 @@ class JWTAuthController extends ApiController
 
         auth('api')->user()->authTokens->each(function ($item) {
             try {
-                SessionEvent::dispatch(auth('api')->user()->id);
                 auth('api')->setToken($item->token)->invalidate();
                 $item->delete();
             } catch (\Exception$exception) {
