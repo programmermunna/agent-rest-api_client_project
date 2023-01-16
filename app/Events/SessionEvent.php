@@ -13,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 class SessionEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    protected $id;
+    public $id;
 
     /**
      * Create a new event instance.
@@ -32,7 +32,7 @@ class SessionEvent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel('MemberSocket-Channel-SessionExpired-'.$this->id);
+        return new Channel('MemberSocket-Channel-SessionExpired');
     }
 
     public function broadcastAs()
