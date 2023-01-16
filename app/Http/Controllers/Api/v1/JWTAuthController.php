@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Events\SessionEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
@@ -68,7 +69,7 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
         }
 
-        $member = MembersModel::where('email', $input['user_account'])
+        $member = MembersModel::select('id', 'status')->where('email', $input['user_account'])
             ->orWhere('username', $input['user_account'])
             ->first();
         if ($member) {
@@ -114,8 +115,6 @@ class JWTAuthController extends ApiController
                 'last_login_ip' => $ipClient[0] ?? $request->ip(),
             ]);
 
-            auth('api')->user();
-
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
                 'Member Login',
@@ -134,8 +133,8 @@ class JWTAuthController extends ApiController
         }
 
         auth('api')->user()->authTokens->each(function ($item) {
-
             try {
+                SessionEvent::dispatch(auth('api')->user()->id);
                 auth('api')->setToken($item->token)->invalidate();
                 $item->delete();
             } catch (\Exception$exception) {
@@ -147,7 +146,7 @@ class JWTAuthController extends ApiController
         auth('api')->user()->authTokens()->create([
             'token' => $token,
         ]);
-        return $this->createNewToken($token, auth('api')->user());
+        return $this->createNewToken($token);
     }
 
     public function getAuthenticatedMember()
@@ -508,7 +507,7 @@ class JWTAuthController extends ApiController
             'token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL(),
-            'user' => $userData,
+            // 'user' => $userData,
             // 'member' => auth('api')->user(),
         ]);
     }
