@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Api\v2;
 
-use App\Events\MemberUpdate;
+use App\Events\BetTogelBalanceEvent;
+use App\Events\LastBetWinEvent;
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
 use App\Models\BetsTogel;
@@ -35,7 +36,7 @@ class BetsTogelController extends ApiController
      */
     public function store(BetsTogelRequest $request)
     {
-
+        $memberID = auth('api')->user()->id;
         $checkBonusFreebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'constant_provider_id')->where('constant_bonus_id', 4)->first();
         $checkBonusDeposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
         if ($checkBonusFreebet->status_bonus == 1) {
@@ -46,7 +47,7 @@ class BetsTogelController extends ApiController
                 ->where('is_claim_bonus', 4)
                 ->where('status_bonus', 0)
                 ->where('approval_status', 1)
-                ->where('members_id', auth('api')->user()->id)
+                ->where('members_id', $memberID)
                 ->whereBetween('approval_status_at', [$subDay, now()])->orderBy('approval_status_at', 'desc')->first();
             if ($checkKlaimBonus) {
                 $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
@@ -68,7 +69,7 @@ class BetsTogelController extends ApiController
                 ->where('is_claim_bonus', 6)
                 ->where('status_bonus', 0)
                 ->where('approval_status', 1)
-                ->where('members_id', auth('api')->user()->id)
+                ->where('members_id', $memberID)
                 ->whereBetween('approval_status_at', [$subDay, now()])->orderBy('approval_status_at', 'desc')->first();
             if ($checkClaimBonus) {
                 $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
@@ -138,7 +139,7 @@ class BetsTogelController extends ApiController
             DB::beginTransaction();
 
             $payAmount = collect($this->checkBlokednumber($request, $provider))->sum('pay_amount');
-            $checkMember = MembersModel::where('id', auth('api')->user()->id)->first();
+            $checkMember = MembersModel::where('id', $memberID)->first();
             $lastCredit = (float) $checkMember['credit'] - $payAmount;
             if ($payAmount > (float) $checkMember['credit']) {
                 return $this->errorResponse("Saldo anda tidak mencukupi", 400);
@@ -154,12 +155,13 @@ class BetsTogelController extends ApiController
                 }
             }
 
+            $betTransaction = [];
             foreach ($this->checkBlokednumber($request, $provider) as $togel) {
                 # definition of bonus referal
                 $calculateReferal = ($bonus["$pasaran->name_initial"] * $togel['pay_amount']) / 100;
 
                 # get member bet
-                $member = MembersModel::where('id', auth('api')->user()->id)->first();
+                $member = MembersModel::where('id', $memberID)->first();
                 $balance_upline_referral = 0;
 
                 # check if any referrer
@@ -198,9 +200,13 @@ class BetsTogelController extends ApiController
                     "togel_game_id" => $gameType,
                     "constant_provider_togel_id" => $provider,
                     'togel_setting_game_id' => is_null($settingGames) ? null : $settingGames->id, // will be error if the foreign key not release
-                    'created_by' => auth('api')->user()->id, // Laravel Can Handler which user has login please cek config.auth folder
+                    'created_by' => $memberID, // Laravel Can Handler which user has login please cek config.auth folder
                     'created_at' => now(),
                 ]);
+                $betTransaction[] = [
+                    'bet' => $payAmount,
+                    'created_at' => $beforeBets['created_at'],
+                ];
 
                 # check is buangan
                 $afterBet = DB::table('bets_togel')->insertGetId($beforeBets);
@@ -226,12 +232,24 @@ class BetsTogelController extends ApiController
                 ]);
             }
 
-            // // WEB SOCKET START
-            // MemberUpdate::dispatch(MembersModel::find(auth('api')->user()->id));
-            // // WEB SOCKET FINISH
+            // WEB SOCKET START
+            // =============================================================================
+            // Call Event Last Balance
+            // -----------------------------------------------------------------------------
+            BetTogelBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberID)->toArray());
+            // =============================================================================
+            // Call Event Last Bet
+            // -----------------------------------------------------------------------------
+            LastBetWinEvent::dispatch([
+                'id' => $memberID,
+                'lastBet' => end($betTransaction),
+                'lastWin' => null,
+            ]);
+            // =============================================================================
+            // WEB SOCKET FINISH
 
             # activity log
-            $bet = BetsTogel::first();
+            $bet = BetsTogel::select('id')->first();
             UserLogModel::logMemberActivity(
                 'create bet togel',
                 $checkMember,
@@ -333,7 +351,7 @@ class BetsTogelController extends ApiController
             //  which number will bloked
             foreach ($request->validationData()['data'] as $key => $data) {
 
-                $result = TogelBlokAngka::select('number_3', 'number_4', 'number_5', 'number_3')
+                $result = TogelBlokAngka::select('number_3', 'number_4', 'number_5', 'number_6')
                     ->where('number_3', $data['number_3'])
                     ->where('number_4', $data['number_4'])
                     ->where('number_5', $data['number_5'])

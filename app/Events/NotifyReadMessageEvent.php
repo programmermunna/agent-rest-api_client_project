@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\DepositModel;
+use App\Models\MemoModel;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -11,10 +11,10 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CreateDepositEvent implements ShouldBroadcast
+class NotifyReadMessageEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    public $deposit;
+    public $memo;
     public $notify;
 
     /**
@@ -22,10 +22,10 @@ class CreateDepositEvent implements ShouldBroadcast
      *
      * @return void
      */
-    public function __construct(DepositModel $deposit)
+    public function __construct(MemoModel $memoModel)
     {
-        $notify = DepositModel::select('id')->where('approval_status', 0)->count();
-        $this->deposit = $deposit;
+        $notify = MemoModel::where('is_read', false)->whereIn('send_type', ['Admin','System'])->where('member_id', $memoModel->member_id)->count();
+        $this->memo = $memoModel;
         $this->notify = $notify > 9 ? '9+' : $notify;
     }
 
@@ -36,14 +36,11 @@ class CreateDepositEvent implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return [
-            new Channel('MemberSocket-Channel-Deposit-'.$this->deposit->members_id),
-            new Channel('MemberSocket-Channel-Deposit'),
-        ];
+        return new Channel("MemberSocket-Channel-Message-{$this->memo->member_id}");
     }
-    
+
     public function broadcastAs()
     {
-        return 'MemberSocket-Event-Deposit-CreateDeposit';
+        return 'MemberSocket-Event-Message-ReadMessage';
     }
 }

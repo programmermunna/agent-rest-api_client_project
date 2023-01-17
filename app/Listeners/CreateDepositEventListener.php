@@ -28,26 +28,6 @@ class CreateDepositEventListener
      */
     public function handle(CreateDepositEvent $event)
     {
-        // if ($event->getEmitAble()) {
-        //     $deposit = $event->getDeposit();
-        //     //sends api call with payload to intending listener
-        //     $externalServices = (new OrganizationServiceRepository())->getAllItems();
-
-        //     $externalServicesEventDispatcher = new SyncApplicationEventsAmongServices();
-        //     foreach ($externalServices as $service) {
-        //         $url = config('app.env') === 'production' ?
-        //             "{$service->production_url}{$service->events_endpoint}" :
-        //             "{$service->staging_url}{$service->events_endpoint}";
-
-        //         $externalServicesEventDispatcher->notifyOverREST(
-        //             $url,
-        //             [
-        //                 'event' => CreateDepositEvent::class,
-        //                 'deposit_id' => $deposit->id,
-        //                 'has_model' => true
-        //             ]
-        //         );
-        //     }
-        // }
+        //
     }
 }

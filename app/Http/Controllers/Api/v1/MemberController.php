@@ -3958,9 +3958,7 @@ class MemberController extends ApiController
     public function depostiWithdrawStatus()
     {
         try {
-            #member
-            // $deposit = DepositModel::leftJoin('members', 'members.id', 'deposit.members_id')
-            //     ->leftJoin('constant_rekening as constRek', 'constRek.id', '=', 'members.constant_rekening_id')
+            # Last Deposit
             $deposit = DepositModel::leftJoin('rek_member', 'rek_member.id', 'deposit.rek_member_id')
                 ->leftJoin('constant_rekening as constRek', 'constRek.id', '=', 'rek_member.constant_rekening_id')
                 ->select([
@@ -3972,9 +3970,7 @@ class MemberController extends ApiController
                 ->withTrashed()
                 ->where('members_id', $this->member->id)->latest()->first();
 
-            #member
-            // $withdraw = WithdrawModel::leftJoin('members', 'members.id', 'withdraw.members_id')
-            // ->leftJoin('constant_rekening as constRek', 'constRek.id', '=', 'members.constant_rekening_id')
+            # Last Withdraw
             $withdraw = WithdrawModel::leftJoin('rek_member', 'rek_member.id', 'withdraw.rek_member_id')
                 ->leftJoin('constant_rekening as constRek', 'constRek.id', '=', 'rek_member.constant_rekening_id')
                 ->select([
@@ -4014,221 +4010,16 @@ class MemberController extends ApiController
                     ];
                 }
 
-                // create bonus turnover member
-                // $bets = BetModel::join('members', 'members.id', 'bets.created_by')
-                //     ->where('created_by', auth('api')->user()->id)
-                //     ->select(
-                //         'bets.created_by',
-                //         DB::raw("(sum(bets.bet)) as Bet_Lose"),
-                //         DB::raw("(sum(bets.win)) as Win"),
-                //         DB::raw("(sum(bets.win)) + (sum(bets.bet)) as Balance"),
-                //     )
-                //     ->where('bets.created_by', auth('api')->user()->id)
-                //     ->groupBy('bets.created_by')->first();
-                // $enableTurnover = ImageContent::where('type', 'turnover')->where('enabled', 1)->select('enabled')->first();
-                // $turnover = TurnoverModel::where('created_by', auth('api')->user()->id)->first();
-                // $creditMember = MembersModel::where('id', auth('api')->user()->id)->first();
-                // if (! empty($bets) && $enableTurnover != null) {
-                //     if ($bets->Balance >= 50000000 && $bets->Balance <= 99999999 && $turnover->is_turnover1 == 0 && $enableTurnover->enabled == 1) {
-                //         $creditMember->update([
-                //             'credit' => $creditMember->credit + 50000,
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover1' => 1,
-                //         ]);
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Bonus Turnover Sebesar Rp 50.000',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //     } elseif ($bets->Balance >= 100000000 && $bets->Balance <= 199999999 && $turnover->is_turnover2 == 0 && $enableTurnover->enabled == 1) {
-                //         $creditMember->update([
-                //             'credit' => $creditMember->credit + 100000,
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover2' => 1,
-                //         ]);
-                //         // $saldoSebelumTurnover = $creditMember->credit - 100000;
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Bonus Turnover Sebesar Rp 100.000',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //     } elseif ($bets->Balance >= 200000000 && $bets->Balance <= 299999999 && $turnover->is_turnover3 == 0 && $enableTurnover->enabled == 1) {
-                //         $creditMember->update([
-                //             'credit' => $creditMember->credit + 200000,
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover3' => 1,
-                //         ]);
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Bonus Turnover Sebesar Rp 200.000',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //     } elseif ($bets->Balance >= 300000000 && $bets->Balance <= 499999999 && $turnover->is_turnover4 == 0 && $enableTurnover->enabled == 1) {
-                //         $creditMember->update([
-                //             'credit' => $creditMember->credit + 300000,
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover4' => 1,
-                //         ]);
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Bonus Turnover Sebesar Rp 300.000',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //     } elseif ($bets->Balance >= 500000000 && $bets->Balance <= 999999999 && $turnover->is_turnover5 == 0 && $enableTurnover->enabled == 1) {
-                //         $creditMember->update([
-                //             'credit' => $creditMember->credit + 600000,
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover5' => 1,
-                //         ]);
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Bonus Turnover Sebesar Rp 600.000',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //     } elseif ($bets->Balance >= 1000000000 && $bets->Balance <= 1999999999 && $turnover->is_turnover6 == 0 && $enableTurnover->enabled == 1) {
-                //         $creditMember->update([
-                //             'credit' => $creditMember->credit + 1500000,
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover6' => 1,
-                //         ]);
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Bonus Turnover Sebesar Rp 1.500.000',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //     } elseif ($bets->Balance >= 2000000000 && $bets->Balance <= 4999999999 && $turnover->is_turnover7 == 0 && $enableTurnover->enabled == 1) {
-                //         $creditMember->update([
-                //             'credit' => $creditMember->credit + 3000000,
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover7' => 1,
-                //         ]);
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Bonus Turnover Sebesar Rp 3.000.000',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //     } elseif ($bets->Balance >= 5000000000 && $bets->Balance <= 9999999999 && $turnover->is_turnover8 == 0 && $enableTurnover->enabled == 1) {
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Hp Samsung S21+ Ultra 128gb, Silahkan hubungi cs kami',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover8' => 1,
-                //         ]);
-                //     } elseif ($bets->Balance >= 10000000000 && $bets->Balance <= 24999999999 && $turnover->is_turnover9 == 0 && $enableTurnover->enabled == 1) {
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Hp Iphone 12 Pro Max 256GB, Silahkan hubungi cs kami',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover9' => 1,
-                //         ]);
-                //     } elseif ($bets->Balance >= 25000000000 && $bets->Balance <= 49999999999 && $turnover->is_turnover10 == 0 && $enableTurnover->enabled == 1) {
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Yamaha XMAX 250, Silahkan hubungi cs kami',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover10' => 1,
-                //         ]);
-                //     } elseif ($bets->Balance >= 50000000000 && $bets->Balance <= 99999999999 && $turnover->is_turnover11 == 0 && $enableTurnover->enabled == 1) {
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Kawasaki Z126 PRO 2021, Silahkan hubungi cs kami',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover11' => 1,
-                //         ]);
-                //     } elseif ($bets->Balance >= 100000000000 && $bets->Balance <= 999999999999 && $turnover->is_turnover12 == 0 && $enableTurnover->enabled == 1) {
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Honda Accord 2021, Silahkan hubungi cs kami',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover12' => 1,
-                //         ]);
-                //     } elseif ($bets->Balance >= 1000000000000 && $turnover->is_turnover13 == 0) {
-                //         $createMemo = MemoModel::create([
-                //             'member_id' => auth('api')->user()->id,
-                //             'sender_id' => 1,
-                //             'subject' => 'Bonus turnover',
-                //             'is_reply' => 1,
-                //             'is_bonus' => 1,
-                //             'content' => 'Selamat Anda Mendapatkan Mercedes Benz GL-400, Silahkan hubungi cs kami',
-                //             'created_at' => Carbon::now(),
-                //         ]);
-                //         $turnover->update([
-                //             'is_turnover13' => 1,
-                //         ]);
-                //     }
-                // }
-
                 return $this->successResponse($response);
             } else {
                 return $this->successResponse(null, 'Tidak ada konten', 204);
             }
-        } catch (\Throwable$th) {
-            return $this->errorResponse('Internal Server Error', 500);
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+            return $this->errorResponse('Token expired', 404);
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+            return $this->errorResponse('Token invalid', 400);
+        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+            return $this->errorResponse('Token absent', 500);
         }
     }
 

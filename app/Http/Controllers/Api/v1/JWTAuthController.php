@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Events\SessionEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
@@ -37,6 +38,13 @@ class JWTAuthController extends ApiController
     use WithPagination;
     public $perPage = 20;
     public $history = [];
+    public $memberID;
+
+    public function __construct()
+    {
+        $this->memberID = auth('api')->user()->id ?? null;
+    }
+
     public function authenticate(Request $request)
     {
         $input = $request->all();
@@ -61,7 +69,7 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Validation Error', 422, $validator->errors()->first());
         }
 
-        $member = MembersModel::where('email', $input['user_account'])
+        $member = MembersModel::select('id', 'status', 'password')->where('email', $input['user_account'])
             ->orWhere('username', $input['user_account'])
             ->first();
         if ($member) {
@@ -87,8 +95,11 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse('Akun anda telah di blokir', 401);
             } elseif ($member->status == 2) {
                 return $this->errorResponse('Akun anda telah di tangguhkan', 401);
-            } elseif ($member->status == 1) {
+            } elseif (Hash::check($input['password'], $member->password)) {
+                SessionEvent::dispatch($member->id);
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
+            } else {
+                return $this->errorResponse('Password anda salah', 401);
             }
 
             \Config::set('auth.defaults.guard', 'api');
@@ -106,8 +117,6 @@ class JWTAuthController extends ApiController
                 'last_login_at' => now(),
                 'last_login_ip' => $ipClient[0] ?? $request->ip(),
             ]);
-
-            auth('api')->user();
 
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
@@ -127,7 +136,6 @@ class JWTAuthController extends ApiController
         }
 
         auth('api')->user()->authTokens->each(function ($item) {
-
             try {
                 auth('api')->setToken($item->token)->invalidate();
                 $item->delete();
@@ -140,13 +148,13 @@ class JWTAuthController extends ApiController
         auth('api')->user()->authTokens()->create([
             'token' => $token,
         ]);
-        return $this->createNewToken($token, auth('api')->user());
+        return $this->createNewToken($token, $user);
     }
 
     public function getAuthenticatedMember()
     {
         try {
-            $member = MembersModel::select(['id', 'username', 'last_login_at', 'last_login_ip'])->where('id', auth('api')->user()->id)->first();
+            $member = MembersModel::select(['id', 'username', 'last_login_at', 'last_login_ip'])->where('id', $this->memberID)->first();
             if (!$member) {
                 return $this->errorResponse('Member tidak ditemukan', 404);
             }
@@ -164,7 +172,8 @@ class JWTAuthController extends ApiController
     public function getBalanceMember()
     {
         try {
-            $balance = ['balance' => (float) auth('api')->user()->credit];
+            $member = MembersModel::select(['credit'])->where('id', $this->memberID)->first();
+            $balance = ['balance' => (float) $member->credit];
             return $this->successResponse($balance);
         } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
             return $this->errorResponse('Token expired', 404);
