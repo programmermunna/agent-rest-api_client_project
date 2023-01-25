@@ -2,47 +2,26 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Domains\Announcement\Services\AnnouncementService;
+use App\Domains\Announcement\Models\Announcement;
 use App\Http\Controllers\ApiController;
 use App\Models\AppSetting;
 use Carbon\Carbon;
-use App\Domains\Announcement\Models\Announcement;
 
 class LanlanController extends ApiController
 {
-    protected $announcementService;
-
-    public function __construct(AnnouncementService $announcementService)
-    {
-        $this->announcementService = $announcementService;
-    }
-
     public function broadcast()
     {
         try {
-            $broadcasts = $this->announcementService->getForFrontend();
-            if ($broadcasts->count() >= 1) {
-                return $this->successResponse($broadcasts->pluck('message'));
+            $broadcasts = Announcement::select('message')->where('area', 'frontend')->where('enabled', true)->first();
+            if ($broadcasts) {
+                return $this->successResponse($broadcasts->message);
+            } else {
+                return $this->successResponse(null, 'Tidak ada konten', 204);
             }
-
-            return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
-    // public function broadcast()
-    // {
-    //     try {
-    //         $broadcasts = Announcement::where('area', 'frontend')->get();
-    //         if ($broadcasts) {
-    //             return $this->successResponse($broadcasts->pluck('message'));
-    //         }else{
-    //             return $this->successResponse(null, 'Tidak ada konten', 204);
-    //         }
-    //     } catch (\Throwable $th) {
-    //         return $this->errorResponse('Internal Server Error', 500);
-    //     }
-    // }
 
     public function apk()
     {
@@ -53,7 +32,7 @@ class LanlanController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -72,7 +51,7 @@ class LanlanController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -91,7 +70,7 @@ class LanlanController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -108,7 +87,7 @@ class LanlanController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -119,7 +98,7 @@ class LanlanController extends ApiController
             $maintenance = AppSetting::where('name', 'status')->where('type', 'maintenance')->value('value');
 
             if ($maintenance) {
-                //if value on database 503 == maintenance, 
+                //if value on database 503 == maintenance,
                 if ($maintenance == 503) {
                     $response['code'] = 503;
 
@@ -132,11 +111,10 @@ class LanlanController extends ApiController
                 }
             }
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
-
 
     public function maintenanceWebsite()
     {
@@ -170,7 +148,7 @@ class LanlanController extends ApiController
                 );
                 return $this->successResponse('Tidak ada Pemeliharaan', 200);
             }
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
