@@ -38,14 +38,7 @@ return [
             'options' => [
                 'cluster' => env('PUSHER_APP_CLUSTER'),
                 'encrypted' => true,
-                'host' => env('PUSHER_APP_HOST'),
-                'port' => env('PUSHER_APP_PORT', 6007),
-                'scheme' => env('PUSHER_APP_SCHEME', 'https'),
                 'useTLS' => true,
-                'curl_options' => [ // since we're only doing stuff locally this is fine
-                    CURLOPT_SSL_VERIFYHOST => 0,
-                    CURLOPT_SSL_VERIFYPEER => 0,
-                ],
             ],
         ],
 
