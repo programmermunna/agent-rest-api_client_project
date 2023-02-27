@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Events\BotDanaEvent;
 use App\Events\CreateDepositEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
@@ -12,6 +13,7 @@ use App\Models\ConstantProvider;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
 use App\Models\MemoModel;
+use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
@@ -27,7 +29,7 @@ class DepositController extends ApiController
     {
         try {
             $this->memberActive = auth('api')->user();
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Token is Invalid or Expired', 401);
         }
     }
@@ -151,10 +153,15 @@ class DepositController extends ApiController
             }
 
             $depositCreate = DepositModel::create($payload);
+            $rekening = RekeningModel::select(['constant_rekening_id'])->find($request->rekening_id);
 
             // WEB SOCKET START
             // ==================================================================
             CreateDepositEvent::dispatch($depositCreate);
+
+            if ($rekening && $rekening->constant_rekening_id == 11) { // check if this is the destination for a DANA account
+                BotDanaEvent::dispatch();
+            }
             // ==================================================================
             // WEB SOCKET FINISh
 
@@ -173,7 +180,7 @@ class DepositController extends ApiController
 
             return $this->successResponse(null, 'Deposit berhasil');
         } catch (\Throwable$th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
 
@@ -621,7 +628,7 @@ class DepositController extends ApiController
                     ],
                     $member->username . 'Deducted Bonus FreeBet amount from member balance  ' . number_format($Check_deposit_claim_bonus_freebet->bonus_freebet_amount)
                 );
-                
+
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Penyerahan bonus Freebet berhasil.',
@@ -752,7 +759,7 @@ class DepositController extends ApiController
                     ],
                     $member->username . 'Deducted Bonus Deposit amount from member balance  ' . number_format($Check_deposit_claim_bonus_deposit->bonus_deposit_amount)
                 );
-                
+
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Penyerahan bonus Deposit berhasil.',
