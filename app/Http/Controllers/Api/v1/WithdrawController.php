@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use Carbon\Carbon;
+use App\Events\CreateWithdrawalEvent;
+use App\Events\WithdrawalCreateBalanceEvent;
+use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
+use App\Models\BonusSettingModel;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
-use App\Models\UserLogModel;
-use Illuminate\Http\Request;
 use App\Models\RekeningModel;
-use App\Models\WithdrawModel;
 use App\Models\RekMemberModel;
-use App\Models\BonusSettingModel;
-use Illuminate\Support\Facades\Log;
+use App\Models\UserLogModel;
+use App\Models\WithdrawModel;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Events\CreateWithdrawalEvent;
-use App\Http\Controllers\ApiController;
-use App\Events\WithdrawalCreateBalanceEvent;
+use Illuminate\Support\Facades\Log;
 
 class WithdrawController extends ApiController
 {
