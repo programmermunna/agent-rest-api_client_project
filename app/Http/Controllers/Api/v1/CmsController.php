@@ -28,6 +28,11 @@ class CmsController extends ApiController
         }
     }
 
+     /**
+        * Image Content
+        * filter data by type 
+        * delete not used in frontend order and content
+     */
     public function imageContent($type)
     {
         try {
@@ -37,8 +42,6 @@ class CmsController extends ApiController
                     'type',
                     'path',
                     'alt',
-                    'order',
-                    'content',
                 )
                     ->where('enabled', 1)->orderBy('type', 'asc')->orderBy('order', 'asc')->get();
                 return $this->successResponse($sildeAndPopupImages, 'Datanya ada', 200);
@@ -55,8 +58,6 @@ class CmsController extends ApiController
                         'type',
                         'path',
                         'alt',
-                        'order',
-                        'content',
                     )
                         ->where('type', $type)->where('enabled', 1)->orderBy('order', 'asc')->get();
                 }
