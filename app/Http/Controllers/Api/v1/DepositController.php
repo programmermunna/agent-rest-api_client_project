@@ -246,6 +246,7 @@ class DepositController extends ApiController
                     ->where('members_id', $userId)
                     ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
                     ->first();
+                $cekSudahPernahDepo = DepositModel::where('members_id', $userId)->first();
                 $dataBonusSetting[] = [
                     'id' => $item->id,
                     'name_bonus' => $item->nama_bonus,
@@ -259,7 +260,7 @@ class DepositController extends ApiController
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
                     'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
-                    'is_new_member' => 'test', 
+                    'is_new_member' => $cekSudahPernahDepo ? 0 : 1, 
                 ];
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus Freebet berhasil ditampilkan');
