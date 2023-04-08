@@ -632,7 +632,7 @@ class DepositController extends ApiController
                         'activity' => 'Bonus New Member Promotion Giveup',
                         'ip_member' => $this->memberActive->last_login_ip,
                     ],
-                    $member->username . 'Deducted Bonus New Member Promotion amount from member balance  ' . number_format($Check_deposit_claim_bonus_freebet->bonus_freebet_amount)
+                    $member->username . ' Deducted Bonus New Member Promotion amount from member balance  ' . number_format($bonus)
                 );
 
                 return response()->json([
