@@ -258,7 +258,7 @@ class DepositController extends ApiController
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
-                    'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
+                    'is_claim_bonus' => $checkKlaimBonus ? 0 : 1,
                     'provider_id' => $item->constant_provider_id ? $providers : [],
                 ];
             }
@@ -632,7 +632,7 @@ class DepositController extends ApiController
                         'activity' => 'Bonus New Member Promotion Giveup',
                         'ip_member' => $this->memberActive->last_login_ip,
                     ],
-                    $member->username . 'Deducted Bonus New Member Promotion amount from member balance  ' . number_format($Check_deposit_claim_bonus_freebet->bonus_freebet_amount)
+                    $member->username . ' Deducted Bonus New Member Promotion amount from member balance  ' . number_format($bonus)
                 );
 
                 return response()->json([
