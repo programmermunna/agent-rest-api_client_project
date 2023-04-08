@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Domains\Auth\Listeners\RoleEventListener;
 use App\Domains\Auth\Listeners\UserEventListener;
 use App\Events\BetTogelBalanceEvent;
+use App\Events\BotDanaEvent;
 use App\Events\CreateDepositEvent;
 use App\Events\CreateWithdrawalEvent;
 use App\Events\LastBetWinEvent;
@@ -15,6 +16,7 @@ use App\Events\NotifyReplyMessageEvent;
 use App\Events\WithdrawalCreateBalanceEvent;
 use App\Events\SessionEvent;
 use App\Listeners\BetTogelBalanceEventListener;
+use App\Listeners\BotDanaListener;
 use App\Listeners\CreateDepositEventListener;
 use App\Listeners\CreateWithdrawalEventListener;
 use App\Listeners\DispatchNewMemoEventToExternalService;
@@ -43,6 +45,9 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
         // WEB SOCKET START
+        BotDanaEvent::class => [
+            BotDanaListener::class,
+        ],
         NotifyNewMemo::class => [
             DispatchNewMemoEventToExternalService::class,
         ],

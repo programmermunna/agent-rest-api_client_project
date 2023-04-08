@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use Carbon\Carbon;
+use App\Events\CreateWithdrawalEvent;
+use App\Events\WithdrawalCreateBalanceEvent;
+use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
+use App\Models\BonusSettingModel;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
-use App\Models\UserLogModel;
-use Illuminate\Http\Request;
 use App\Models\RekeningModel;
-use App\Models\WithdrawModel;
 use App\Models\RekMemberModel;
-use App\Models\BonusSettingModel;
-use Illuminate\Support\Facades\Log;
+use App\Models\UserLogModel;
+use App\Models\WithdrawModel;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Events\CreateWithdrawalEvent;
-use App\Http\Controllers\ApiController;
-use App\Events\WithdrawalCreateBalanceEvent;
+use Illuminate\Support\Facades\Log;
 
 class WithdrawController extends ApiController
 {
@@ -61,7 +61,7 @@ class WithdrawController extends ApiController
             if ($bankAsalTransferForWd) {
                 $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 4)->first();
                 $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'max_bonus', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
-                # Check Bonus Freebet
+                # Check Bonus New Member
                 if ($bonus_freebet->status_bonus == 1) {
                     $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
                     $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
@@ -98,7 +98,7 @@ class WithdrawController extends ApiController
                         $TO = $depoPlusBonus * $turnover_x;
 
                         if ($TOMember < $TO) {
-                            return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Freebet. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
+                            return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
                         }
 
                         $payload = [
@@ -141,7 +141,7 @@ class WithdrawController extends ApiController
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
                 }
-                # Check Bonus Deposit
+                # Check Bonus Existing Member
                 if ($bonus_deposit->status_bonus == 1) {
                     $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
                     $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
@@ -182,7 +182,7 @@ class WithdrawController extends ApiController
                         $TO = $depoPlusBonus * $turnover_x;
 
                         if ($TOMember < $TO) {
-                            return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Deposit. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
+                            return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Existing Member. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
                         }
 
                         $payload = [

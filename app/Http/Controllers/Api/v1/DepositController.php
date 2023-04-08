@@ -27,7 +27,7 @@ class DepositController extends ApiController
     {
         try {
             $this->memberActive = auth('api')->user();
-        } catch (\Throwable $th) {
+        } catch (\Throwable$th) {
             return $this->errorResponse('Token is Invalid or Expired', 401);
         }
     }
@@ -73,20 +73,20 @@ class DepositController extends ApiController
                 if ($bonus_freebet->status_bonus == 1) {
                     if ($check_claim_bonus) {
                         if ($check_claim_bonus->is_claim_bonus == 4) {
-                            return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
+                            return $this->errorResponse("Maaf, Bonus New Member dapat diklaim sehari sekali.", 400);
                         }
                         if ($check_claim_bonus->is_claim_bonus == 6) {
-                            return $this->errorResponse("Maaf, Bonus Freebet tidak dapat diklaim, Anda sudah mengklaim Bonus Deposit hari ini.", 400);
+                            return $this->errorResponse("Maaf, Bonus New Member tidak dapat diklaim, Anda sudah mengklaim Bonus Existing Member hari ini.", 400);
                         }
                     }
                     if ($request->jumlah < $bonus_freebet->min_depo) {
-                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->min_depo) . ".", 400);
+                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus new member sebesar " . number_format($bonus_freebet->min_depo) . ".", 400);
                     }
                     if ($request->jumlah > $bonus_freebet->max_depo) {
-                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->max_depo) . ".", 400);
+                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus new member sebesar " . number_format($bonus_freebet->max_depo) . ".", 400);
                     }
                 } else {
-                    return $this->errorResponse("Bonus Freebet sedang tidak aktif.", 400);
+                    return $this->errorResponse("Bonus New Member sedang tidak aktif.", 400);
                 }
                 $bonus = ($request->jumlah * $bonus_freebet->bonus_amount) / 100;
                 $bonus_amount = $bonus_freebet->status_bonus == 1 ? $bonus : 0;
@@ -104,20 +104,20 @@ class DepositController extends ApiController
                 if ($bonus_deposit->status_bonus == 1) {
                     if ($check_claim_bonus) {
                         if ($check_claim_bonus->is_claim_bonus == 6) {
-                            return $this->errorResponse("Maaf, Bonus Deposit dapat diklaim sehari sekali.", 400);
+                            return $this->errorResponse("Maaf, Bonus Existing Member dapat diklaim sehari sekali.", 400);
                         }
                         if ($check_claim_bonus->is_claim_bonus == 4) {
-                            return $this->errorResponse("Maaf, Bonus Deposit tidak dapat diklaim, Anda sudah mengklaim Bonus Freebet hari ini.", 400);
+                            return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim, Anda sudah mengklaim Bonus New Member hari ini.", 400);
                         }
                     }
                     if ($request->jumlah < $bonus_deposit->min_depo) {
-                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus deposit sebesar " . number_format($bonus_deposit->min_depo) . ".", 400);
+                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus existing member sebesar " . number_format($bonus_deposit->min_depo) . ".", 400);
                     }
                     if ($request->jumlah > $bonus_deposit->max_depo) {
-                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus deposit sebesar " . number_format($bonus_deposit->max_depo) . ".", 400);
+                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus existing member sebesar " . number_format($bonus_deposit->max_depo) . ".", 400);
                     }
                 } else {
-                    return $this->errorResponse("Bonus Deposit sedang tidak aktif.", 400);
+                    return $this->errorResponse("Bonus Existing Member sedang tidak aktif.", 400);
                 }
                 $bonus = ($request->jumlah * $bonus_deposit->bonus_amount) / 100;
                 $bonus_amount = $bonus_deposit->status_bonus == 1 ? $bonus : 0;
@@ -173,7 +173,7 @@ class DepositController extends ApiController
 
             return $this->successResponse(null, 'Deposit berhasil');
         } catch (\Throwable$th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
 
@@ -200,6 +200,7 @@ class DepositController extends ApiController
         DepositModel::insert($payload);
     }
 
+    # Bonus New Member Promotion Setting
     public function settingBonusFreebet()
     {
         try {
@@ -236,7 +237,9 @@ class DepositController extends ApiController
                     ->where('status_bonus', 0)
                     ->where('approval_status', 1)
                     ->where('members_id', $userId)
-                    ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
+                    ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
+                    ->first();
+                $cekSudahPernahDepo = DepositModel::where('members_id', $userId)->first();
                 $dataBonusSetting[] = [
                     'id' => $item->id,
                     'name_bonus' => $item->nama_bonus,
@@ -251,14 +254,16 @@ class DepositController extends ApiController
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
                     'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
                     'provider_id' => $item->constant_provider_id ? $providers : [],
+                    'is_new_member' => $cekSudahPernahDepo ? 0 : 1, // 1 = new member | 0 = existing member
                 ];
             }
-            return $this->successResponse($dataBonusSetting, 'Setting Bonus Freebet berhasil ditampilkan');
+            return $this->successResponse($dataBonusSetting, 'Setting Bonus New Member berhasil ditampilkan');
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
 
+    # Bonus Existing Member Promotion Setting
     public function settingBonusDeposit()
     {
         try {
@@ -312,12 +317,13 @@ class DepositController extends ApiController
                     'provider_id' => $item->constant_provider_id ? $providers : [],
                 ];
             }
-            return $this->successResponse($dataBonusSetting, 'Setting Bonus Deposit berhasil ditampilkan');
+            return $this->successResponse($dataBonusSetting, 'Setting Bonus Existing Member berhasil ditampilkan');
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
 
+    # Bonus New Member Promotion
     public function freebetBonus()
     {
         try {
@@ -411,6 +417,7 @@ class DepositController extends ApiController
         }
     }
 
+    # Bonus Existing Member Promotion
     public function depositBonus()
     {
         try {
@@ -510,6 +517,7 @@ class DepositController extends ApiController
         }
     }
 
+    # Bonus New Member Promotion Give Up
     public function BonusFreebetGivUp(Request $request)
     {
         try {
@@ -563,7 +571,7 @@ class DepositController extends ApiController
                 $TO = $depoPlusBonus * $turnover_x;
 
                 if ($TOmember > $TO) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus Freebet, silahkan Withdraw sekarang', 400);
+                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus New Member Promotion, silahkan Withdraw sekarang', 400);
                 }
 
                 $bonus = $Check_deposit_claim_bonus_freebet->bonus_amount;
@@ -590,7 +598,7 @@ class DepositController extends ApiController
                     'is_use' => 1,
                     'is_delete' => 0,
                     'constant_bonus_id' => 4,
-                    'jumlah' => $bonus,
+                    'jumlah' => $bonus * -1,
                     'credit' => MembersModel::where('id', $memberId)->first()->credit,
                     'member_id' => $this->memberActive->id,
                     'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
@@ -603,38 +611,39 @@ class DepositController extends ApiController
                     'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
-                    'subject' => 'Bonus Freebet',
+                    'subject' => 'Bonus New Member Promotion',
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Freebet, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus New Member Promotion, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
                 UserLogModel::logMemberActivity(
-                    'Bonus FreeBet Giveup',
+                    'Bonus New Member Promotion Giveup',
                     $member,
                     $Check_deposit_claim_bonus_freebet,
                     [
-                        'target' => 'Bonus FreeBet',
-                        'activity' => 'Bonus FreeBet Giveup',
+                        'target' => 'Bonus New Member Promotion',
+                        'activity' => 'Bonus New Member Promotion Giveup',
                         'ip_member' => $this->memberActive->last_login_ip,
                     ],
-                    $member->username . 'Deducted Bonus FreeBet amount from member balance  ' . number_format($Check_deposit_claim_bonus_freebet->bonus_freebet_amount)
+                    $member->username . ' Deducted Bonus New Member Promotion amount from member balance  ' . number_format($bonus)
                 );
-                
+
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Penyerahan bonus Freebet berhasil.',
+                    'message' => 'Penyerahan Bonus New Member Promotion berhasil.',
                 ]);
             }
 
-            return $this->errorResponse("Maaf, Bonus Freebet sudah tidak aktif atau kadaluarsa.", 400);
+            return $this->errorResponse("Maaf, Bonus New Member Promotion sudah tidak aktif atau kadaluarsa.", 400);
 
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
 
+    # Bonus Existing Member Promotion Give Up
     public function BonusDepositGivUp(Request $request)
     {
         try {
@@ -694,7 +703,7 @@ class DepositController extends ApiController
                 $TO = $depoPlusBonus * $turnover_x;
 
                 if ($TOmember > $TO) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus Freebet, silahkan Withdraw sekarang', 400);
+                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus Existing Member Promotion, silahkan Withdraw sekarang', 400);
                 }
 
                 $bonus = $Check_deposit_claim_bonus_deposit->bonus_amount;
@@ -721,7 +730,7 @@ class DepositController extends ApiController
                     'is_use' => 1,
                     'is_delete' => 0,
                     'constant_bonus_id' => 6,
-                    'jumlah' => $bonus,
+                    'jumlah' => $bonus * -1,
                     'credit' => MembersModel::where('id', $memberId)->first()->credit,
                     'member_id' => $this->memberActive->id,
                     'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
@@ -734,32 +743,32 @@ class DepositController extends ApiController
                     'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
-                    'subject' => 'Bonus Deposit',
+                    'subject' => 'Bonus Existing Member Promotion',
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Deposit, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Existing Member Promotion, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
                 UserLogModel::logMemberActivity(
-                    'Bonus Deposit Giveup',
+                    'Bonus Existing Member Promotion Giveup',
                     $member,
                     $Check_deposit_claim_bonus_deposit,
                     [
-                        'target' => 'Bonus Deposit',
-                        'activity' => 'Bonus Deposit Giveup',
+                        'target' => 'Bonus Existing Member Promotion',
+                        'activity' => 'Bonus Existing Member Promotion Giveup',
                         'ip_member' => $this->memberActive->last_login_ip,
                     ],
-                    $member->username . 'Deducted Bonus Deposit amount from member balance  ' . number_format($Check_deposit_claim_bonus_deposit->bonus_deposit_amount)
+                    $member->username . ' Deducted Bonus Existing Member Promotion amount from member balance  ' . number_format($bonus)
                 );
-                
+
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Penyerahan bonus Deposit berhasil.',
+                    'message' => 'Penyerahan Bonus Existing Member Promotion berhasil.',
                 ]);
             }
 
-            return $this->errorResponse("Maaf, Bonus Deposit sudah tidak aktif atau kadaluarsa.", 400);
+            return $this->errorResponse("Maaf, Bonus Existing Member Promotion sudah tidak aktif atau kadaluarsa.", 400);
 
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);

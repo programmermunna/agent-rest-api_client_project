@@ -86,7 +86,11 @@ class MemberController extends ApiController
                     bonus_history.constant_bonus_id,
                     constant_bonus.nama_bonus,
                     bonus_history.type,
-                    bonus_history.jumlah,
+                    if(
+                        bonus_history.jumlah < 0
+                        , (bonus_history.jumlah * -1)
+                        , bonus_history.jumlah
+                    ) as jumlah,
                     bonus_history.credit,
                     bonus_history.hadiah,
                     if(
@@ -984,7 +988,7 @@ class MemberController extends ApiController
                       NULL as detail
                     ")->get()->toArray();
 
-                # History deposit, withdraw and bonus
+                # History deposit, withdraw
                 $allProBet = DB::select(\DB::raw("SELECT
                     'Deposit' as Tables,
                     NULL as betsBet,
@@ -3924,28 +3928,6 @@ class MemberController extends ApiController
         $this->member = auth('api')->user();
     }
 
-    // public function bank_account()
-    // {
-    //     try {
-    //         $bank_account = MembersModel::leftJoin('constant_rekening as constRek', 'constRek.id', '=', 'members.constant_rekening_id')
-    //         ->select([
-    //             'constRek.name',
-    //             'members.nomor_rekening',
-    //             'members.nama_rekening',
-    //         ])
-    //         ->where('members.id', $this->member->id)
-    //         ->first();
-
-    //         if ($bank_account) {
-    //             return $this->successResponse($bank_account->only(['name', 'nomor_rekening', 'nama_rekening']));
-    //         }
-
-    //         return $this->successResponse(null, 'Tidak ada konten', 204);
-    //     } catch (\Throwable $th) {
-    //         return $this->errorResponse('Internal Server Error', 500);
-    //     }
-    // }
-
     public function winLoseStatus()
     {
         try {
@@ -4239,121 +4221,6 @@ class MemberController extends ApiController
     public function listRekAgent()
     {
         try {
-            // $rekTujuan = RekeningTujuanDepo::where('created_by', auth('api')->user()->id)->first();
-            // $bcaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('rekening.is_depo', '=', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo1)->first();
-            // $mandiriAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('rekening.is_depo', '=', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo2)->first();
-            // $bniAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('rekening.is_depo', '=', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo3)->first();
-            // $briAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('rekening.is_depo', '=', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo4)->first();
-            // $cimbAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('rekening.is_depo', '=', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo5)->first();
-            // $danamondAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('rekening.is_depo', '=', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo6)->first();
-            // $telkomselAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('is_default', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo7)->first();
-            // $axiataAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('is_default', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo8)->first();
-            // $ovoAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('is_default', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo9)->first();
-            // $gopayAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('is_default', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo10)->first();
-            // $danaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('is_default', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo11)->first();
-            // $linkAjaAgent = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-            //     ->select([
-            //         'rekening.id',
-            //         'rekening.nama_rekening',
-            //         'rekening.nomor_rekening',
-            //         'constant_rekening.name',
-            //     ])
-            //     ->where('is_default', 1)
-            //     ->where('rekening.id', $rekTujuan->rekening_id_tujuan_depo12)->first();
-            // $bankName = ['bca', 'mandiri', 'bni', 'bri', 'cimb', 'danamond', 'telkomsel', 'axiata', 'ovo', 'gopay', 'dana', 'linkAja'];
-            // $listRek = [];
-
-            // for ($i=0; $i < count($bankName); $i++) {
-            //     array_push($listRek, ${$bankName[$i]."Agent"});
-            // }
             $bankAgent = RekMemberModel::leftJoin('constant_rekening', 'constant_rekening.id', '=', 'rek_member.constant_rekening_id')
                 ->join('rekening', 'rekening.id', 'rek_member.rekening_id')
                 ->select([
@@ -4769,18 +4636,6 @@ class MemberController extends ApiController
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
-
-    // public function setBonusNextDeposit()
-    // {
-    //     $cekKondisi = DepositModel::where('approval_status', 1)->orderBy('approval_status_at', 'ASC')->limit(3)->get();
-    //     $data = $this->cek = $cekKondisi->toArray();
-    //     if($data === []){
-    //         return 'no data';
-    //     }else{
-    //         $member = DB::table('members')->update(['is_next_deposit' => 0]);
-    //         return 'sukses changed';
-    //     }
-    // }
 
     // pagination
     public function paginate($items, $perPage, $page = null, $options = [])
