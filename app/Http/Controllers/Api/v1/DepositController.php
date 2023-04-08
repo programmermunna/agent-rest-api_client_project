@@ -259,8 +259,7 @@ class DepositController extends ApiController
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
                     'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
-                    // 'is_claim_bonus' => $checkKlaimBonus ? 0 : 1,
-                    'provider_id' => $item->constant_provider_id ? $providers : [],
+                    'is_new_member' => 'test', 
                 ];
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus Freebet berhasil ditampilkan');
