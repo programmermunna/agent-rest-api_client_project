@@ -75,20 +75,20 @@ class DepositController extends ApiController
                 if ($bonus_freebet->status_bonus == 1) {
                     if ($check_claim_bonus) {
                         if ($check_claim_bonus->is_claim_bonus == 4) {
-                            return $this->errorResponse("Maaf, Bonus Freebet dapat diklaim sehari sekali.", 400);
+                            return $this->errorResponse("Maaf, Bonus New Member dapat diklaim sehari sekali.", 400);
                         }
                         if ($check_claim_bonus->is_claim_bonus == 6) {
-                            return $this->errorResponse("Maaf, Bonus Freebet tidak dapat diklaim, Anda sudah mengklaim Bonus Deposit hari ini.", 400);
+                            return $this->errorResponse("Maaf, Bonus New Member tidak dapat diklaim, Anda sudah mengklaim Bonus Existing Member hari ini.", 400);
                         }
                     }
                     if ($request->jumlah < $bonus_freebet->min_depo) {
-                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->min_depo) . ".", 400);
+                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus new member sebesar " . number_format($bonus_freebet->min_depo) . ".", 400);
                     }
                     if ($request->jumlah > $bonus_freebet->max_depo) {
-                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus freebet sebesar " . number_format($bonus_freebet->max_depo) . ".", 400);
+                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus new member sebesar " . number_format($bonus_freebet->max_depo) . ".", 400);
                     }
                 } else {
-                    return $this->errorResponse("Bonus Freebet sedang tidak aktif.", 400);
+                    return $this->errorResponse("Bonus New Member sedang tidak aktif.", 400);
                 }
                 $bonus = ($request->jumlah * $bonus_freebet->bonus_amount) / 100;
                 $bonus_amount = $bonus_freebet->status_bonus == 1 ? $bonus : 0;
@@ -106,20 +106,20 @@ class DepositController extends ApiController
                 if ($bonus_deposit->status_bonus == 1) {
                     if ($check_claim_bonus) {
                         if ($check_claim_bonus->is_claim_bonus == 6) {
-                            return $this->errorResponse("Maaf, Bonus Deposit dapat diklaim sehari sekali.", 400);
+                            return $this->errorResponse("Maaf, Bonus Existing Member dapat diklaim sehari sekali.", 400);
                         }
                         if ($check_claim_bonus->is_claim_bonus == 4) {
-                            return $this->errorResponse("Maaf, Bonus Deposit tidak dapat diklaim, Anda sudah mengklaim Bonus Freebet hari ini.", 400);
+                            return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim, Anda sudah mengklaim Bonus New Member hari ini.", 400);
                         }
                     }
                     if ($request->jumlah < $bonus_deposit->min_depo) {
-                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus deposit sebesar " . number_format($bonus_deposit->min_depo) . ".", 400);
+                        return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus existing member sebesar " . number_format($bonus_deposit->min_depo) . ".", 400);
                     }
                     if ($request->jumlah > $bonus_deposit->max_depo) {
-                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus deposit sebesar " . number_format($bonus_deposit->max_depo) . ".", 400);
+                        return $this->errorResponse("Maaf, Maksimal deposit untuk klaim bonus existing member sebesar " . number_format($bonus_deposit->max_depo) . ".", 400);
                     }
                 } else {
-                    return $this->errorResponse("Bonus Deposit sedang tidak aktif.", 400);
+                    return $this->errorResponse("Bonus Existing Member sedang tidak aktif.", 400);
                 }
                 $bonus = ($request->jumlah * $bonus_deposit->bonus_amount) / 100;
                 $bonus_amount = $bonus_deposit->status_bonus == 1 ? $bonus : 0;
@@ -263,7 +263,7 @@ class DepositController extends ApiController
                     'is_new_member' => $cekSudahPernahDepo ? 0 : 1, // 1 = new member | 0 = existing member
                 ];
             }
-            return $this->successResponse($dataBonusSetting, 'Setting Bonus Freebet berhasil ditampilkan');
+            return $this->successResponse($dataBonusSetting, 'Setting Bonus New Member berhasil ditampilkan');
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -323,7 +323,7 @@ class DepositController extends ApiController
                     'provider_id' => $item->constant_provider_id ? $providers : [],
                 ];
             }
-            return $this->successResponse($dataBonusSetting, 'Setting Bonus Deposit berhasil ditampilkan');
+            return $this->successResponse($dataBonusSetting, 'Setting Bonus Existing Member berhasil ditampilkan');
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500);
         }

@@ -55,7 +55,7 @@ class BetsTogelController extends ApiController
                 if (!in_array(16, $provider_id)) {
                     return response()->json([
                         'status' => 'info',
-                        'message' => 'Anda sedang klaim Bonus Freebet, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
+                        'message' => 'Anda sedang klaim Bonus New Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
                         'data' => null,
                     ], 400);
                 }
@@ -77,7 +77,7 @@ class BetsTogelController extends ApiController
                 if (!in_array(16, $provider_id)) {
                     return response()->json([
                         'status' => 'info',
-                        'message' => 'Anda sedang klaim Bonus Deposit, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
+                        'message' => 'Anda sedang klaim Bonus Existing Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
                         'data' => null,
                     ], 400);
                 }

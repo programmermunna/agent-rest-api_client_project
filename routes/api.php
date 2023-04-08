@@ -56,12 +56,12 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
 
         // Bonus
         Route::group(['prefix' => 'bonus'], function () {
-            # Bonus Freebet
+            # Bonus New Member
             Route::get('/setting-bonus-freebet', 'DepositController@settingBonusFreebet');
             Route::get('/freebet-list', 'DepositController@freebetBonus');
             Route::post('/bonus-freebet-giveup', 'DepositController@BonusFreebetGivUp');
 
-            # Bonus Freebet
+            # Bonus New Member
             Route::get('/setting-bonus-deposit', 'DepositController@settingBonusDeposit');
             Route::get('/deposit-list', 'DepositController@depositBonus');
             Route::post('/bonus-deposit-giveup', 'DepositController@BonusDepositGivUp');
