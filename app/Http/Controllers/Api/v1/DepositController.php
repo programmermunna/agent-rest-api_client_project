@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Events\BotDanaEvent;
 use App\Events\CreateDepositEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
@@ -13,7 +12,6 @@ use App\Models\ConstantProvider;
 use App\Models\DepositModel;
 use App\Models\MembersModel;
 use App\Models\MemoModel;
-use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
@@ -153,15 +151,10 @@ class DepositController extends ApiController
             }
 
             $depositCreate = DepositModel::create($payload);
-            $rekening = RekeningModel::select(['constant_rekening_id'])->find($request->rekening_id);
 
             // WEB SOCKET START
             // ==================================================================
             CreateDepositEvent::dispatch($depositCreate);
-
-            if ($rekening && $rekening->constant_rekening_id == 11) { // check if this is the destination for a DANA account
-                BotDanaEvent::dispatch();
-            }
             // ==================================================================
             // WEB SOCKET FINISh
 
