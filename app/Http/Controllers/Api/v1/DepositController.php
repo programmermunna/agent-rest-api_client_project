@@ -258,8 +258,8 @@ class DepositController extends ApiController
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
-                    // 'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
-                    'is_claim_bonus' => $checkKlaimBonus ? 0 : 1,
+                    'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
+                    // 'is_claim_bonus' => $checkKlaimBonus ? 0 : 1,
                     'provider_id' => $item->constant_provider_id ? $providers : [],
                 ];
             }
