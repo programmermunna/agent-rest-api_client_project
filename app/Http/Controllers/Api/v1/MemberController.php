@@ -4227,6 +4227,7 @@ class MemberController extends ApiController
                     'rekening.id',
                     'rekening.nama_rekening',
                     'rekening.nomor_rekening',
+                    'rekening.path as qrcode',
                     'constant_rekening.name',
                 ])
                 ->whereNull('rekening.deleted_by')
@@ -4239,6 +4240,7 @@ class MemberController extends ApiController
                     'rekening.id',
                     'rekening.nama_rekening',
                     'rekening.nomor_rekening',
+                    'rekening.path as qrcode',
                     'constant_rekening.name',
                 ])
                 ->where('is_default', 1)
