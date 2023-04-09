@@ -535,7 +535,7 @@ class JWTAuthController extends ApiController
                     'account_number' => 'required',
                     'account_name' => 'required',
                     // 'provider' => 'required',
-                    'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7||unique:members',
+                    'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7|unique:members',
                 ],
                 [
                     'password.regex' => 'Password tidak boleh menggunakan spasi.',
