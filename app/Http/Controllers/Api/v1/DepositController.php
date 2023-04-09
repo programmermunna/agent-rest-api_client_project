@@ -10,6 +10,7 @@ use App\Models\BonusHistoryModel;
 use App\Models\BonusSettingModel;
 use App\Models\ConstantProvider;
 use App\Models\DepositModel;
+use App\Models\DepositWithdrawHistory;
 use App\Models\MembersModel;
 use App\Models\MemoModel;
 use App\Models\RekMemberModel;
@@ -151,6 +152,17 @@ class DepositController extends ApiController
             }
 
             $depositCreate = DepositModel::create($payload);
+
+            # Create History Deposit
+            DepositWithdrawHistory::create([
+                'deposit_id' => $depositCreate->id,
+                'member_id' => $depositCreate->members_id,
+                'status' => 'Pending',
+                'amount' => $depositCreate->jumlah,
+                'credit' => $depositCreate->credit,
+                'description' => 'Deposit : Pending',
+                'created_by' => $this->memberActive->id,
+            ]);
 
             // WEB SOCKET START
             // ==================================================================

@@ -9,6 +9,7 @@ use App\Models\BonusHistoryModel;
 use App\Models\ConstantProvider;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\DepositModel;
+use App\Models\DepositWithdrawHistory;
 use App\Models\ImageContent;
 use App\Models\MembersModel;
 use App\Models\MemoModel;
@@ -73,6 +74,7 @@ class MemberController extends ApiController
             $id = auth('api')->user()->id;
             $fromDate = Carbon::now()->subMonth(2)->format('Y-m-d 00:00:00');
             $toDate = Carbon::now();
+            $conditionDate = '2023-04-09 23:59:59'; # date condition to retrieve deposit and withdrawal history from table deposit_withdraw_history
 
             $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
                 ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
@@ -120,8 +122,9 @@ class MemberController extends ApiController
                     }])->first()->toArray();
 
             if ($request->type == 'depositWithdraw') { # History Desposit & Withdraw
-                # History Deposit
-                $deposit = DB::select("SELECT
+                if ($fromDate <= $conditionDate) {
+                    # History Deposit
+                    $deposit = DB::select("SELECT
                         'Deposit' as tables,
                         jumlah,
                         credit,
@@ -145,12 +148,12 @@ class MemberController extends ApiController
                         deposit
                     WHERE
                         created_by = $id
-                        AND created_at BETWEEN '$fromDate' AND '$toDate'
+                        AND created_at BETWEEN '$fromDate' AND '$conditionDate'
                     ORDER BY
                         created_at DESC");
 
-                # History Withdraw
-                $withdraw = DB::select("SELECT
+                    # History Withdraw
+                    $withdraw = DB::select("SELECT
                         'Withdraw' as tables,
                         jumlah,
                         credit,
@@ -174,20 +177,98 @@ class MemberController extends ApiController
                         withdraw
                     WHERE
                         created_by = $id
-                        AND created_at BETWEEN '$fromDate' AND '$toDate'
+                        AND created_at BETWEEN '$fromDate' AND '$conditionDate'
                     ORDER BY
                         created_at
                     DESC");
 
-                $depoWD = array_merge($deposit, $withdraw);
-                $date = array_column($depoWD, 'created_at');
-                array_multisort($date, SORT_DESC, $depoWD);
-                $data = $this->paginate($depoWD, $this->perPageWd);
+                    $depoWithdrawHistory = DepositWithdrawHistory::selectRaw("
+                            IF(
+                                deposit_id is null
+                                , 'Withdraw'
+                                , 'Deposit'
+                            ) AS Tables,
+                            amount as jumlah,
+                            credit,
+                            created_at,
+                            created_by,
+                            IF(
+                                deposit_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS 'deposit status',
+                            IF(
+                                withdraw_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS 'withdraw status'
+                        ")
+                        ->where('member_id', $id)
+                        ->whereBetween('created_at', [$conditionDate, $toDate])
+                        ->orderBy('created_at', 'DESC')
+                        ->get()->toArray() ?? [];
 
-                return [
-                    'status' => 'success',
-                    'depositWithdraw' => $data,
-                ];
+                    $depoWD = array_merge($deposit, $withdraw, $depoWithdrawHistory);
+                    $date = array_column($depoWD, 'created_at');
+                    array_multisort($date, SORT_DESC, $depoWD);
+                    $data = $this->paginate($depoWD, $this->perPageWd);
+
+                    return [
+                        'status' => 'success',
+                        'depositWithdraw' => $data,
+                    ];
+
+                } else {
+                    $depoWithdrawHistory = DepositWithdrawHistory::selectRaw("
+                            IF(
+                                deposit_id is null
+                                , 'Withdraw'
+                                , 'Deposit'
+                            ) AS Tables,
+                            amount as jumlah,
+                            credit,
+                            created_at,
+                            created_by,
+                            IF(
+                                deposit_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS 'deposit status',
+                            IF(
+                                withdraw_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS 'withdraw status'
+                        ")
+                        ->where('member_id', $id)
+                        ->whereBetween('created_at', [$fromDate, $toDate])
+                        ->orderBy('created_at', 'DESC')
+                        ->get()->toArray() ?? [];
+
+                    $data = $this->paginate($depoWithdrawHistory, $this->perPageWd);
+
+                    return [
+                        'status' => 'success',
+                        'depositWithdraw' => $data,
+                    ];
+                }
+
             } elseif ($request->type == 'loginLogout') { # History Login/Logout
                 # Login / Logout Filter
                 $activity_members = DB::select("SELECT
@@ -989,114 +1070,321 @@ class MemberController extends ApiController
                     ")->get()->toArray();
 
                 # History deposit, withdraw
-                $allProBet = DB::select(\DB::raw("SELECT
-                    'Deposit' as Tables,
-                    NULL as betsBet,
-                    NULL as betsWin,
-                    NULL as betsGameInfo,
-                    NULL as betsBetId,
-                    NULL as betsGameId,
-                    NULL as betsDeskripsi,
-                    NULL as betsCredit,
-                    a.created_at as created_at,
-                    NULL as betsProviderName,
-                    NULL as betsTogelHistoryId,
-                    NULL as betsTogelHistoryPasaran,
-                    NULL as betsTogelHistorDeskripsi,
-                    NULL as betsTogelHistoryDebit,
-                    NULL as betsTogelHistoryKredit,
-                    NULL as betsTogelHistoryBalance,
-                    NULL as betsTogelHistoryCreatedBy,
-                    a.credit as depositCredit,
-                    a.jumlah as depositJumlah,
-                    a.approval_status as depositStatus,
-                    if (
-                        a.approval_status = 0
-                        , 'Pending'
-                        , if (
-                            a.approval_status = 1
-                            , 'Success'
-                            , if (
-                                a.approval_status = 2
-                                , 'Rejected'
-                                , 'nulled'
-                            )
-                        )
-                    ) as 'depositDescription',
-                    NULL as withdrawCredit,
-                    NULL as withdrawJumlah,
-                    NULL as withdrawStatus,
-                    NULL as withdrawDescription,
-                    NULL as bonusHistoryNamaBonus,
-                    NULL as bonusHistoryType,
-                    NULL as bonusHistoryJumlah,
-                    NULL as bonusHistoryHadiah,
-                    NULL as bonusHistoryStatus,
-                    NULL as bonusHistoryCredit,
-                    NULL as activityDeskripsi,
-                    NULL as activityName,
-                    NULL as detail
-                    FROM
-                        deposit as a
-                    LEFT JOIN members as b ON b.id = a.created_by
-                    WHERE
-                        a.created_by = $id
-                        AND a.created_at BETWEEN '$fromDate' AND '$toDate'
-                    UNION ALL
-                    SELECT
-                        'Withdraw' as Tables,
-                        NULL as betsBet,
-                        NULL as betsWin,
-                        NULL as betsGameInfo,
-                        NULL as betsBetId,
-                        NULL as betsGameId,
-                        NULL as betsDeskripsi,
-                        NULL as betsCredit,
-                        a.created_at as created_at,
-                        NULL as betsProviderName,
-                        NULL as betsTogelHistoryId,
-                        NULL as betsTogelHistoryPasaran,
-                        NULL as betsTogelHistorDeskripsi,
-                        NULL as betsTogelHistoryDebit,
-                        NULL as betsTogelHistoryKredit,
-                        NULL as betsTogelHistoryBalance,
-                        NULL as betsTogelHistoryCreatedBy,
-                        NULL as depositCredit,
-                        NULL as depositJumlah,
-                        NULL as depositStatus,
-                        NULL as depositDescription,
-                        a.credit as withdrawCredit,
-                        a.jumlah as withdrawJumlah,
-                        a.approval_status as withdrawStatus,
-                        if (
-                            a.approval_status = 0
-                            , 'Pending'
-                            , if (
-                                a.approval_status = 1
-                                , 'Success'
+                if ($fromDate <= $conditionDate) {
+                    $depositWithdraw = DB::select(
+                        DB::raw("SELECT
+                            'Deposit' as Tables,
+                            NULL as betsBet,
+                            NULL as betsWin,
+                            NULL as betsGameInfo,
+                            NULL as betsBetId,
+                            NULL as betsGameId,
+                            NULL as betsDeskripsi,
+                            NULL as betsCredit,
+                            a.created_at as created_at,
+                            NULL as betsProviderName,
+                            NULL as betsTogelHistoryId,
+                            NULL as betsTogelHistoryPasaran,
+                            NULL as betsTogelHistorDeskripsi,
+                            NULL as betsTogelHistoryDebit,
+                            NULL as betsTogelHistoryKredit,
+                            NULL as betsTogelHistoryBalance,
+                            NULL as betsTogelHistoryCreatedBy,
+                            a.credit as depositCredit,
+                            a.jumlah as depositJumlah,
+                            a.approval_status as depositStatus,
+                            if (
+                                a.approval_status = 0
+                                , 'Pending'
                                 , if (
-                                    a.approval_status = 2
-                                    , 'Rejected'
-                                    , 'nulled'
+                                    a.approval_status = 1
+                                    , 'Success'
+                                    , if (
+                                        a.approval_status = 2
+                                        , 'Rejected'
+                                        , 'nulled'
+                                    )
                                 )
-                            )
-                        ) as 'withdrawDescription',
-                        NULL as bonusHistoryNamaBonus,
-                        NULL as bonusHistoryType,
-                        NULL as bonusHistoryJumlah,
-                        NULL as bonusHistoryHadiah,
-                        NULL as bonusHistoryStatus,
-                        NULL as bonusHistoryCredit,
-                        NULL as activityDeskripsi,
-                        NULL as activityName,
-                        NULL as detail
-                    FROM
-                        withdraw as a
-                    LEFT JOIN members as b ON b.id = a.created_by
-                    WHERE
-                        a.created_by = $id
-                        AND a.created_at BETWEEN '$fromDate' AND '$toDate'
-                    ORDER BY created_at DESC"));
+                            ) as 'depositDescription',
+                            NULL as withdrawCredit,
+                            NULL as withdrawJumlah,
+                            NULL as withdrawStatus,
+                            NULL as withdrawDescription,
+                            NULL as bonusHistoryNamaBonus,
+                            NULL as bonusHistoryType,
+                            NULL as bonusHistoryJumlah,
+                            NULL as bonusHistoryHadiah,
+                            NULL as bonusHistoryStatus,
+                            NULL as bonusHistoryCredit,
+                            NULL as activityDeskripsi,
+                            NULL as activityName,
+                            NULL as detail
+                            FROM
+                                deposit as a
+                            WHERE
+                                a.created_by = $id
+                                AND a.created_at BETWEEN '$fromDate' AND '$conditionDate'
+                        UNION ALL
+                        SELECT
+                            'Withdraw' as Tables,
+                            NULL as betsBet,
+                            NULL as betsWin,
+                            NULL as betsGameInfo,
+                            NULL as betsBetId,
+                            NULL as betsGameId,
+                            NULL as betsDeskripsi,
+                            NULL as betsCredit,
+                            a.created_at as created_at,
+                            NULL as betsProviderName,
+                            NULL as betsTogelHistoryId,
+                            NULL as betsTogelHistoryPasaran,
+                            NULL as betsTogelHistorDeskripsi,
+                            NULL as betsTogelHistoryDebit,
+                            NULL as betsTogelHistoryKredit,
+                            NULL as betsTogelHistoryBalance,
+                            NULL as betsTogelHistoryCreatedBy,
+                            NULL as depositCredit,
+                            NULL as depositJumlah,
+                            NULL as depositStatus,
+                            NULL as depositDescription,
+                            a.credit as withdrawCredit,
+                            a.jumlah as withdrawJumlah,
+                            a.approval_status as withdrawStatus,
+                            if (
+                                a.approval_status = 0
+                                , 'Pending'
+                                , if (
+                                    a.approval_status = 1
+                                    , 'Success'
+                                    , if (
+                                        a.approval_status = 2
+                                        , 'Rejected'
+                                        , 'nulled'
+                                    )
+                                )
+                            ) as 'withdrawDescription',
+                            NULL as bonusHistoryNamaBonus,
+                            NULL as bonusHistoryType,
+                            NULL as bonusHistoryJumlah,
+                            NULL as bonusHistoryHadiah,
+                            NULL as bonusHistoryStatus,
+                            NULL as bonusHistoryCredit,
+                            NULL as activityDeskripsi,
+                            NULL as activityName,
+                            NULL as detail
+                        FROM
+                            withdraw as a
+                        WHERE
+                            a.created_by = $id
+                            AND a.created_at BETWEEN '$fromDate' AND '$conditionDate'
+                        ORDER BY created_at DESC")
+                    );
+
+                    $depoWithdrawHistory = DepositWithdrawHistory::selectRaw("
+                            IF(
+                                deposit_id is null
+                                , 'Withdraw'
+                                , 'Deposit'
+                            ) AS Tables,
+                            NULL as betsBet,
+                            NULL as betsWin,
+                            NULL as betsGameInfo,
+                            NULL as betsBetId,
+                            NULL as betsGameId,
+                            NULL as betsDeskripsi,
+                            NULL as betsCredit,
+                            created_at,
+                            NULL as betsProviderName,
+                            NULL as betsTogelHistoryId,
+                            NULL as betsTogelHistoryPasaran,
+                            NULL as betsTogelHistorDeskripsi,
+                            NULL as betsTogelHistoryDebit,
+                            NULL as betsTogelHistoryKredit,
+                            NULL as betsTogelHistoryBalance,
+                            NULL as betsTogelHistoryCreatedBy,
+                            IF(
+                                deposit_id is not null
+                                , credit
+                                , NULL
+                            ) AS depositCredit,
+                            IF(
+                                deposit_id is not null
+                                , amount
+                                , NULL
+                            ) AS depositJumlah,
+                            IF(
+                                deposit_id is not null
+                                , IF (
+                                    status = 'Pending'
+                                    , 0
+                                    , IF (
+                                        status = 'Approved'
+                                        , 1
+                                        , 2
+                                    )
+                                )
+                                , NULL
+                            ) AS depositStatus,
+                            IF(
+                                deposit_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS depositDescription,
+                            IF(
+                                withdraw_id is not null
+                                , credit
+                                , NULL
+                            ) AS withdrawCredit,
+                            IF(
+                                withdraw_id is not null
+                                , amount
+                                , NULL
+                            ) AS withdrawJumlah,
+                            IF(
+                                withdraw_id is not null
+                                , IF (
+                                    status = 'Pending'
+                                    , 0
+                                    , IF (
+                                        status = 'Approved'
+                                        , 1
+                                        , 2
+                                    )
+                                )
+                                , NULL
+                            ) AS withdrawStatus,
+                            IF(
+                                withdraw_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS withdrawDescription,
+                            NULL as bonusHistoryNamaBonus,
+                            NULL as bonusHistoryType,
+                            NULL as bonusHistoryJumlah,
+                            NULL as bonusHistoryHadiah,
+                            NULL as bonusHistoryStatus,
+                            NULL as bonusHistoryCredit,
+                            NULL as activityDeskripsi,
+                            NULL as activityName,
+                            NULL as detail
+                        ")
+                        ->where('member_id', $id)
+                        ->whereBetween('created_at', [$conditionDate, $toDate])
+                        ->orderBy('created_at', 'DESC')
+                        ->get()->toArray() ?? [];
+
+                    $allProBet = array_merge($depositWithdraw, $depoWithdrawHistory);
+
+                } else {
+                    $allProBet = DepositWithdrawHistory::selectRaw("
+                            IF(
+                                deposit_id is null
+                                , 'Withdraw'
+                                , 'Deposit'
+                            ) AS Tables,
+                            NULL as betsBet,
+                            NULL as betsWin,
+                            NULL as betsGameInfo,
+                            NULL as betsBetId,
+                            NULL as betsGameId,
+                            NULL as betsDeskripsi,
+                            NULL as betsCredit,
+                            created_at,
+                            NULL as betsProviderName,
+                            NULL as betsTogelHistoryId,
+                            NULL as betsTogelHistoryPasaran,
+                            NULL as betsTogelHistorDeskripsi,
+                            NULL as betsTogelHistoryDebit,
+                            NULL as betsTogelHistoryKredit,
+                            NULL as betsTogelHistoryBalance,
+                            NULL as betsTogelHistoryCreatedBy,
+                            IF(
+                                deposit_id is not null
+                                , credit
+                                , NULL
+                            ) AS depositCredit,
+                            IF(
+                                deposit_id is not null
+                                , amount
+                                , NULL
+                            ) AS depositJumlah,
+                            IF(
+                                deposit_id is not null
+                                , IF (
+                                    status = 'Pending'
+                                    , 0
+                                    , IF (
+                                        status = 'Approved'
+                                        , 1
+                                        , 2
+                                    )
+                                )
+                                , NULL
+                            ) AS depositStatus,
+                            IF(
+                                deposit_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS depositDescription,
+                            IF(
+                                withdraw_id is not null
+                                , credit
+                                , NULL
+                            ) AS withdrawCredit,
+                            IF(
+                                withdraw_id is not null
+                                , amount
+                                , NULL
+                            ) AS withdrawJumlah,
+                            IF(
+                                withdraw_id is not null
+                                , IF (
+                                    status = 'Pending'
+                                    , 0
+                                    , IF (
+                                        status = 'Approved'
+                                        , 1
+                                        , 2
+                                    )
+                                )
+                                , NULL
+                            ) AS withdrawStatus,
+                            IF(
+                                withdraw_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS withdrawDescription,
+                            NULL as bonusHistoryNamaBonus,
+                            NULL as bonusHistoryType,
+                            NULL as bonusHistoryJumlah,
+                            NULL as bonusHistoryHadiah,
+                            NULL as bonusHistoryStatus,
+                            NULL as bonusHistoryCredit,
+                            NULL as activityDeskripsi,
+                            NULL as activityName,
+                            NULL as detail
+                        ")
+                        ->where('member_id', $id)
+                        ->whereBetween('created_at', [$fromDate, $toDate])
+                        ->orderBy('created_at', 'DESC')
+                        ->get()->toArray() ?? [];
+                }
 
                 # Histori Login/Logout
                 $activity_members = DB::select("SELECT
