@@ -6,6 +6,7 @@ use App\Events\BetTogelBalanceEvent;
 use App\Events\LastBetWinEvent;
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
+use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BetsTogelQuotaLimitModel;
 use App\Models\BetTogelLimitLineSettingsModel;
