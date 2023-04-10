@@ -182,7 +182,7 @@ class MemberController extends ApiController
                         created_at
                     DESC");
 
-                    $depoWithdrawHistory = DepositWithdrawHistory::selectRaw("
+                    $depoWithdrawHistory = DB::select("SELECT
                             IF(
                                 deposit_id is null
                                 , 'Withdraw'
@@ -210,11 +210,14 @@ class MemberController extends ApiController
                                 )
                                 , NULL
                             ) AS 'withdraw status'
-                        ")
-                        ->where('member_id', $id)
-                        ->whereBetween('created_at', [$conditionDate, $toDate])
-                        ->orderBy('created_at', 'DESC')
-                        ->get()->toArray() ?? [];
+                        FROM
+                            deposit_withdraw_history
+                        WHERE
+                            member_id = $id
+                            AND created_at BETWEEN '$conditionDate' AND '$toDate'
+                        ORDER BY
+                            created_at
+                        DESC");
 
                     $depoWD = array_merge($deposit, $withdraw, $depoWithdrawHistory);
                     $date = array_column($depoWD, 'created_at');
@@ -1180,7 +1183,7 @@ class MemberController extends ApiController
                         ORDER BY created_at DESC")
                     );
 
-                    $depoWithdrawHistory = DepositWithdrawHistory::selectRaw("
+                    $depoWithdrawHistory = DB::select("SELECT
                             IF(
                                 deposit_id is null
                                 , 'Withdraw'
@@ -1275,16 +1278,19 @@ class MemberController extends ApiController
                             NULL as activityDeskripsi,
                             NULL as activityName,
                             NULL as detail
-                        ")
-                        ->where('member_id', $id)
-                        ->whereBetween('created_at', [$conditionDate, $toDate])
-                        ->orderBy('created_at', 'DESC')
-                        ->get()->toArray() ?? [];
+                            FROM
+                            deposit_withdraw_history
+                        WHERE
+                            member_id = $id
+                            AND created_at BETWEEN '$conditionDate' AND '$toDate'
+                        ORDER BY
+                            created_at
+                        DESC");
 
-                    $allProBet = array_merge($depositWithdraw, $depoWithdrawHistory);
+                    $allProBet = array_merge($depoWithdrawHistory, $depositWithdraw);
 
                 } else {
-                    $allProBet = DepositWithdrawHistory::selectRaw("
+                    $allProBet = DB::select("SELECT
                             IF(
                                 deposit_id is null
                                 , 'Withdraw'
@@ -1379,11 +1385,14 @@ class MemberController extends ApiController
                             NULL as activityDeskripsi,
                             NULL as activityName,
                             NULL as detail
-                        ")
-                        ->where('member_id', $id)
-                        ->whereBetween('created_at', [$fromDate, $toDate])
-                        ->orderBy('created_at', 'DESC')
-                        ->get()->toArray() ?? [];
+                        FROM
+                            deposit_withdraw_history
+                        WHERE
+                            member_id = $id
+                            AND created_at BETWEEN '$fromDate' AND '$toDate'
+                        ORDER BY
+                            created_at
+                        DESC");
                 }
 
                 # Histori Login/Logout
