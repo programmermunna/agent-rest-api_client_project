@@ -196,7 +196,11 @@ class MemberController extends ApiController
                                 , IF (
                                     status = 'Approved'
                                     , 1
-                                    , 2
+                                    , IF (
+                                        status = 'Rejected'
+                                        , 2
+                                        , 3
+                                    )
                                 )
                             ) AS approval_status,
                             created_at,
@@ -253,7 +257,11 @@ class MemberController extends ApiController
                                 , IF (
                                     status = 'Approved'
                                     , 1
-                                    , 2
+                                    , IF (
+                                        status = 'Rejected'
+                                        , 2
+                                        , 3
+                                    )
                                 )
                             ) AS approval_status,
                             created_at,
@@ -1241,7 +1249,11 @@ class MemberController extends ApiController
                                     , IF (
                                         status = 'Approved'
                                         , 1
-                                        , 2
+                                        , IF (
+                                            status = 'Rejected'
+                                            , 2
+                                            , 3
+                                        )
                                     )
                                 )
                                 , NULL
@@ -1273,7 +1285,11 @@ class MemberController extends ApiController
                                     , IF (
                                         status = 'Approved'
                                         , 1
-                                        , 2
+                                        , IF (
+                                            status = 'Rejected'
+                                            , 2
+                                            , 3
+                                        )
                                     )
                                 )
                                 , NULL
@@ -1348,7 +1364,11 @@ class MemberController extends ApiController
                                     , IF (
                                         status = 'Approved'
                                         , 1
-                                        , 2
+                                        , IF (
+                                            status = 'Rejected'
+                                            , 2
+                                            , 3
+                                        )
                                     )
                                 )
                                 , NULL
@@ -1380,7 +1400,11 @@ class MemberController extends ApiController
                                     , IF (
                                         status = 'Approved'
                                         , 1
-                                        , 2
+                                        , IF (
+                                            status = 'Rejected'
+                                            , 2
+                                            , 3
+                                        )
                                     )
                                 )
                                 , NULL
