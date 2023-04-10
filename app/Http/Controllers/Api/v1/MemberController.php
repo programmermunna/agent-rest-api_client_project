@@ -74,7 +74,7 @@ class MemberController extends ApiController
             $id = auth('api')->user()->id;
             $fromDate = Carbon::now()->subMonth(2)->format('Y-m-d 00:00:00');
             $toDate = Carbon::now();
-            $conditionDate = '2023-04-09 23:59:59'; # date condition to retrieve deposit and withdrawal history from table deposit_withdraw_history
+            $conditionDate = '2023-04-11 23:59:59'; # date condition to retrieve deposit and withdrawal history from table deposit_withdraw_history
 
             $query = BetModel::join('members', 'members.id', '=', 'bets.created_by')
                 ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
