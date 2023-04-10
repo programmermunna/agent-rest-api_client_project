@@ -187,9 +187,18 @@ class MemberController extends ApiController
                                 deposit_id is null
                                 , 'Withdraw'
                                 , 'Deposit'
-                            ) AS Tables,
+                            ) AS tables,
                             amount as jumlah,
                             credit,
+                            IF (
+                                status = 'Pending'
+                                , 0
+                                , IF (
+                                    status = 'Approved'
+                                    , 1
+                                    , 2
+                                )
+                            ) AS approval_status,
                             created_at,
                             created_by,
                             IF(
@@ -238,6 +247,15 @@ class MemberController extends ApiController
                             ) AS tables,
                             amount as jumlah,
                             credit,
+                            IF (
+                                status = 'Pending'
+                                , 0
+                                , IF (
+                                    status = 'Approved'
+                                    , 1
+                                    , 2
+                                )
+                            ) AS approval_status,
                             created_at,
                             created_by,
                             IF(
