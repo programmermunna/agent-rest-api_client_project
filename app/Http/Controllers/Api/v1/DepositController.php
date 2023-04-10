@@ -18,6 +18,7 @@ use App\Models\UserLogModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class DepositController extends ApiController
@@ -35,6 +36,7 @@ class DepositController extends ApiController
 
     public function create(Request $request)
     {
+        DB::beginTransaction();
         try {
             $validator = Validator::make(
                 $request->all(),
@@ -182,9 +184,10 @@ class DepositController extends ApiController
                 ],
                 $user->username . ' Created a Deposit with amount ' . number_format($depositCreate->jumlah)
             );
-
+            DB::commit();
             return $this->successResponse(null, 'Deposit berhasil');
         } catch (\Throwable$th) {
+            DB::rollback();
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
