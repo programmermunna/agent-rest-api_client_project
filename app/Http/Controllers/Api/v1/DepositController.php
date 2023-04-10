@@ -561,15 +561,13 @@ class DepositController extends ApiController
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
-                    $TOmember = $TOSlotCasinoFish + $TOTogel;
+                    $TOmember = $TOSlotCasinoFish;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
-                        ->where('game_info', 'slot')->sum('bet');
+                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
@@ -688,15 +686,13 @@ class DepositController extends ApiController
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
-                    $TOmember = $TOSlotCasinoFish + $TOTogel;
+                    $TOmember = $TOSlotCasinoFish;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
-                        ->where('game_info', 'slot')->sum('bet');
+                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
