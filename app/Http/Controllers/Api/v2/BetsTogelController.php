@@ -37,13 +37,15 @@ class BetsTogelController extends ApiController
     public function store(BetsTogelRequest $request)
     {
         $memberID = auth('api')->user()->id;
-        $checkBonusFreebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'constant_provider_id')->where('constant_bonus_id', 4)->first();
-        $checkBonusDeposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
+        $checkBonusFreebet = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount'])->where('constant_bonus_id', 4)->first();
+        $checkBonusDeposit = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount', 'max_bonus'])->where('constant_bonus_id', 6)->first();
+
+        # Check Bonus New Member
         if ($checkBonusFreebet->status_bonus == 1) {
             $provider_id = explode(',', $checkBonusFreebet->constant_provider_id);
             $durasiBonus = $checkBonusFreebet->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-            $checkKlaimBonus = DepositModel::select('bonus_amount')
+            $checkKlaimBonus = DepositModel::select(['bonus_amount', 'jumlah', 'approval_status_at'])
                 ->where('is_claim_bonus', 4)
                 ->where('status_bonus', 0)
                 ->where('approval_status', 1)
@@ -58,14 +60,31 @@ class BetsTogelController extends ApiController
                         'message' => 'Anda sedang klaim Bonus New Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
                         'data' => null,
                     ], 400);
+                } else {
+                    $total_depo = $checkKlaimBonus->jumlah;
+                    $turnover_x = $checkBonusFreebet->turnover_x;
+                    $bonus_amount = $checkBonusFreebet->bonus_amount;
+                    $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
+                    $TO = $depoPlusBonus * $turnover_x;
+
+                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                        ->whereBetween('created_at', [$checkKlaimBonus->approval_status_at, now()])
+                        ->where('created_by', $memberID)
+                        ->whereIn('constant_provider_id', $provider_id)->sum('bet');
+                    $TOTogel = BetsTogel::whereBetween('created_at', [$checkKlaimBonus->approval_status_at, now()])
+                        ->where('created_by', $memberID)->sum('pay_amount');
+
+                    $TOMember = $TOSlotCasinoFish + $TOTogel;
                 }
             }
         }
+
+        # Check Bonus Existing Member
         if ($checkBonusDeposit->status_bonus == 1) {
             $provider_id = explode(',', $checkBonusDeposit->constant_provider_id);
             $durasiBonus = $checkBonusDeposit->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-            $checkClaimBonus = DepositModel::select('bonus_amount')
+            $checkClaimBonus = DepositModel::select(['bonus_amount', 'jumlah', 'approval_status_at'])
                 ->where('is_claim_bonus', 6)
                 ->where('status_bonus', 0)
                 ->where('approval_status', 1)
@@ -80,6 +99,26 @@ class BetsTogelController extends ApiController
                         'message' => 'Anda sedang klaim Bonus Existing Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
                         'data' => null,
                     ], 400);
+                } else {
+                    $total_depo = $checkClaimBonus->jumlah;
+                    $turnover_x = $checkBonusDeposit->turnover_x;
+                    $bonus_amount = $checkBonusDeposit->bonus_amount;
+                    if ($total_depo > $checkBonusDeposit->max_bonus) {
+                        $depoPlusBonus = $total_depo + $checkBonusDeposit->max_bonus;
+                    } else {
+                        $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
+                    }
+
+                    $TO = $depoPlusBonus * $turnover_x;
+
+                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                        ->whereBetween('created_at', [$checkClaimBonus->approval_status_at, now()])
+                        ->where('created_by', $memberID)
+                        ->whereIn('constant_provider_id', $provider_id)->sum('bet');
+                    $TOTogel = BetsTogel::whereBetween('created_at', [$checkClaimBonus->approval_status_at, now()])
+                        ->where('created_by', $memberID)->sum('pay_amount');
+
+                    $TOMember = $TOSlotCasinoFish + $TOTogel;
                 }
             }
         }
@@ -145,13 +184,17 @@ class BetsTogelController extends ApiController
                 return $this->errorResponse("Saldo anda tidak mencukupi", 400);
             }
             if ($checkBonusFreebet->status_bonus == 1 && $checkKlaimBonus) {
-                if ($lastCredit <= $checkKlaimBonus->bonus_amount) {
-                    return $this->errorResponse('Saldo anda tidak mencukupi', 400);
+                if ($TOMember < $TO) {
+                    if ($lastCredit <= $checkKlaimBonus->bonus_amount) {
+                        return $this->errorResponse('Saldo anda tidak mencukupi', 400);
+                    }
                 }
             }
             if ($checkBonusDeposit->status_bonus == 1 && $checkClaimBonus) {
-                if ($lastCredit <= $checkClaimBonus->bonus_amount) {
-                    return $this->errorResponse('Saldo anda tidak mencukupi', 400);
+                if ($TOMember < $TO) {
+                    if ($lastCredit <= $checkClaimBonus->bonus_amount) {
+                        return $this->errorResponse('Saldo anda tidak mencukupi', 400);
+                    }
                 }
             }
 
