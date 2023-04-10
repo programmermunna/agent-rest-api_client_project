@@ -235,7 +235,7 @@ class MemberController extends ApiController
                                 deposit_id is null
                                 , 'Withdraw'
                                 , 'Deposit'
-                            ) AS Tables,
+                            ) AS tables,
                             amount as jumlah,
                             credit,
                             created_at,
