@@ -147,7 +147,7 @@ class MemberController extends ApiController
                     FROM
                         deposit
                     WHERE
-                        created_by = $id
+                        members_id = $id
                         AND created_at BETWEEN '$fromDate' AND '$conditionDate'
                     ORDER BY
                         created_at DESC");
@@ -176,7 +176,7 @@ class MemberController extends ApiController
                     FROM
                         withdraw
                     WHERE
-                        created_by = $id
+                        members_id = $id
                         AND created_at BETWEEN '$fromDate' AND '$conditionDate'
                     ORDER BY
                         created_at
@@ -1151,7 +1151,7 @@ class MemberController extends ApiController
                             FROM
                                 deposit as a
                             WHERE
-                                a.created_by = $id
+                                a.members_id = $id
                                 AND a.created_at BETWEEN '$fromDate' AND '$conditionDate'
                         UNION ALL
                         SELECT
@@ -1204,7 +1204,7 @@ class MemberController extends ApiController
                         FROM
                             withdraw as a
                         WHERE
-                            a.created_by = $id
+                            a.members_id = $id
                             AND a.created_at BETWEEN '$fromDate' AND '$conditionDate'
                         ORDER BY created_at DESC")
                     );
