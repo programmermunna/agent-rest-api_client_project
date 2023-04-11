@@ -9,6 +9,7 @@ use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BonusSettingModel;
 use App\Models\DepositModel;
+use App\Models\DepositWithdrawHistory;
 use App\Models\MembersModel;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
@@ -17,12 +18,14 @@ use App\Models\WithdrawModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class WithdrawController extends ApiController
 {
     public function create(Request $request)
     {
+        DB::beginTransaction();
         try {
             $memberId = auth('api')->user()->id; // atau bisa juga Auth::user()->id,
             $cek_status_wd = WithdrawModel::where('members_id', $memberId)
@@ -235,6 +238,18 @@ class WithdrawController extends ApiController
                     'created_at' => Carbon::now(),
                 ];
                 $withdrawal = WithdrawModel::create($payload);
+
+                # Create History Withdraw
+                DepositWithdrawHistory::create([
+                    'withdraw_id' => $withdrawal->id,
+                    'member_id' => $withdrawal->members_id,
+                    'status' => 'Pending',
+                    'amount' => $withdrawal->jumlah,
+                    'credit' => $withdrawal->credit,
+                    'description' => 'Withdraw : Pending',
+                    'created_by' => $memberId,
+                ]);
+
                 # update balance member
                 $member = MembersModel::find($memberId);
                 MembersModel::where('id', $memberId)->update([
@@ -257,11 +272,14 @@ class WithdrawController extends ApiController
                     ],
                     "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                 );
+
+                DB::commit();
                 return $this->successResponse(null, 'Berhasil request withdraw');
             }
 
             return $this->errorResponse('Bank Tujuan Untuk Withdraw Sedang Offline, Silahkan Hubungi Customer service', 400);
         } catch (\Throwable$th) {
+            DB::rollback();
             Log::error($th);
             return $this->errorResponse('Internal Server Error', 500);
         }

@@ -10,6 +10,7 @@ use App\Models\BonusHistoryModel;
 use App\Models\BonusSettingModel;
 use App\Models\ConstantProvider;
 use App\Models\DepositModel;
+use App\Models\DepositWithdrawHistory;
 use App\Models\MembersModel;
 use App\Models\MemoModel;
 use App\Models\RekMemberModel;
@@ -17,6 +18,7 @@ use App\Models\UserLogModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class DepositController extends ApiController
@@ -34,6 +36,7 @@ class DepositController extends ApiController
 
     public function create(Request $request)
     {
+        DB::beginTransaction();
         try {
             $validator = Validator::make(
                 $request->all(),
@@ -152,6 +155,17 @@ class DepositController extends ApiController
 
             $depositCreate = DepositModel::create($payload);
 
+            # Create History Deposit
+            DepositWithdrawHistory::create([
+                'deposit_id' => $depositCreate->id,
+                'member_id' => $depositCreate->members_id,
+                'status' => 'Pending',
+                'amount' => $depositCreate->jumlah,
+                'credit' => $depositCreate->credit,
+                'description' => 'Deposit : Pending',
+                'created_by' => $this->memberActive->id,
+            ]);
+
             // WEB SOCKET START
             // ==================================================================
             CreateDepositEvent::dispatch($depositCreate);
@@ -170,9 +184,10 @@ class DepositController extends ApiController
                 ],
                 $user->username . ' Created a Deposit with amount ' . number_format($depositCreate->jumlah)
             );
-
+            DB::commit();
             return $this->successResponse(null, 'Deposit berhasil');
         } catch (\Throwable$th) {
+            DB::rollback();
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
@@ -358,7 +373,7 @@ class DepositController extends ApiController
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
-                        ->where('game_info', 'slot')->sum('bet');
+                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
@@ -453,7 +468,7 @@ class DepositController extends ApiController
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
-                        ->where('game_info', 'slot')->sum('bet');
+                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
@@ -549,15 +564,13 @@ class DepositController extends ApiController
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
-                    $TOmember = $TOSlotCasinoFish + $TOTogel;
+                    $TOmember = $TOSlotCasinoFish;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
-                        ->where('game_info', 'slot')->sum('bet');
+                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
@@ -676,15 +689,13 @@ class DepositController extends ApiController
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
-                    $TOmember = $TOSlotCasinoFish + $TOTogel;
+                    $TOmember = $TOSlotCasinoFish;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
                         ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)
-                        ->where('game_info', 'slot')->sum('bet');
+                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
                     $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
                         ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
