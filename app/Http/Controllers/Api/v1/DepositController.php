@@ -64,8 +64,9 @@ class DepositController extends ApiController
                 return $this->errorResponse("Maaf Anda masih ada transaksi Deposit yang belum selesai.", 400);
             }
 
+            # Check Bonus New Member
             if ($request->is_claim_bonus == 4) {
-                $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount')->where('constant_bonus_id', $request->is_claim_bonus)->first();
+                $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
                 $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                 $today = Carbon::now()->format('Y-m-d 23:59:59');
@@ -92,9 +93,12 @@ class DepositController extends ApiController
                     return $this->errorResponse("Bonus New Member sedang tidak aktif.", 400);
                 }
                 $bonus = ($request->jumlah * $bonus_freebet->bonus_amount) / 100;
+                $bonus = $bonus > $bonus_freebet->max_bonus ? $bonus_freebet->max_bonus : $bonus;
                 $bonus_amount = $bonus_freebet->status_bonus == 1 ? $bonus : 0;
                 $claimBonus = $bonus_freebet->status_bonus == 1 ? $request->is_claim_bonus : 0;
             }
+
+            # Check Bonus Existing Member
             if ($request->is_claim_bonus == 6) {
                 $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
                 $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
@@ -123,6 +127,7 @@ class DepositController extends ApiController
                     return $this->errorResponse("Bonus Existing Member sedang tidak aktif.", 400);
                 }
                 $bonus = ($request->jumlah * $bonus_deposit->bonus_amount) / 100;
+                $bonus = $bonus > $bonus_deposit->max_bonus ? $bonus_deposit->max_bonus : $bonus;
                 $bonus_amount = $bonus_deposit->status_bonus == 1 ? $bonus : 0;
                 $claimBonus = $bonus_deposit->status_bonus == 1 ? $request->is_claim_bonus : 0;
             }
@@ -225,6 +230,7 @@ class DepositController extends ApiController
                     'constant_bonus.nama_bonus',
                     'bonus_setting.min_depo',
                     'bonus_setting.max_depo',
+                    'bonus_setting.max_bonus',
                     'bonus_setting.bonus_amount',
                     'bonus_setting.turnover_x',
                     'bonus_setting.turnover_amount',
@@ -260,6 +266,7 @@ class DepositController extends ApiController
                     'name_bonus' => $item->nama_bonus,
                     'min_depo' => (float) $item->min_depo,
                     'max_depo' => (float) $item->max_depo,
+                    'max_bonus' => (float) $item->max_bonus,
                     'bonus_amount' => (int) $item->bonus_amount,
                     'turnover_x' => $item->turnover_x,
                     'turnover_amount' => (float) $item->turnover_amount,
@@ -289,6 +296,7 @@ class DepositController extends ApiController
                     'bonus_setting.min_depo',
                     'bonus_setting.max_depo',
                     'bonus_setting.bonus_amount',
+                    'bonus_setting.max_bonus',
                     'bonus_setting.turnover_x',
                     'bonus_setting.turnover_amount',
                     'bonus_setting.info',
@@ -321,6 +329,7 @@ class DepositController extends ApiController
                     'name_bonus' => $item->nama_bonus,
                     'min_depo' => (float) $item->min_depo,
                     'max_depo' => (float) $item->max_depo,
+                    'max_bonus' => (float) $item->max_bonus,
                     'bonus_amount' => (int) $item->bonus_amount,
                     'turnover_x' => $item->turnover_x,
                     'turnover_amount' => (float) $item->turnover_amount,
