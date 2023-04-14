@@ -567,6 +567,12 @@ class DepositController extends ApiController
                 ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
                 ->first();
             if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
+                $currentCreditMember = MembersModel::where('id', $this->memberActive->id)->first()->credit;
+                $bonusGiven = $Check_deposit_claim_bonus_freebet->bonus_amount;
+                if ($currentCreditMember < $bonusGiven) {
+                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah memakai bonus New Member', 400);
+                }
+
                 $providerId = explode(',', $bonus_freebet->constant_provider_id);
                 if (!in_array(16, $providerId)) {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
@@ -661,7 +667,7 @@ class DepositController extends ApiController
             return $this->errorResponse("Maaf, Bonus New Member Promotion sudah tidak aktif atau kadaluarsa.", 400);
 
         } catch (\Throwable$th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
 
@@ -692,6 +698,14 @@ class DepositController extends ApiController
                 ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
                 ->first();
             if ($bonus_deposit->status_bonus == 1 && $Check_deposit_claim_bonus_deposit) {
+                $currentCreditMember = MembersModel::where('id', $this->memberActive->id)->first()->credit;
+                $bonusGiven = $Check_deposit_claim_bonus_deposit->bonus_amount;
+
+                # Check bonuses that have been used
+                if ($currentCreditMember < $bonusGiven) {
+                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah memakai bonus New Member', 400);
+                }
+
                 $providerId = explode(',', $bonus_deposit->constant_provider_id);
                 if (!in_array(16, $providerId)) {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
@@ -791,7 +805,7 @@ class DepositController extends ApiController
             return $this->errorResponse("Maaf, Bonus Existing Member Promotion sudah tidak aktif atau kadaluarsa.", 400);
 
         } catch (\Throwable$th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
 }
