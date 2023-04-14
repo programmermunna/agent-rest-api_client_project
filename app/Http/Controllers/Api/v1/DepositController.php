@@ -703,7 +703,7 @@ class DepositController extends ApiController
 
                 # Check bonuses that have been used
                 if ($currentCreditMember < $bonusGiven) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah memakai bonus New Member', 400);
+                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah memakai bonus Existing Member', 400);
                 }
 
                 $providerId = explode(',', $bonus_deposit->constant_provider_id);
