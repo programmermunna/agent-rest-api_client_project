@@ -227,6 +227,7 @@ class DepositController extends ApiController
             $userId = $this->memberActive->id;
             $dataSetting = BonusSettingModel::join('constant_bonus', 'constant_bonus.id', 'bonus_setting.constant_bonus_id')
                 ->select(
+                    'bonus_setting.id',
                     'constant_bonus.nama_bonus',
                     'bonus_setting.min_depo',
                     'bonus_setting.max_depo',
@@ -292,6 +293,7 @@ class DepositController extends ApiController
             $userId = $this->memberActive->id;
             $dataSetting = BonusSettingModel::join('constant_bonus', 'constant_bonus.id', 'bonus_setting.constant_bonus_id')
                 ->select(
+                    'bonus_setting.id',
                     'constant_bonus.nama_bonus',
                     'bonus_setting.min_depo',
                     'bonus_setting.max_depo',
