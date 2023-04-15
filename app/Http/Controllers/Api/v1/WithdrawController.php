@@ -140,7 +140,7 @@ class WithdrawController extends ApiController
                             ],
                             "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                         );
-
+                        DB::commit();
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
                 }
@@ -223,7 +223,7 @@ class WithdrawController extends ApiController
                             ],
                             "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                         );
-
+                        DB::commit();
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
                 }

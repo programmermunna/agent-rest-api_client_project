@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Events\CreateDepositEvent;
+use App\Events\GiveUpBonusEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
@@ -641,32 +642,36 @@ class DepositController extends ApiController
                     'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
-                    'subject' => 'Bonus New Member Promotion',
+                    'subject' => 'Bonus New Member',
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus New Member Promotion, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus New Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
                 UserLogModel::logMemberActivity(
-                    'Bonus New Member Promotion Giveup',
+                    'Bonus New Member Giveup',
                     $member,
                     $Check_deposit_claim_bonus_freebet,
                     [
-                        'target' => 'Bonus New Member Promotion',
-                        'activity' => 'Bonus New Member Promotion Giveup',
+                        'target' => 'Bonus New Member',
+                        'activity' => 'Bonus New Member Giveup',
                         'ip_member' => $this->memberActive->last_login_ip,
                     ],
-                    $member->username . ' Deducted Bonus New Member Promotion amount from member balance  ' . number_format($bonus)
+                    $member->username . ' Deducted Bonus New Member amount from member balance  ' . number_format($bonus)
                 );
+
+                // WEB SOCKET START
+                GiveUpBonusEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+                // WEB SOCKET FINISH
 
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Penyerahan Bonus New Member Promotion berhasil.',
+                    'message' => 'Penyerahan Bonus New Member berhasil.',
                 ]);
             }
 
-            return $this->errorResponse("Maaf, Bonus New Member Promotion sudah tidak aktif atau kadaluarsa.", 400);
+            return $this->errorResponse("Maaf, Bonus New Member sudah tidak aktif atau kadaluarsa.", 400);
 
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
@@ -779,32 +784,36 @@ class DepositController extends ApiController
                     'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
-                    'subject' => 'Bonus Existing Member Promotion',
+                    'subject' => 'Bonus Existing Member',
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Existing Member Promotion, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Existing Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
                 UserLogModel::logMemberActivity(
-                    'Bonus Existing Member Promotion Giveup',
+                    'Bonus Existing Member Giveup',
                     $member,
                     $Check_deposit_claim_bonus_deposit,
                     [
-                        'target' => 'Bonus Existing Member Promotion',
-                        'activity' => 'Bonus Existing Member Promotion Giveup',
+                        'target' => 'Bonus Existing Member',
+                        'activity' => 'Bonus Existing Member Giveup',
                         'ip_member' => $this->memberActive->last_login_ip,
                     ],
-                    $member->username . ' Deducted Bonus Existing Member Promotion amount from member balance  ' . number_format($bonus)
+                    $member->username . ' Deducted Bonus Existing Member amount from member balance  ' . number_format($bonus)
                 );
+
+                // WEB SOCKET START
+                GiveUpBonusEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+                // WEB SOCKET FINISH
 
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Penyerahan Bonus Existing Member Promotion berhasil.',
+                    'message' => 'Penyerahan Bonus Existing Member berhasil.',
                 ]);
             }
 
-            return $this->errorResponse("Maaf, Bonus Existing Member Promotion sudah tidak aktif atau kadaluarsa.", 400);
+            return $this->errorResponse("Maaf, Bonus Existing Member sudah tidak aktif atau kadaluarsa.", 400);
 
         } catch (\Throwable$th) {
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
