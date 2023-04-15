@@ -12,6 +12,7 @@ use App\Events\GiveUpBonusEvent;
 use App\Events\LastBetWinEvent;
 use App\Events\MaintenanceStatusUpdate;
 use App\Events\NotifyNewMemo;
+use App\Events\NotifyNewMemoEvent;
 use App\Events\NotifyReadMessageEvent;
 use App\Events\NotifyReplyMessageEvent;
 use App\Events\SessionEvent;
@@ -24,6 +25,7 @@ use App\Listeners\DispatchNewMemoEventToExternalService;
 use App\Listeners\GiveUpBonusListener;
 use App\Listeners\LastBetWinListener;
 use App\Listeners\MaintenanceStatusUpdateListener;
+use App\Listeners\NotifyNewMemoListener;
 use App\Listeners\NotifyReadMessageEventListener;
 use App\Listeners\NotifyReplyMessageEventListener;
 use App\Listeners\SessionListener;
@@ -82,6 +84,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         GiveUpBonusEvent::class => [
             GiveUpBonusListener::class,
+        ],
+        NotifyNewMemoEvent::class => [
+            NotifyNewMemoListener::class,
         ],
         // WEB SOCKET FINISH
     ];

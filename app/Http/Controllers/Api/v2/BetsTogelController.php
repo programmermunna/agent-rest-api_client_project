@@ -11,7 +11,10 @@ use App\Models\BetsTogelQuotaLimitModel;
 use App\Models\BetTogelLimitLineSettingsModel;
 use App\Models\BetTogelLimitLineTransactionsModel;
 use App\Models\BonusHistoryModel;
+use App\Models\BonusSettingModel;
+use App\Models\ConstantProvider;
 use App\Models\ConstantProviderTogelModel;
+use App\Models\DepositModel;
 use App\Models\MembersModel;
 use App\Models\TogelBlokAngka;
 use App\Models\TogelGame;
@@ -34,6 +37,56 @@ class BetsTogelController extends ApiController
     public function store(BetsTogelRequest $request)
     {
         $memberID = auth('api')->user()->id;
+        $checkBonusFreebet = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount'])->where('constant_bonus_id', 4)->first();
+        $checkBonusDeposit = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount', 'max_bonus'])->where('constant_bonus_id', 6)->first();
+
+        # Check Bonus New Member
+        if ($checkBonusFreebet->status_bonus == 1) {
+            $provider_id = explode(',', $checkBonusFreebet->constant_provider_id);
+            $durasiBonus = $checkBonusFreebet->durasi_bonus_promo - 1;
+            $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+            $checkKlaimBonus = DepositModel::select(['bonus_amount', 'jumlah', 'approval_status_at'])
+                ->where('is_claim_bonus', 4)
+                ->where('status_bonus', 0)
+                ->where('approval_status', 1)
+                ->where('members_id', $memberID)
+                ->whereBetween('approval_status_at', [$subDay, now()])->orderBy('approval_status_at', 'desc')->first();
+            if ($checkKlaimBonus) {
+                $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
+                $providers = implode(', ', $providers);
+                if (!in_array(16, $provider_id)) {
+                    return response()->json([
+                        'status' => 'info',
+                        'message' => 'Anda sedang klaim Bonus New Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
+                        'data' => null,
+                    ], 400);
+                }
+            }
+        }
+
+        # Check Bonus Existing Member
+        if ($checkBonusDeposit->status_bonus == 1) {
+            $provider_id = explode(',', $checkBonusDeposit->constant_provider_id);
+            $durasiBonus = $checkBonusDeposit->durasi_bonus_promo - 1;
+            $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+            $checkClaimBonus = DepositModel::select(['bonus_amount', 'jumlah', 'approval_status_at'])
+                ->where('is_claim_bonus', 6)
+                ->where('status_bonus', 0)
+                ->where('approval_status', 1)
+                ->where('members_id', $memberID)
+                ->whereBetween('approval_status_at', [$subDay, now()])->orderBy('approval_status_at', 'desc')->first();
+            if ($checkClaimBonus) {
+                $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
+                $providers = implode(', ', $providers);
+                if (!in_array(16, $provider_id)) {
+                    return response()->json([
+                        'status' => 'info',
+                        'message' => 'Anda sedang klaim Bonus Existing Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
+                        'data' => null,
+                    ], 400);
+                }
+            }
+        }
 
         # check if credit member 0
         if (auth('api')->user()->credit === 0) {

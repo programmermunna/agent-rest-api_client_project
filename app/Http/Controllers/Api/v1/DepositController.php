@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Events\CreateDepositEvent;
 use App\Events\GiveUpBonusEvent;
+use App\Events\NotifyNewMemoEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
@@ -638,7 +639,7 @@ class DepositController extends ApiController
                     'created_at' => Carbon::now(),
                 ]);
 
-                MemoModel::create([
+                $createMemo = MemoModel::create([
                     'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
@@ -648,6 +649,12 @@ class DepositController extends ApiController
                     'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus New Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
+
+                // WEB SOCKET START
+                // ========================================
+                NotifyNewMemoEvent::dispatch($createMemo);
+                // ========================================
+                // WEB SOCKET FINISH
 
                 UserLogModel::logMemberActivity(
                     'Bonus New Member Giveup',
@@ -780,7 +787,7 @@ class DepositController extends ApiController
                     'created_at' => Carbon::now(),
                 ]);
 
-                MemoModel::create([
+                $createMemo = MemoModel::create([
                     'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
@@ -790,6 +797,12 @@ class DepositController extends ApiController
                     'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Existing Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
+
+                // WEB SOCKET START
+                // ========================================
+                NotifyNewMemoEvent::dispatch($createMemo);
+                // ========================================
+                // WEB SOCKET FINISH
 
                 UserLogModel::logMemberActivity(
                     'Bonus Existing Member Giveup',
