@@ -25,7 +25,6 @@ class NotifyNewMemoEvent implements ShouldBroadcast
         $notify = MemoModel::where('is_read', false)->whereIn('send_type', ['System', 'Admin'])->where('member_id', $memo->member_id)->count();
         $this->memo = $memo;
         $this->notify = $notify > 9 ? '9+' : $notify;
-        $this->emitABle = $emitABle;
     }
 
     /**
