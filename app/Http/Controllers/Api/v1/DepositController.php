@@ -112,10 +112,11 @@ class DepositController extends ApiController
                     ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
                 if ($bonus_deposit->status_bonus == 1) {
                     if ($check_claim_bonus) {
+                        $memberBalance = MembersModel::select('credit')->find($this->memberActive->id);
                         if ($check_claim_bonus->is_claim_bonus == 6) {
                             return $this->errorResponse("Maaf, Bonus Existing Member dapat diklaim sehari sekali.", 400);
                         }
-                        if ($check_claim_bonus->is_claim_bonus == 4) {
+                        if ($check_claim_bonus->is_claim_bonus == 4 && $memberBalance->credit > 1000) {
                             return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim, Anda sudah mengklaim Bonus New Member hari ini.", 400);
                         }
                     }
