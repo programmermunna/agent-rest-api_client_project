@@ -10,6 +10,7 @@ use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
 use App\Models\MembersModel;
+use App\Models\ConstantRekeningModel;
 use App\Models\MemberToken;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
