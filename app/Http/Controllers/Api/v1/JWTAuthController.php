@@ -552,6 +552,8 @@ class JWTAuthController extends ApiController
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
             $constantBankName = ConstantRekeningModel::where('id', $request->bank_name)->first();
             
+            return $this->errorResponse('$rekeningDepoMember = '.$rekeningDepoMember);
+
             # also prevent error in here:
             # Don't let user continue register successfully when there is no Agent's bank set as Deposit.
             if(is_null($rekeningDepoMember) || empty($rekeningDepoMember)){
