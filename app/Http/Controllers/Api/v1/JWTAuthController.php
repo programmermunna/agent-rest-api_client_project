@@ -539,7 +539,7 @@ class JWTAuthController extends ApiController
                 ],
                 [
                     'password.regex' => 'Password tidak boleh menggunakan spasi.',
-                    'phone.unique' => 'nomor telepon sudah ada sebelumnya.',
+                    'phone.unique' => 'Nomor telepon sudah ada sebelumnya.',
                 ]
             );
 
@@ -549,13 +549,20 @@ class JWTAuthController extends ApiController
 
             $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
+            $constantBankName = ConstantRekeningModel::where('id', $request->bank_name)->first();
+            
+            # also prevent error in here:
+            # Don't let user continue register successfully when there is no Agent's bank set as Deposit.
+            if(is_null($rekeningDepoMember) || empty($rekeningDepoMember)){
+                return $this->errorResponse('Silakan minta CS kami untuk siapkan bank '. $constantBankName .' sebagai bank deposit. Terima kasih.', 400);
+            }
 
             // check no rekening
             $noRekArray = RekeningModel::pluck('nomor_rekening')->toArray();
             $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
             $noRekArrays = array_merge($noRekArray, $noMemberArray);
             if (in_array($request->account_number, $noRekArrays)) {
-                return $this->errorResponse('nomor rekening sudah ada sebelumnya.', 400);
+                return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
             }
 
             # Check Referral
