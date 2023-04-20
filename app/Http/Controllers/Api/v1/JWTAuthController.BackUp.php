@@ -10,7 +10,6 @@ use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
 use App\Models\MembersModel;
-use App\Models\ConstantRekeningModel;
 use App\Models\MemberToken;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
@@ -92,22 +91,10 @@ class JWTAuthController extends ApiController
             //         return $this->errorResponse('Maaf, kita sedang Maintenance!.', 503);
             //     }
             // }
-
-
-            /** 
-             * -----------------------------------------------------------
-             * NOTE about member's status : 
-             * Banned = Can't login anymore.
-             * Suspend = Member can still login but can not perform deposit and withdraw.
-             * -----------------------------------------------------------
-             * Member's status based on DB: 0=banned, 1=active, 2=suspend
-             * -----------------------------------------------------------
-             */
-
-            if ($member->status == 0) { // user yang di banned tidak boleh lagi login.
-                return $this->errorResponse('Akun anda telah di blokir (banned)', 401);
-            // } elseif ($member->status == 2) { // suspend masih boleh login, lihat note di atas.
-            //     return $this->errorResponse('Akun anda telah di tangguhkan', 401);
+            if ($member->status == 0) {
+                return $this->errorResponse('Akun anda telah di blokir', 401);
+            } elseif ($member->status == 2) {
+                return $this->errorResponse('Akun anda telah di tangguhkan', 401);
             } elseif (Hash::check($input['password'], $member->password)) {
                 SessionEvent::dispatch($member->id);
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
@@ -552,7 +539,7 @@ class JWTAuthController extends ApiController
                 ],
                 [
                     'password.regex' => 'Password tidak boleh menggunakan spasi.',
-                    'phone.unique' => 'Nomor telepon sudah ada sebelumnya.',
+                    'phone.unique' => 'nomor telepon sudah ada sebelumnya.',
                 ]
             );
 
@@ -562,20 +549,13 @@ class JWTAuthController extends ApiController
 
             $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
-            $constantRekening = ConstantRekeningModel::where('id', $request->bank_name)->first();
-            
-            // also prevent error in here:
-            // Don't let user continue register successfully when there is no Agent's bank set as Deposit.
-            if(is_null($rekeningDepoMember) || empty($rekeningDepoMember)){
-                return $this->errorResponse('Silakan minta CS kami untuk siapkan bank '. $constantRekening->name .' untuk deposit. Terima kasih.', 400);
-            }
 
             // check no rekening
             $noRekArray = RekeningModel::pluck('nomor_rekening')->toArray();
             $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
             $noRekArrays = array_merge($noRekArray, $noMemberArray);
             if (in_array($request->account_number, $noRekArrays)) {
-                return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
+                return $this->errorResponse('nomor rekening sudah ada sebelumnya.', 400);
             }
 
             # Check Referral
