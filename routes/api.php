@@ -56,12 +56,12 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
 
         // Bonus
         Route::group(['prefix' => 'bonus'], function () {
-            # Bonus Freebet
+            # Bonus New Member
             Route::get('/setting-bonus-freebet', 'DepositController@settingBonusFreebet');
             Route::get('/freebet-list', 'DepositController@freebetBonus');
             Route::post('/bonus-freebet-giveup', 'DepositController@BonusFreebetGivUp');
 
-            # Bonus Freebet
+            # Bonus Existing Member
             Route::get('/setting-bonus-deposit', 'DepositController@settingBonusDeposit');
             Route::get('/deposit-list', 'DepositController@depositBonus');
             Route::post('/bonus-deposit-giveup', 'DepositController@BonusDepositGivUp');
@@ -94,7 +94,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         //list rekening member
         Route::get('/list_rekening_member', 'MemberController@listRekMember');
 
-        //New list rekening agent
+        //New list rekening agent Deposit
         Route::get('/list_rek_agent', 'MemberController@listRekAgent');
         //rekening member is_depo
         Route::get('/rekening_member_wd', 'MemberController@rekMemberWd');
@@ -136,7 +136,11 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/availability', 'BankController@availability');
         });
 
+<<<<<<< HEAD
         // IMAGE CONTENT
+=======
+        // IMAGES CONTENT
+>>>>>>> 939d042159c9b16109e4cc8bccd1ecdcd0bcf14f
         Route::group(['prefix' => 'cms'], function () {
             Route::get('/website-content/{slug}', 'CmsController@websiteContent'); //{slug} => api general-info , my-account , about, help , rules , contact-us
             Route::get('/image-contents/{type}', 'CmsController@imageContent'); //{type}=> api all , popup , mobile , slide , promotion ///

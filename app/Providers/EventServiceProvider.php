@@ -8,24 +8,28 @@ use App\Events\BetTogelBalanceEvent;
 use App\Events\BotDanaEvent;
 use App\Events\CreateDepositEvent;
 use App\Events\CreateWithdrawalEvent;
+use App\Events\GiveUpBonusEvent;
 use App\Events\LastBetWinEvent;
 use App\Events\MaintenanceStatusUpdate;
 use App\Events\NotifyNewMemo;
+use App\Events\NotifyNewMemoEvent;
 use App\Events\NotifyReadMessageEvent;
 use App\Events\NotifyReplyMessageEvent;
-use App\Events\WithdrawalCreateBalanceEvent;
 use App\Events\SessionEvent;
+use App\Events\WithdrawalCreateBalanceEvent;
 use App\Listeners\BetTogelBalanceEventListener;
 use App\Listeners\BotDanaListener;
 use App\Listeners\CreateDepositEventListener;
 use App\Listeners\CreateWithdrawalEventListener;
 use App\Listeners\DispatchNewMemoEventToExternalService;
+use App\Listeners\GiveUpBonusListener;
 use App\Listeners\LastBetWinListener;
 use App\Listeners\MaintenanceStatusUpdateListener;
+use App\Listeners\NotifyNewMemoListener;
 use App\Listeners\NotifyReadMessageEventListener;
 use App\Listeners\NotifyReplyMessageEventListener;
-use App\Listeners\WithdrawalCreateBalanceEventListener;
 use App\Listeners\SessionListener;
+use App\Listeners\WithdrawalCreateBalanceEventListener;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -77,6 +81,12 @@ class EventServiceProvider extends ServiceProvider
         ],
         SessionEvent::class => [
             SessionListener::class,
+        ],
+        GiveUpBonusEvent::class => [
+            GiveUpBonusListener::class,
+        ],
+        NotifyNewMemoEvent::class => [
+            NotifyNewMemoListener::class,
         ],
         // WEB SOCKET FINISH
     ];

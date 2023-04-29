@@ -10,6 +10,7 @@ use App\Models\BonusHistoryModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
 use App\Models\MembersModel;
+use App\Models\ConstantRekeningModel;
 use App\Models\MemberToken;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
@@ -535,73 +536,49 @@ class JWTAuthController extends ApiController
                     'account_number' => 'required',
                     'account_name' => 'required',
                     // 'provider' => 'required',
-                    'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7',
+                    'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7|unique:members',
                 ],
                 [
-                    'password.required' => 'Password tidak boleh kosong.',
-                    'password.min' => 'Password harus minimal 6 karakter.',
                     'password.regex' => 'Password tidak boleh menggunakan spasi.',
+                    'phone.unique' => 'Nomor telepon sudah ada sebelumnya.',
                 ]
             );
 
             if ($validator->fails()) {
                 return $this->errorResponse($validator->errors()->first(), 400);
             }
-            // $referrer = MembersModel::whereUsername(session()->pull('referrer'))->first();
 
             $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
-            //bank agent
-            // $bankAgent = [];
-            // for ($i=1; $i <= 14 ; $i++) {
-            //     array_push($bankAgent, RekeningModel::where('constant_rekening_id', $i)->where('is_depo', 1)->inRandomOrder()->take(1)->first());
-            // }
-            // dd($bankAgent[0]);
+            $constantRekening = ConstantRekeningModel::where('id', $request->bank_name)->first();
+            
+            // also prevent error in here:
+            // Don't let user continue register successfully when there is no Agent's bank set as Deposit.
+            if(is_null($rekeningDepoMember) || empty($rekeningDepoMember)){
+                return $this->errorResponse('Silakan minta CS kami untuk siapkan bank '. $constantRekening->name .' sebagai bank deposit. Terima kasih.', 400);
+            }
 
             // check no rekening
             $noRekArray = RekeningModel::pluck('nomor_rekening')->toArray();
             $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
             $noRekArrays = array_merge($noRekArray, $noMemberArray);
             if (in_array($request->account_number, $noRekArrays)) {
-                return $this->errorResponse('Nomor rekening yang anda masukkan telah digunakan', 400);
+                return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
             }
-            if (is_null($referal)) {
-                // $dataRekening = RekeningTujuanDepo::create([
-                //     'rekening_id_tujuan_depo1' => $bankAgent[0] == [] ? Null : $bankAgent[0]['id'],
-                //     'rekening_id_tujuan_depo2' => $bankAgent[1] == [] ? Null : $bankAgent[1]['id'],
-                //     'rekening_id_tujuan_depo3' => $bankAgent[2] == [] ? Null : $bankAgent[2]['id'],
-                //     'rekening_id_tujuan_depo4' => $bankAgent[3] == [] ? Null : $bankAgent[3]['id'],
-                //     'rekening_id_tujuan_depo5' => $bankAgent[4] == [] ? Null : $bankAgent[4]['id'],
-                //     'rekening_id_tujuan_depo6' => $bankAgent[5] == [] ? Null : $bankAgent[5]['id'],
-                //     'rekening_id_tujuan_depo7' => $bankAgent[6] == [] ? Null : $bankAgent[6]['id'],
-                //     'rekening_id_tujuan_depo8' => $bankAgent[7] == [] ? Null : $bankAgent[7]['id'],
-                //     'rekening_id_tujuan_depo9' => $bankAgent[8] == [] ? Null : $bankAgent[8]['id'],
-                //     'rekening_id_tujuan_depo10' => $bankAgent[9] == [] ? Null : $bankAgent[9]['id'],
-                //     'rekening_id_tujuan_depo11' => $bankAgent[10] == [] ? Null : $bankAgent[10]['id'],
-                //     'rekening_id_tujuan_depo12' => $bankAgent[11] == [] ? Null : $bankAgent[11]['id'],
-                //     'rekening_id_tujuan_depo13' => $bankAgent[12] == [] ? Null : $bankAgent[12]['id'],
-                //     'rekening_id_tujuan_depo14' => $bankAgent[13] == [] ? Null : $bankAgent[13]['id'],
-                // ]);
 
+            # Check Referral
+            if (is_null($referal)) {
+
+                # Create Member
                 $user = MembersModel::create([
                     'username' => $request->username,
                     'email' => $request->email,
                     'password' => bcrypt($request->password),
-                    // 'referrer_id' => $referal->id,
-                    // 'constant_rekening_id' => $request->bank_name,
-                    // 'nomor_rekening' => $request->account_number,
-                    // 'nama_rekening' => $request->account_name,
                     'phone' => $request->phone,
-                    // 'info_dari' => $request->provider,
-                    // 'referrer_id' => $referrer ? $referrer->id : '',
-                    // 'referrer_id' => $request->referral,
                     'bonus_referal' => 0,
-                    // 'rekening_tujuan_depo_id' => $dataRekening->id,
                 ]);
-                // $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
-                // $updateRek->update([
-                //     'created_by' => $user->id
-                // ]);
+
+                # Create Rekening Member
                 $rekMember = RekMemberModel::create([
                     'username_member' => $request->username,
                     'rekening_id' => $rekeningDepoMember->id,
@@ -613,51 +590,31 @@ class JWTAuthController extends ApiController
                     'is_wd' => 1,
                     'created_by' => $user->id,
                 ]);
+
+                # Update Rekening Withdraw
                 MembersModel::where('username', $request->username)
                     ->update([
                         'rek_member_id' => $rekMember->id,
                     ]);
+
+                # This is not used
                 TurnoverModel::create([
                     'created_by' => $user->id,
                 ]);
             } else {
-                // $dataRekening = RekeningTujuanDepo::create([
-                //     'rekening_id_tujuan_depo1' => $bankAgent[0] == [] ? Null : $bankAgent[0]['id'],
-                //     'rekening_id_tujuan_depo2' => $bankAgent[1] == [] ? Null : $bankAgent[1]['id'],
-                //     'rekening_id_tujuan_depo3' => $bankAgent[2] == [] ? Null : $bankAgent[2]['id'],
-                //     'rekening_id_tujuan_depo4' => $bankAgent[3] == [] ? Null : $bankAgent[3]['id'],
-                //     'rekening_id_tujuan_depo5' => $bankAgent[4] == [] ? Null : $bankAgent[4]['id'],
-                //     'rekening_id_tujuan_depo6' => $bankAgent[5] == [] ? Null : $bankAgent[5]['id'],
-                //     'rekening_id_tujuan_depo7' => $bankAgent[6] == [] ? Null : $bankAgent[6]['id'],
-                //     'rekening_id_tujuan_depo8' => $bankAgent[7] == [] ? Null : $bankAgent[7]['id'],
-                //     'rekening_id_tujuan_depo9' => $bankAgent[8] == [] ? Null : $bankAgent[8]['id'],
-                //     'rekening_id_tujuan_depo10' => $bankAgent[9] == [] ? Null : $bankAgent[9]['id'],
-                //     'rekening_id_tujuan_depo11' => $bankAgent[10] == [] ? Null : $bankAgent[10]['id'],
-                //     'rekening_id_tujuan_depo12' => $bankAgent[11] == [] ? Null : $bankAgent[11]['id'],
-                //     'rekening_id_tujuan_depo13' => $bankAgent[12] == [] ? Null : $bankAgent[12]['id'],
-                //     'rekening_id_tujuan_depo14' => $bankAgent[13] == [] ? Null : $bankAgent[13]['id'],
-                // ]);
 
+                # Create Member
                 $user = MembersModel::create([
                     'username' => $request->username,
                     'email' => $request->email,
                     'password' => bcrypt($request->password),
                     'referrer_id' => $referal->id,
-                    // 'constant_rekening_id' => $request->bank_name,
-                    // 'nomor_rekening' => $request->account_number,
-                    // 'nama_rekening' => $request->account_name,
                     'phone' => $request->phone,
-                    // 'info_dari' => $request->provider,
-                    // 'referrer_id' => $referrer ? $referrer->id : '',
-                    // 'referrer_id' => $request->referral,
                     'bonus_referal' => 0,
-                    // 'rekening_tujuan_depo_id' => $dataRekening->id,
                     'rekening_tujuan_depo_id' => null,
                 ]);
-                // $updateRek = RekeningTujuanDepo::where('id', $user->rekening_tujuan_depo_id)->first();
-                // $updateRek->update([
-                //     'created_by' => $user->id
-                // ]);
+
+                # Create Rekening Member
                 $rekMember = RekMemberModel::create([
                     'username_member' => $request->username,
                     'rekening_id' => $rekeningDepoMember->id,
@@ -669,14 +626,20 @@ class JWTAuthController extends ApiController
                     'is_wd' => 1,
                     'created_by' => $user->id,
                 ]);
+
+                # Update Rekening Withdraw
                 MembersModel::where('username', $request->username)
                     ->update([
                         'rek_member_id' => $rekMember->id,
                     ]);
+
+                # This is not used
                 TurnoverModel::create([
                     'created_by' => $user->id,
                 ]);
             }
+
+            # This is not used
             $freeBet = FreeBetModel::get();
             foreach ($freeBet as $value) {
                 BonusHistoryModel::create([
@@ -692,11 +655,13 @@ class JWTAuthController extends ApiController
             $ipPublic = $_SERVER['HTTP_CLIENT_IP'] ?? $_SERVER["HTTP_CF_CONNECTING_IP"] ?? $_SERVER['HTTP_X_FORWARDED'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['HTTP_FORWARDED'] ?? $_SERVER['HTTP_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? ' - ';
             $ipClient = explode(', ', $ipPublic);
 
+            # Update  IP Member
             $user->update([
                 // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
                 'last_login_ip' => $ipClient[0] ?? $request->ip(),
             ]);
 
+            # Create Activity Log
             UserLogModel::logMemberActivity(
                 'Member Registration',
                 $user,

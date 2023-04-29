@@ -9,6 +9,7 @@ use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BonusSettingModel;
 use App\Models\DepositModel;
+use App\Models\DepositWithdrawHistory;
 use App\Models\MembersModel;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
@@ -17,12 +18,14 @@ use App\Models\WithdrawModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class WithdrawController extends ApiController
 {
     public function create(Request $request)
     {
+        DB::beginTransaction();
         try {
             $memberId = auth('api')->user()->id; // atau bisa juga Auth::user()->id,
             $cek_status_wd = WithdrawModel::where('members_id', $memberId)
@@ -61,7 +64,7 @@ class WithdrawController extends ApiController
             if ($bankAsalTransferForWd) {
                 $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 4)->first();
                 $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'max_bonus', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
-                # Check Bonus Freebet
+                # Check Bonus New Member
                 if ($bonus_freebet->status_bonus == 1) {
                     $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
                     $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
@@ -98,7 +101,7 @@ class WithdrawController extends ApiController
                         $TO = $depoPlusBonus * $turnover_x;
 
                         if ($TOMember < $TO) {
-                            return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Freebet. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
+                            return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
                         }
 
                         $payload = [
@@ -137,11 +140,11 @@ class WithdrawController extends ApiController
                             ],
                             "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                         );
-
+                        DB::commit();
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
                 }
-                # Check Bonus Deposit
+                # Check Bonus Existing Member
                 if ($bonus_deposit->status_bonus == 1) {
                     $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
                     $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
@@ -182,7 +185,7 @@ class WithdrawController extends ApiController
                         $TO = $depoPlusBonus * $turnover_x;
 
                         if ($TOMember < $TO) {
-                            return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Deposit. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
+                            return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Existing Member. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
                         }
 
                         $payload = [
@@ -220,7 +223,7 @@ class WithdrawController extends ApiController
                             ],
                             "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                         );
-
+                        DB::commit();
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
                 }
@@ -235,6 +238,18 @@ class WithdrawController extends ApiController
                     'created_at' => Carbon::now(),
                 ];
                 $withdrawal = WithdrawModel::create($payload);
+
+                # Create History Withdraw
+                DepositWithdrawHistory::create([
+                    'withdraw_id' => $withdrawal->id,
+                    'member_id' => $withdrawal->members_id,
+                    'status' => 'Pending',
+                    'amount' => $withdrawal->jumlah,
+                    'credit' => $withdrawal->credit,
+                    'description' => 'Withdraw : Pending',
+                    'created_by' => $memberId,
+                ]);
+
                 # update balance member
                 $member = MembersModel::find($memberId);
                 MembersModel::where('id', $memberId)->update([
@@ -257,11 +272,14 @@ class WithdrawController extends ApiController
                     ],
                     "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                 );
+
+                DB::commit();
                 return $this->successResponse(null, 'Berhasil request withdraw');
             }
 
             return $this->errorResponse('Bank Tujuan Untuk Withdraw Sedang Offline, Silahkan Hubungi Customer service', 400);
         } catch (\Throwable$th) {
+            DB::rollback();
             Log::error($th);
             return $this->errorResponse('Internal Server Error', 500);
         }
