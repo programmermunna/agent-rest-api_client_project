@@ -124,8 +124,7 @@ class WithdrawController extends ApiController
                         ];
                         
                         $withdrawal = WithdrawModel::create($payload);
-                        DB::commit();
-                        return $this->successResponse($withdrawal, 'withdrawal');
+
                         # update balance member
                         $member = MembersModel::find($memberId);
                         MembersModel::where('id', $memberId)->update([
