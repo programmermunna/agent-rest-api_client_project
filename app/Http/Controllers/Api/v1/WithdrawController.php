@@ -63,7 +63,6 @@ class WithdrawController extends ApiController
                 ->first();
             if ($bankAsalTransferForWd) {
                 $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 4)->first();
-                // $bonus_freebet = BonusSettingModel::select('status_bonus', 'min_depo', 'max_depo', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 4)->first();
                 $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'max_bonus', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
                 # Check Bonus New Member
                 if ($bonus_freebet->status_bonus == 1) {
