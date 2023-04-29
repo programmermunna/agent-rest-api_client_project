@@ -124,7 +124,7 @@ class WithdrawController extends ApiController
                         ];
                         
                         $withdrawal = WithdrawModel::create($payload);
-
+                        return $this->successResponse($withdrawal, 'withdrawal');
                         # update balance member
                         $member = MembersModel::find($memberId);
                         MembersModel::where('id', $memberId)->update([
@@ -135,7 +135,7 @@ class WithdrawController extends ApiController
                         WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
                         CreateWithdrawalEvent::dispatch($withdrawal->toArray());
                         // WEB SOCKET FINISH
-                        return $this->successResponse($withdrawal, 'withdrawal');
+                        
                         # activity Log
                         UserLogModel::logMemberActivity(
                             'Withdrawal Created',
