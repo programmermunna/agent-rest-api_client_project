@@ -139,11 +139,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/availability', 'BankController@availability');
         });
 
-<<<<<<< HEAD
-        // IMAGE CONTENT
-=======
         // IMAGES CONTENT
->>>>>>> 939d042159c9b16109e4cc8bccd1ecdcd0bcf14f
         Route::group(['prefix' => 'cms'], function () {
             Route::get('/website-content/{slug}', 'CmsController@websiteContent'); //{slug} => api general-info , my-account , about, help , rules , contact-us
             Route::get('/image-contents/{type}', 'CmsController@imageContent'); //{type}=> api all , popup , mobile , slide , promotion ///

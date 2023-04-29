@@ -28,11 +28,7 @@ class CmsController extends ApiController
         }
     }
 
-<<<<<<< HEAD
-     /**
-=======
     /**
->>>>>>> 939d042159c9b16109e4cc8bccd1ecdcd0bcf14f
         * Image Content
         * filter data by type 
         * delete not used in frontend order and content
