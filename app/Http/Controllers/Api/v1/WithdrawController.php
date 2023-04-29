@@ -131,10 +131,10 @@ class WithdrawController extends ApiController
                             'credit' => $member->credit - $jumlah,
                         ]);
                         
-                        // // WEB SOCKET START
-                        // WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
-                        // CreateWithdrawalEvent::dispatch($withdrawal->toArray());
-                        // // WEB SOCKET FINISH
+                        // WEB SOCKET START
+                        WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+                        CreateWithdrawalEvent::dispatch($withdrawal->toArray());
+                        // WEB SOCKET FINISH
                         
                         // # activity Log
                         // UserLogModel::logMemberActivity(
