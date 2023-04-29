@@ -110,9 +110,7 @@ class WithdrawController extends ApiController
                         if ($TOMember < $TO) {
                             return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
                         }
-                        return $this->successResponse(null, '$request->note: '.$request->note
-                            // '$created_by: '.$created_by
-                        );
+                        
                         $payload = [
                             'members_id' => $memberId,
                             'rekening_id' => $bankAsalTransferForWd->id,
@@ -124,6 +122,7 @@ class WithdrawController extends ApiController
                             'created_by' => $memberId,
                             'created_at' => Carbon::now(),
                         ];
+                        return $this->successResponse($payload, 'apa kek');
                         $withdrawal = WithdrawModel::create($payload);
 
                         # update balance member
