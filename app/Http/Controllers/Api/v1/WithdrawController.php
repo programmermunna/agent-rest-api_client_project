@@ -100,7 +100,7 @@ class WithdrawController extends ApiController
 
                             $TOMember = $TOSlotCasinoFish + $TOTogel;
                         }
-
+                        return $this->successResponse(null, 'test');
                         $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
                         $turnover_x = $bonus_freebet->turnover_x;
                         $bonus_amount = $bonus_freebet->bonus_amount;
