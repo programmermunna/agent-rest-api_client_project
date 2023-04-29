@@ -73,7 +73,8 @@ class WithdrawController extends ApiController
                         ->where('approval_status', 1)
                         ->where('is_claim_bonus', 4)
                         ->where('status_bonus', 0)
-                        ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
+                        // ->whereBetween('approval_status_at', [$subDay, $today])
+                        ->orderBy('approval_status_at', 'desc')->first();
                     if ($Check_deposit_claim_bonus_freebet) {
                         $providerId = explode(',', $bonus_freebet->constant_provider_id);
                         if (!in_array(16, $providerId)) {
