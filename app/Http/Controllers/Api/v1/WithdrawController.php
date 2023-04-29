@@ -122,7 +122,7 @@ class WithdrawController extends ApiController
                             'created_by' => $memberId,
                             'created_at' => Carbon::now(),
                         ];
-                        return $this->successResponse($payload, 'apa kek');
+                        
                         $withdrawal = WithdrawModel::create($payload);
 
                         # update balance member
@@ -130,12 +130,12 @@ class WithdrawController extends ApiController
                         MembersModel::where('id', $memberId)->update([
                             'credit' => $member->credit - $jumlah,
                         ]);
-
+                        
                         // WEB SOCKET START
                         WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
                         CreateWithdrawalEvent::dispatch($withdrawal->toArray());
                         // WEB SOCKET FINISH
-
+                        return $this->successResponse($withdrawal, 'withdrawal');
                         # activity Log
                         UserLogModel::logMemberActivity(
                             'Withdrawal Created',
