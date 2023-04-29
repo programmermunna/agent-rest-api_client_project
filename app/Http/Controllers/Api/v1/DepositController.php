@@ -116,9 +116,15 @@ class DepositController extends ApiController
                         if ($check_claim_bonus->is_claim_bonus == 6) {
                             return $this->errorResponse("Maaf, Bonus Existing Member dapat diklaim sehari sekali.", 400);
                         }
-                        if ($check_claim_bonus->is_claim_bonus == 4 && $memberBalance->credit > 1000) {
-                            return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim, Anda sudah mengklaim Bonus New Member hari ini.", 400);
-                        }
+
+                        /**
+                         * Bablas bolehkan deposit lagi 
+                         * dan klaim bonus existing member 
+                         * walau sudah klaim bonus new member
+                         */
+                        // if ($check_claim_bonus->is_claim_bonus == 4 && $memberBalance->credit > 1000) {
+                        //     return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim, Anda sudah mengklaim Bonus New Member hari ini.", 400);
+                        // }
                     }
                     if ($request->jumlah < $bonus_deposit->min_depo) {
                         return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus existing member sebesar " . number_format($bonus_deposit->min_depo) . ".", 400);
