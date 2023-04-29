@@ -62,11 +62,17 @@ class WithdrawController extends ApiController
                 ->where('is_wd', 1)
                 ->first();
             if ($bankAsalTransferForWd) {
-                $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 4)->first();
-                $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'max_bonus', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
+                $bonus_freebet = BonusSettingModel::select(
+                                    'status_bonus', 
+                                    // 'durasi_bonus_promo', 
+                                    'min_depo', 'max_depo', 
+                                    'bonus_amount', 
+                                    'turnover_x', 
+                                    'constant_provider_id')
+                                ->where('constant_bonus_id', 4)->first();
                 # Check Bonus New Member
                 if ($bonus_freebet->status_bonus == 1) {
-                    $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
+                    // $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
                     // $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                     // $today = Carbon::now()->format('Y-m-d 23:59:59');
                     $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $memberId)
@@ -145,6 +151,8 @@ class WithdrawController extends ApiController
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
                 }
+
+                $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'max_bonus', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
                 # Check Bonus Existing Member
                 if ($bonus_deposit->status_bonus == 1) {
                     $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
