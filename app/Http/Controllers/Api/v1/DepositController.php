@@ -373,7 +373,13 @@ class DepositController extends ApiController
             $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 4)
-                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
+                ->whereBetween('approval_status_at', [$subDay, $today])
+                ->orderBy('approval_status_at', 'desc')
+                ->first();
+            
+            /**
+             * Check if bonus is active and New member bonus has been approved in deposit
+             */
             if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
                 $providerId = explode(',', $bonus_freebet->constant_provider_id);
                 if (!in_array(16, $providerId)) {
@@ -399,6 +405,10 @@ class DepositController extends ApiController
                 $bonus_amount = $bonus_freebet->bonus_amount;
                 $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
                 $TO = $depoPlusBonus * $turnover_x;
+                /**
+                 * Check if status new member bonus has been rejected.
+                 * Status bonus in DB -> 0 = Default, 1 = Approve, 2 = Reject
+                 */
                 if ($Check_deposit_claim_bonus_freebet->status_bonus == 2) {
                     $status = preg_match("/menyerah/i", $Check_deposit_claim_bonus_freebet->reason_bonus) ? 'Menyerah' : 'Gagal';
                     $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
@@ -406,12 +416,12 @@ class DepositController extends ApiController
                     $data = [
                         'turnover' => $TO,
                         'turnover_member' => $TOMember,
-                        'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
+                        // 'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo, // remove duration for New Member Bonus
                         'status_bonus' => $bonus_freebet->status_bonus,
                         'is_claim_bonus' => $Check_deposit_claim_bonus_freebet->is_claim_bonus,
                         'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
                         'status_bonus_member' => $status,
-                        'date_claim_again' => $dateClaim,
+                        // 'date_claim_again' => $dateClaim, // remove duration for New Member Bonus
                     ];
                 } else {
                     $status = $Check_deposit_claim_bonus_freebet->status_bonus == 0 ? 'Klaim' : 'Selesai';
@@ -420,24 +430,27 @@ class DepositController extends ApiController
                     $data = [
                         'turnover' => $TO,
                         'turnover_member' => $TOMember,
-                        'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo,
+                        // 'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo, // remove duration for New Member Bonus
                         'status_bonus' => $bonus_freebet->status_bonus,
                         'is_claim_bonus' => $Check_deposit_claim_bonus_freebet->is_claim_bonus,
                         'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
                         'status_bonus_member' => $status,
-                        'date_claim_again' => $dateClaim,
+                        // 'date_claim_again' => $dateClaim, // remove duration for New Member Bonus
                     ];
                 }
             } else {
+                /**
+                 * Bonus is not active
+                 */
                 $data = [
                     'turnover' => 0,
                     'turnover_member' => 0,
-                    'durasi_bonus_promo' => 0,
+                    // 'durasi_bonus_promo' => 0, // remove duration for New Member Bonus
                     'status_bonus' => 0,
                     'is_claim_bonus' => 0,
                     'bonus_amount' => 0,
                     'status_bonus_member' => null,
-                    'date_claim_again' => null,
+                    // 'date_claim_again' => null, // remove duration for New Member Bonus
                 ];
             }
             return $this->successResponse([$data], 'Datanya ada', 200);
