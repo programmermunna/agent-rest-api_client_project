@@ -266,7 +266,8 @@ class DepositController extends ApiController
                     ->where('status_bonus', 0)
                     ->where('approval_status', 1)
                     ->where('members_id', $userId)
-                    // ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
+                    // ->whereBetween('approval_status_at', [$subDay, $today])
+                    ->orderBy('approval_status_at', 'desc')
                     ->first();
                 $cekSudahPernahDepo = DepositModel::where('members_id', $userId)->first();
                 $dataBonusSetting[] = [
@@ -282,7 +283,7 @@ class DepositController extends ApiController
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
-                    'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
+                    'is_claim_bonus' => 1,
                     'provider_id' => $item->constant_provider_id ? $providers : [],
                     'is_new_member' => $cekSudahPernahDepo ? 0 : 1, // 1 = new member | 0 = existing member
                 ];
