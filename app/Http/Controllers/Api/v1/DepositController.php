@@ -647,7 +647,7 @@ class DepositController extends ApiController
                     'jumlah' => $bonus * -1,
                     'credit' => MembersModel::where('id', $memberId)->first()->credit,
                     'member_id' => $this->memberActive->id,
-                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'type' => 'uang',
                     'created_by' => 0,
                     'created_at' => Carbon::now(),
@@ -660,7 +660,7 @@ class DepositController extends ApiController
                     'subject' => 'Bonus New Member',
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus New Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus New Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
@@ -795,7 +795,7 @@ class DepositController extends ApiController
                     'jumlah' => $bonus * -1,
                     'credit' => MembersModel::where('id', $memberId)->first()->credit,
                     'member_id' => $this->memberActive->id,
-                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'type' => 'uang',
                     'created_by' => 0,
                     'created_at' => Carbon::now(),
@@ -808,7 +808,7 @@ class DepositController extends ApiController
                     'subject' => 'Bonus Existing Member',
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Existing Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebasar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Existing Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
