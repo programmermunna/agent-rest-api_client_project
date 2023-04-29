@@ -373,7 +373,7 @@ class DepositController extends ApiController
             $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 4)
-                ->whereBetween('approval_status_at', [$subDay, $today])
+                // ->whereBetween('approval_status_at', [$subDay, $today])
                 ->orderBy('approval_status_at', 'desc')
                 ->first();
             
@@ -431,7 +431,7 @@ class DepositController extends ApiController
                         'turnover' => $TO,
                         'turnover_member' => $TOMember,
                         // 'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo, // remove duration for New Member Bonus
-                        'status_bonus' => 1,
+                        'status_bonus' => $bonus_freebet->status_bonus,
                         'is_claim_bonus' => $Check_deposit_claim_bonus_freebet->is_claim_bonus,
                         'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
                         'status_bonus_member' => $status,
