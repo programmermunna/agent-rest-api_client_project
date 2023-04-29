@@ -67,13 +67,13 @@ class WithdrawController extends ApiController
                 # Check Bonus New Member
                 if ($bonus_freebet->status_bonus == 1) {
                     $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
-                    $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-                    $today = Carbon::now()->format('Y-m-d 23:59:59');
+                    // $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
+                    // $today = Carbon::now()->format('Y-m-d 23:59:59');
                     $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $memberId)
                         ->where('approval_status', 1)
                         ->where('is_claim_bonus', 4)
                         ->where('status_bonus', 0)
-                        ->whereBetween('approval_status_at', [$subDay, $today])
+                        // ->whereBetween('approval_status_at', [$subDay, $today])
                         ->orderBy('approval_status_at', 'desc')->first();
                     if ($Check_deposit_claim_bonus_freebet) {
                         $providerId = explode(',', $bonus_freebet->constant_provider_id);
