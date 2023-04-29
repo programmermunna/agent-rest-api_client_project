@@ -431,7 +431,7 @@ class DepositController extends ApiController
                         'turnover' => $TO,
                         'turnover_member' => $TOMember,
                         // 'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo, // remove duration for New Member Bonus
-                        'status_bonus' => $bonus_freebet->status_bonus,
+                        'status_bonus' => 1,
                         'is_claim_bonus' => $Check_deposit_claim_bonus_freebet->is_claim_bonus,
                         'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
                         'status_bonus_member' => $status,
