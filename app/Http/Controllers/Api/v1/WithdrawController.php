@@ -110,8 +110,7 @@ class WithdrawController extends ApiController
                         if ($TOMember < $TO) {
                             return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
                         }
-                        return $this->successResponse(null, '$jumlah: '.$jumlah
-                            // '$credit: '.$credit. 
+                        return $this->successResponse(null, '$credit: '.$credit 
                             // '$note: '.$note. 
                             // '$created_by: '.$created_by
                         );
