@@ -108,7 +108,7 @@ class DepositController extends ApiController
                 if ($bonus_deposit->status_bonus == 1) {
                      DB::commit();
                     //  return $this->successResponse(null, 'DD TEST =>' .$check_claim_bonus->is_claim_bonus);
-                     return $this->successResponse(null, 'DD TEST =>' .count($check_claim_bonus) .$bonus_deposit->limit_claim);
+                     return $this->successResponse(null, 'DD COUNT =>' .count($check_claim_bonus), 'DD LIMIT =>' .$bonus_deposit->limit_claim, 'DD IS CLAIM =>' .$check_claim_bonus->is_claim_bonus);
                     
 
                     // CODE BOFORE TEMPORARY COMMENT 
