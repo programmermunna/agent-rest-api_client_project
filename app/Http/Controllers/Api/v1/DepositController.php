@@ -101,7 +101,7 @@ class DepositController extends ApiController
                 // $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'limit_claim', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', 6)->first();
                 // DB::commit();
                 // return $this->successResponse(null, 'TESTING DD =>'. $bonus_deposit);
-                return $this->successResponse(null, 'TESTING DD =>'. $request->is_claim_bonus);
+                // return $this->successResponse(null, 'TESTING DD =>'. $request->is_claim_bonus);
                 $today = Carbon::now()->format('Y-m-d');
                 $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)
@@ -109,7 +109,9 @@ class DepositController extends ApiController
                     // ->whereIn('is_claim_bonus', [4, 6])
                     ->whereDate('approval_status_at', $today)->orderBy('approval_status_at', 'desc')->get();
                     // ->whereDate('approval_status_at', $today)->orderBy('approval_status_at', 'desc')->first();
-                if ($bonus_deposit->status_bonus == 1) {
+                return $this->successResponse(null, 'TESTING DD =>'. $check_claim_bonus);
+              
+                    if ($bonus_deposit->status_bonus == 1) {
                     if (count($check_claim_bonus) > $bonus_deposit->limit_claim) {
                         if ($check_claim_bonus->is_claim_bonus == 6) {
                             return $this->errorResponse("Maaf, Bonus Existing Member dapat diklaim sehari maksimal {$bonus_deposit->limit_claim} kali.", 400);
