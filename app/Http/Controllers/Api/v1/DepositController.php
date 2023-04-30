@@ -109,7 +109,9 @@ class DepositController extends ApiController
                     // ->whereIn('is_claim_bonus', [4, 6])
                     ->whereDate('approval_status_at', $today)->orderBy('approval_status_at', 'desc')->get();
                     // ->whereDate('approval_status_at', $today)->orderBy('approval_status_at', 'desc')->first();
-                return $this->successResponse(null, 'TESTING DD =>'. $check_claim_bonus);
+                
+                    DB::commit();
+                    return $this->successResponse(null, 'TESTING DD =>'. $check_claim_bonus);
               
                     if ($bonus_deposit->status_bonus == 1) {
                     if (count($check_claim_bonus) > $bonus_deposit->limit_claim) {
