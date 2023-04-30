@@ -1030,7 +1030,7 @@ class MemberController extends ApiController
             } elseif ($request->type == 'transaksiBonusPromo') { # History Transaksi Bonus Promo
                 $bonusHistory = [];
                 foreach ($bonus->get() as $key => $value) {
-                    $status_bonus = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
+                    $status_bonus = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : (preg_match("/batalkan/i", $value->hadiah) ? 'Cancel' : 'Klaim')));
                     $bonusHistory[] = [
                         'id' => $value->id,
                         'nama_bonus' => $value->nama_bonus,
@@ -1554,7 +1554,7 @@ class MemberController extends ApiController
                 # History Bonus
                 $bonusHistory = [];
                 foreach ($bonus->get() as $key => $value) {
-                    $status_bonus = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : 'Klaim'));
+                    $status_bonus = preg_match("/menyerah/i", $value->hadiah) ? 'Menyerah' : (preg_match("/mendapatkan/i", $value->hadiah) ? 'Klaim' : (preg_match("/gagal/i", $value->hadiah) ? 'Gagal' : (preg_match("/batalkan/i", $value->hadiah) ? 'Cancel' : 'Klaim')));
 
                     $bonusHistory[] = [
                         'Tables' => 'Bonus History',

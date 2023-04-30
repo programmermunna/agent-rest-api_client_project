@@ -59,7 +59,10 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             # Bonus New Member
             Route::get('/setting-bonus-freebet', 'DepositController@settingBonusFreebet');
             Route::get('/freebet-list', 'DepositController@freebetBonus');
-            Route::post('/bonus-freebet-giveup', 'DepositController@BonusFreebetGivUp');
+            /**
+             * remove duration for New Member Bonus
+             */
+            // Route::post('/bonus-freebet-giveup', 'DepositController@BonusFreebetGivUp');
 
             # Bonus Existing Member
             Route::get('/setting-bonus-deposit', 'DepositController@settingBonusDeposit');

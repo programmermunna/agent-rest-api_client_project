@@ -62,18 +62,20 @@ class WithdrawController extends ApiController
                 ->where('is_wd', 1)
                 ->first();
             if ($bankAsalTransferForWd) {
-                $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 4)->first();
-                $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'max_bonus', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
+                $bonus_freebet = BonusSettingModel::select(
+                                    'status_bonus',
+                                    'min_depo', 'max_depo', 
+                                    'bonus_amount', 
+                                    'turnover_x', 
+                                    'constant_provider_id')
+                                ->where('constant_bonus_id', 4)->first();
                 # Check Bonus New Member
                 if ($bonus_freebet->status_bonus == 1) {
-                    $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
-                    $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-                    $today = Carbon::now()->format('Y-m-d 23:59:59');
                     $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $memberId)
                         ->where('approval_status', 1)
                         ->where('is_claim_bonus', 4)
                         ->where('status_bonus', 0)
-                        ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
+                        ->orderBy('approval_status_at', 'desc')->first();
                     if ($Check_deposit_claim_bonus_freebet) {
                         $providerId = explode(',', $bonus_freebet->constant_provider_id);
                         if (!in_array(16, $providerId)) {
@@ -93,17 +95,17 @@ class WithdrawController extends ApiController
 
                             $TOMember = $TOSlotCasinoFish + $TOTogel;
                         }
-
+                        
                         $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
                         $turnover_x = $bonus_freebet->turnover_x;
                         $bonus_amount = $bonus_freebet->bonus_amount;
                         $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
                         $TO = $depoPlusBonus * $turnover_x;
-
+                        
                         if ($TOMember < $TO) {
                             return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
                         }
-
+                        
                         $payload = [
                             'members_id' => $memberId,
                             'rekening_id' => $bankAsalTransferForWd->id,
@@ -115,6 +117,7 @@ class WithdrawController extends ApiController
                             'created_by' => $memberId,
                             'created_at' => Carbon::now(),
                         ];
+                        
                         $withdrawal = WithdrawModel::create($payload);
 
                         # update balance member
@@ -122,12 +125,12 @@ class WithdrawController extends ApiController
                         MembersModel::where('id', $memberId)->update([
                             'credit' => $member->credit - $jumlah,
                         ]);
-
+                        
                         // WEB SOCKET START
                         WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
-                        CreateWithdrawalEvent::dispatch($withdrawal->toArray());
+                        // CreateWithdrawalEvent::dispatch($withdrawal->toArray());
                         // WEB SOCKET FINISH
-
+                        
                         # activity Log
                         UserLogModel::logMemberActivity(
                             'Withdrawal Created',
@@ -140,10 +143,12 @@ class WithdrawController extends ApiController
                             ],
                             "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                         );
-
+                        DB::commit();
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
                 }
+
+                $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'max_bonus', 'bonus_amount', 'turnover_x', 'constant_provider_id')->where('constant_bonus_id', 6)->first();
                 # Check Bonus Existing Member
                 if ($bonus_deposit->status_bonus == 1) {
                     $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
@@ -223,7 +228,7 @@ class WithdrawController extends ApiController
                             ],
                             "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
                         );
-
+                        DB::commit();
                         return $this->successResponse(null, 'Berhasil request withdraw');
                     }
                 }

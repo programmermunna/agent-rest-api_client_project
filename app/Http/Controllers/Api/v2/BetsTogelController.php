@@ -6,7 +6,6 @@ use App\Events\BetTogelBalanceEvent;
 use App\Events\LastBetWinEvent;
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\BetsTogelRequest;
-use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BetsTogelQuotaLimitModel;
 use App\Models\BetTogelLimitLineSettingsModel;
@@ -61,21 +60,6 @@ class BetsTogelController extends ApiController
                         'message' => 'Anda sedang klaim Bonus New Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
                         'data' => null,
                     ], 400);
-                } else {
-                    $total_depo = $checkKlaimBonus->jumlah;
-                    $turnover_x = $checkBonusFreebet->turnover_x;
-                    $bonus_amount = $checkBonusFreebet->bonus_amount;
-                    $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                    $TO = $depoPlusBonus * $turnover_x;
-
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$checkKlaimBonus->approval_status_at, now()])
-                        ->where('created_by', $memberID)
-                        ->whereIn('constant_provider_id', $provider_id)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$checkKlaimBonus->approval_status_at, now()])
-                        ->where('created_by', $memberID)->sum('pay_amount');
-
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
                 }
             }
         }
@@ -100,26 +84,6 @@ class BetsTogelController extends ApiController
                         'message' => 'Anda sedang klaim Bonus Existing Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
                         'data' => null,
                     ], 400);
-                } else {
-                    $total_depo = $checkClaimBonus->jumlah;
-                    $turnover_x = $checkBonusDeposit->turnover_x;
-                    $bonus_amount = $checkBonusDeposit->bonus_amount;
-                    if ($total_depo > $checkBonusDeposit->max_bonus) {
-                        $depoPlusBonus = $total_depo + $checkBonusDeposit->max_bonus;
-                    } else {
-                        $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                    }
-
-                    $TO = $depoPlusBonus * $turnover_x;
-
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$checkClaimBonus->approval_status_at, now()])
-                        ->where('created_by', $memberID)
-                        ->whereIn('constant_provider_id', $provider_id)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$checkClaimBonus->approval_status_at, now()])
-                        ->where('created_by', $memberID)->sum('pay_amount');
-
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
                 }
             }
         }
@@ -180,23 +144,9 @@ class BetsTogelController extends ApiController
 
             $payAmount = collect($this->checkBlokednumber($request, $provider))->sum('pay_amount');
             $checkMember = MembersModel::where('id', $memberID)->first();
-            $lastCredit = (float) $checkMember['credit'] - $payAmount;
+
             if ($payAmount > (float) $checkMember['credit']) {
                 return $this->errorResponse("Saldo anda tidak mencukupi", 400);
-            }
-            if ($checkBonusFreebet->status_bonus == 1 && $checkKlaimBonus) {
-                if ($TOMember < $TO) {
-                    if ($lastCredit <= $checkKlaimBonus->bonus_amount) {
-                        return $this->errorResponse('Saldo anda tidak mencukupi', 400);
-                    }
-                }
-            }
-            if ($checkBonusDeposit->status_bonus == 1 && $checkClaimBonus) {
-                if ($TOMember < $TO) {
-                    if ($lastCredit <= $checkClaimBonus->bonus_amount) {
-                        return $this->errorResponse('Saldo anda tidak mencukupi', 400);
-                    }
-                }
             }
 
             $betTransaction = [];
