@@ -92,6 +92,7 @@ class DepositController extends ApiController
                 $claimBonus = $bonus_freebet->status_bonus == 1 ? $request->is_claim_bonus : 0;
             }
 
+
             # Check Bonus Existing Member
             if ($request->is_claim_bonus == 6) {
                 $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'limit_claim', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
@@ -146,6 +147,12 @@ class DepositController extends ApiController
                     'is_depo' => 1,
                 ]);
             }
+
+
+            // TEST DD RESPONSE 
+            DB::commit();
+            return $this->successResponse(null, $bonus_deposit->limit_claim);
+
 
             $depositCreate = DepositModel::create($payload);
 
