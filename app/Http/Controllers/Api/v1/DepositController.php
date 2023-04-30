@@ -72,7 +72,7 @@ class DepositController extends ApiController
 
                 $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)
-                    ->whereIn('is_claim_bonus', [4,6])->first();
+                    ->whereIn('is_claim_bonus', 4)->first();
 
                 if ($bonus_freebet->status_bonus == 1) {
                     if ($check_claim_bonus) {
@@ -100,7 +100,7 @@ class DepositController extends ApiController
                 $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)
                     // ->where('is_claim_bonus', 6)
-                    ->whereIn('is_claim_bonus', [4,6])
+                    ->whereIn('is_claim_bonus', 6)
                     ->whereDate('approval_status_at', $today)->orderBy('approval_status_at', 'desc')->get();
                
                 //     DB::commit();
