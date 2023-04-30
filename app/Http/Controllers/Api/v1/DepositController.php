@@ -114,8 +114,9 @@ class DepositController extends ApiController
                     // CODE BOFORE TEMPORARY COMMENT 
                     if (count($check_claim_bonus) > $bonus_deposit->limit_claim) {
                         // if ($check_claim_bonus->is_claim_bonus == 6) {
+                        if ($check_claim_bonus) {
                             return $this->errorResponse("Maaf, Bonus Existing Member dapat diklaim sehari maksimal {$bonus_deposit->limit_claim} kali.", 400);
-                        // }                        
+                        }                        
                     }
                     if ($request->jumlah < $bonus_deposit->min_depo) {
                         return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus existing member sebesar " . number_format($bonus_deposit->min_depo) . ".", 400);
