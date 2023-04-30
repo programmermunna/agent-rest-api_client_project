@@ -97,7 +97,7 @@ class DepositController extends ApiController
             if ($request->is_claim_bonus == 6) {
                 $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'limit_claim', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
                  DB::commit();
-                return $this->successResponse(null, 'TESTING CONSOLE'. $bonus_deposit->limit_claim);
+                return $this->successResponse(null, 'TESTING DD =>'. $bonus_deposit->limit_claim);
                 $today = Carbon::now()->format('Y-m-d');
                 $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)
