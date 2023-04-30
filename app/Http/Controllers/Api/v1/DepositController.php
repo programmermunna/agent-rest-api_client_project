@@ -491,11 +491,11 @@ class DepositController extends ApiController
                 $total_depo = $Check_deposit_claim_bonus_deposit->jumlah;
                 $turnover_x = $bonus_deposit->turnover_x;
                 $bonus_amount = $bonus_deposit->bonus_amount;
-                if ($total_depo > $bonus_deposit->max_bonus) {
-                    $depoPlusBonus = $total_depo + $bonus_deposit->max_bonus;
-                } else {
-                    $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                }
+                // if ($total_depo > $bonus_deposit->max_bonus) {
+                //     $depoPlusBonus = $total_depo + $bonus_deposit->max_bonus;
+                // } else {
+                //     $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
+                // }
                 /**
                  * Below is to make the Turnover Target is same with TO on Member's side in Account > Bonus.
                  */
