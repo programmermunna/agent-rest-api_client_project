@@ -105,7 +105,7 @@ class DepositController extends ApiController
                 $today = Carbon::now()->format('Y-m-d');
                 $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)
-                    ->where('is_claim_bonus', 6)
+                    ->where('is_claim_bonus', [6])
                     // ->whereIn('is_claim_bonus', [4, 6])
                     ->whereDate('approval_status_at', $today)->orderBy('approval_status_at', 'desc')->get();
                     // ->whereDate('approval_status_at', $today)->orderBy('approval_status_at', 'desc')->first();
