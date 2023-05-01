@@ -15,6 +15,7 @@ use App\Models\DepositModel;
 use App\Models\DepositWithdrawHistory;
 use App\Models\MembersModel;
 use App\Models\MemoModel;
+use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
@@ -68,14 +69,22 @@ class DepositController extends ApiController
 
             # Check Bonus New Member
             if ($request->is_claim_bonus == 4) {
-                $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
+                $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')
+                    ->where('constant_bonus_id', $request->is_claim_bonus)->first();
+
+                # Check Constant Bank
+                $constantBank = RekeningModel::leftJoin('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                    ->select(['rekening.id', 'rekening.constant_rekening_id'])->where('constant_rekening.is_bank', true)->find($request->rekening_id);
+                if (!$constantBank) {
+                    return $this->errorResponse("Maaf, Bonus New Member tidak dapat diklaim via deposit pulsa.", 400);
+                }
 
                 $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)->first();
 
                 if ($bonus_freebet->status_bonus == 1) {
                     if ($check_claim_bonus) {
-                            return $this->errorResponse("Maaf, Bonus New Member tidak dapat diklaim, Bonus New Member hanya dapat diklaim sekali.", 400);
+                        return $this->errorResponse("Maaf, Bonus New Member tidak dapat diklaim, Bonus New Member hanya dapat diklaim sekali.", 400);
                     }
                     if ($request->jumlah < $bonus_freebet->min_depo) {
                         return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus new member sebesar " . number_format($bonus_freebet->min_depo) . ".", 400);
@@ -94,7 +103,15 @@ class DepositController extends ApiController
 
             # Check Bonus Existing Member
             if ($request->is_claim_bonus == 6) {
-                $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'limit_claim', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
+                $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'limit_claim', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')
+                    ->where('constant_bonus_id', $request->is_claim_bonus)->first();
+
+                # Check Constant Bank
+                $constantBank = RekeningModel::leftJoin('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                    ->select(['rekening.id', 'rekening.constant_rekening_id'])->where('constant_rekening.is_bank', true)->find($request->rekening_id);
+                if (!$constantBank) {
+                    return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim via deposit pulsa.", 400);
+                }
                 $today = Carbon::now()->format('Y-m-d');
                 $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)
@@ -104,7 +121,7 @@ class DepositController extends ApiController
                     if (count($check_claim_bonus) >= $bonus_deposit->limit_claim) {
                         if ($check_claim_bonus) {
                             return $this->errorResponse("Maaf, Bonus Existing Member dapat diklaim sehari maksimal {$bonus_deposit->limit_claim} kali.", 400);
-                        }                        
+                        }
                     }
                     if ($request->jumlah < $bonus_deposit->min_depo) {
                         return $this->errorResponse("Maaf, Minimal deposit untuk klaim bonus existing member sebesar " . number_format($bonus_deposit->min_depo) . ".", 400);
@@ -359,10 +376,10 @@ class DepositController extends ApiController
             $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 4)
-                // ->whereBetween('approval_status_at', [$subDay, $today])
+            // ->whereBetween('approval_status_at', [$subDay, $today])
                 ->orderBy('approval_status_at', 'desc')
                 ->first();
-            
+
             /**
              * Check if bonus is active and New member bonus has been approved in deposit
              */
@@ -548,7 +565,7 @@ class DepositController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
-    
+
     # Bonus New Member Promotion Give Up
     public function BonusFreebetGivUp(Request $request)
     {
