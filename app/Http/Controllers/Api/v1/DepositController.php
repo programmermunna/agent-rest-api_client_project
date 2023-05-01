@@ -71,6 +71,12 @@ class DepositController extends ApiController
             if ($request->is_claim_bonus == 4) {
                 $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
 
+                # Check Constant Bank
+                $constantBank = ConstantRekeningModel::select(['id'])->where('is_bank', true)->find($request->rekening_id);
+                if (!$constantBank) {
+                    return $this->errorResponse("Maaf, Bonus New Member tidak dapat diklaim via deposit pulsa.", 400);
+                }
+
                 $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
                     ->where('approval_status', 1)->first();
 
@@ -100,7 +106,7 @@ class DepositController extends ApiController
                 # Check Constant Bank
                 $constantBank = ConstantRekeningModel::select(['id'])->where('is_bank', true)->find($request->rekening_id);
                 if (!$constantBank) {
-                    return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim dengan tujuan Deposit Non-Bank (Pulsa).", 400);
+                    return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim via deposit pulsa.", 400);
                 }
                 $today = Carbon::now()->format('Y-m-d');
                 $check_claim_bonus = DepositModel::where('members_id', $this->memberActive->id)
