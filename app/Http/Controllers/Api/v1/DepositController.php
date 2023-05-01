@@ -11,11 +11,11 @@ use App\Models\BetsTogel;
 use App\Models\BonusHistoryModel;
 use App\Models\BonusSettingModel;
 use App\Models\ConstantProvider;
-use App\Models\ConstantRekeningModel;
 use App\Models\DepositModel;
 use App\Models\DepositWithdrawHistory;
 use App\Models\MembersModel;
 use App\Models\MemoModel;
+use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
@@ -69,10 +69,12 @@ class DepositController extends ApiController
 
             # Check Bonus New Member
             if ($request->is_claim_bonus == 4) {
-                $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
+                $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')
+                    ->where('constant_bonus_id', $request->is_claim_bonus)->first();
 
                 # Check Constant Bank
-                $constantBank = ConstantRekeningModel::select(['id'])->where('is_bank', true)->find($request->rekening_id);
+                $constantBank = RekeningModel::leftJoin('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                    ->select(['rekening,id', 'rekening.constant_rekening_id'])->where('constant_rekening.is_bank', true)->find($request->rekening_id);
                 if (!$constantBank) {
                     return $this->errorResponse("Maaf, Bonus New Member tidak dapat diklaim via deposit pulsa.", 400);
                 }
@@ -104,7 +106,8 @@ class DepositController extends ApiController
                 $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'limit_claim', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
 
                 # Check Constant Bank
-                $constantBank = ConstantRekeningModel::select(['id'])->where('is_bank', true)->find($request->rekening_id);
+                $constantBank = RekeningModel::leftJoin('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                    ->select(['rekening,id', 'rekening.constant_rekening_id'])->where('constant_rekening.is_bank', true)->find($request->rekening_id);
                 if (!$constantBank) {
                     return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim via deposit pulsa.", 400);
                 }
