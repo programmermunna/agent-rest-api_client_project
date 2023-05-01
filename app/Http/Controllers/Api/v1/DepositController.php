@@ -74,7 +74,7 @@ class DepositController extends ApiController
 
                 # Check Constant Bank
                 $constantBank = RekeningModel::leftJoin('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-                    ->select(['rekening,id', 'rekening.constant_rekening_id'])->where('constant_rekening.is_bank', true)->find($request->rekening_id);
+                    ->select(['rekening.id', 'rekening.constant_rekening_id'])->where('constant_rekening.is_bank', true)->find($request->rekening_id);
                 if (!$constantBank) {
                     return $this->errorResponse("Maaf, Bonus New Member tidak dapat diklaim via deposit pulsa.", 400);
                 }
@@ -103,11 +103,12 @@ class DepositController extends ApiController
 
             # Check Bonus Existing Member
             if ($request->is_claim_bonus == 6) {
-                $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'limit_claim', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')->where('constant_bonus_id', $request->is_claim_bonus)->first();
+                $bonus_deposit = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'limit_claim', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')
+                    ->where('constant_bonus_id', $request->is_claim_bonus)->first();
 
                 # Check Constant Bank
                 $constantBank = RekeningModel::leftJoin('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
-                    ->select(['rekening,id', 'rekening.constant_rekening_id'])->where('constant_rekening.is_bank', true)->find($request->rekening_id);
+                    ->select(['rekening.id', 'rekening.constant_rekening_id'])->where('constant_rekening.is_bank', true)->find($request->rekening_id);
                 if (!$constantBank) {
                     return $this->errorResponse("Maaf, Bonus Existing Member tidak dapat diklaim via deposit pulsa.", 400);
                 }
