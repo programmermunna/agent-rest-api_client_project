@@ -172,7 +172,7 @@ class BetsTogelController extends ApiController
                     ]);
 
                     # create bonus history
-                    BonusHistoryModel::create([
+                    $bonusHistory = BonusHistoryModel::create([
                         'member_id' => $member->referrer_id,
                         'constant_bonus_id' => 3,
                         'is_send' => 1,
