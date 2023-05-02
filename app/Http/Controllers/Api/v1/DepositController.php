@@ -9,7 +9,9 @@ use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BonusHistoryModel;
+use App\Models\BonusHistoryReport;
 use App\Models\BonusSettingModel;
+use App\Models\ConstantBonusModel;
 use App\Models\ConstantProvider;
 use App\Models\DepositModel;
 use App\Models\DepositWithdrawHistory;
@@ -32,7 +34,7 @@ class DepositController extends ApiController
     {
         try {
             $this->memberActive = auth('api')->user();
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Token is Invalid or Expired', 401);
         }
     }
@@ -197,7 +199,7 @@ class DepositController extends ApiController
             );
             DB::commit();
             return $this->successResponse(null, 'Deposit berhasil');
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             DB::rollback();
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
@@ -287,7 +289,7 @@ class DepositController extends ApiController
                 ];
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus New Member berhasil ditampilkan');
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -350,7 +352,7 @@ class DepositController extends ApiController
                 ];
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus Existing Member berhasil ditampilkan');
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -457,7 +459,7 @@ class DepositController extends ApiController
                 ];
             }
             return $this->successResponse([$data], 'Datanya ada', 200);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -561,7 +563,7 @@ class DepositController extends ApiController
                 ];
             }
             return $this->successResponse([$data], 'Datanya ada', 200);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -571,6 +573,8 @@ class DepositController extends ApiController
     {
         try {
             $memberId = $this->memberActive->id;
+            $constantBonus = ConstantBonusModel::select('nama_bonus')->find(4);
+
             $bonus_freebet = BonusSettingModel::select(
                 'min_depo',
                 'max_depo',
@@ -591,7 +595,7 @@ class DepositController extends ApiController
                 $currentCreditMember = MembersModel::where('id', $this->memberActive->id)->first()->credit;
                 $bonusGiven = $Check_deposit_claim_bonus_freebet->bonus_amount;
                 if ($currentCreditMember < $bonusGiven) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah memakai bonus New Member', 400);
+                    return $this->errorResponse("Maaf, Anda tidak dapat menyerah, karena Anda telah memakai {$constantBonus->nama_bonus}", 400);
                 }
 
                 $providerId = explode(',', $bonus_freebet->constant_provider_id);
@@ -620,7 +624,7 @@ class DepositController extends ApiController
                 $TO = $depoPlusBonus * $turnover_x;
 
                 if ($TOmember > $TO) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus New Member Promotion, silahkan Withdraw sekarang', 400);
+                    return $this->errorResponse("Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) {$constantBonus->nama_bonus} Promotion, silahkan Withdraw sekarang", 400);
                 }
 
                 $bonus = $Check_deposit_claim_bonus_freebet->bonus_amount;
@@ -642,7 +646,7 @@ class DepositController extends ApiController
                         'updated_at' => Carbon::now(),
                     ]);
 
-                BonusHistoryModel::create([
+                $bonusHistory = BonusHistoryModel::create([
                     'is_send' => 1,
                     'is_use' => 1,
                     'is_delete' => 0,
@@ -656,14 +660,31 @@ class DepositController extends ApiController
                     'created_at' => Carbon::now(),
                 ]);
 
+                # Create Report Bonus History
+                BonusHistoryReport::create([
+                    'bonus_history_id' => $bonusHistory->id,
+                    'constant_bonus_id' => 4,
+                    'name_bonus' => $constantBonus->nama_bonus,
+                    'member_id' => $bonusHistory->member_id,
+                    'member_username' => $member->username,
+                    'credit' => $bonusHistory->credit,
+                    'user_id' => 0,
+                    'user_username' => 'System',
+                    'jumlah' => $bonusHistory->jumlah,
+                    'hadiah' => $bonusHistory->hadiah,
+                    'status' => 'Menyerah',
+                    'created_by' => 0,
+                    'bonus_date' => $bonusHistory->created_at,
+                ]);
+
                 $createMemo = MemoModel::create([
                     'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
-                    'subject' => 'Bonus New Member',
+                    'subject' => $constantBonus->nama_bonus,
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus New Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim ' . $constantBonus->nama_bonus . ', Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
@@ -674,15 +695,15 @@ class DepositController extends ApiController
                 // WEB SOCKET FINISH
 
                 UserLogModel::logMemberActivity(
-                    'Bonus New Member Giveup',
+                    $constantBonus->nama_bonus . ' Giveup',
                     $member,
                     $Check_deposit_claim_bonus_freebet,
                     [
-                        'target' => 'Bonus New Member',
-                        'activity' => 'Bonus New Member Giveup',
+                        'target' => $constantBonus->nama_bonus,
+                        'activity' => $constantBonus->nama_bonus . ' Giveup',
                         'ip_member' => $this->memberActive->last_login_ip,
                     ],
-                    $member->username . ' Deducted Bonus New Member amount from member balance  ' . number_format($bonus)
+                    $member->username . ' Deducted ' . $constantBonus->nama_bonus . ' amount from member balance  ' . number_format($bonus)
                 );
 
                 // WEB SOCKET START
@@ -697,7 +718,7 @@ class DepositController extends ApiController
 
             return $this->errorResponse("Maaf, Bonus New Member sudah tidak aktif atau kadaluarsa.", 400);
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
@@ -707,6 +728,8 @@ class DepositController extends ApiController
     {
         try {
             $memberId = $this->memberActive->id;
+            $constantBonus = ConstantBonusModel::select('nama_bonus')->find(6);
+
             $bonus_deposit = BonusSettingModel::select(
                 'min_depo',
                 'max_depo',
@@ -734,7 +757,7 @@ class DepositController extends ApiController
 
                 # Check bonuses that have been used
                 if ($currentCreditMember < $bonusGiven) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah memakai bonus Existing Member', 400);
+                    return $this->errorResponse("Maaf, Anda tidak dapat menyerah, karena Anda telah memakai {$constantBonus->nama_bonus}", 400);
                 }
 
                 $providerId = explode(',', $bonus_deposit->constant_provider_id);
@@ -772,7 +795,7 @@ class DepositController extends ApiController
                 $TO = $depoPlusBonus * $turnover_x;
 
                 if ($TOmember > $TO) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus Existing Member Promotion, silahkan Withdraw sekarang', 400);
+                    return $this->errorResponse("Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) {$constantBonus->nama_bonus} Promotion, silahkan Withdraw sekarang", 400);
                 }
 
                 $bonus = $Check_deposit_claim_bonus_deposit->bonus_amount;
@@ -794,7 +817,7 @@ class DepositController extends ApiController
                         'updated_at' => Carbon::now(),
                     ]);
 
-                BonusHistoryModel::create([
+                $bonusHistory = BonusHistoryModel::create([
                     'is_send' => 1,
                     'is_use' => 1,
                     'is_delete' => 0,
@@ -808,14 +831,31 @@ class DepositController extends ApiController
                     'created_at' => Carbon::now(),
                 ]);
 
+                # Create Report Bonus History
+                BonusHistoryReport::create([
+                    'bonus_history_id' => $bonusHistory->id,
+                    'constant_bonus_id' => 6,
+                    'name_bonus' => $constantBonus->nama_bonus,
+                    'member_id' => $bonusHistory->member_id,
+                    'member_username' => $member->username,
+                    'credit' => $bonusHistory->credit,
+                    'user_id' => 0,
+                    'user_username' => 'System',
+                    'jumlah' => $bonusHistory->jumlah,
+                    'hadiah' => $bonusHistory->hadiah,
+                    'status' => 'Menyerah',
+                    'created_by' => 0,
+                    'bonus_date' => $bonusHistory->created_at,
+                ]);
+
                 $createMemo = MemoModel::create([
                     'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
-                    'subject' => 'Bonus Existing Member',
+                    'subject' => $constantBonus->nama_bonus,
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Existing Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim ' . $constantBonus->nama_bonus . ', Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
@@ -826,15 +866,15 @@ class DepositController extends ApiController
                 // WEB SOCKET FINISH
 
                 UserLogModel::logMemberActivity(
-                    'Bonus Existing Member Giveup',
+                    $constantBonus->nama_bonus . ' Giveup',
                     $member,
                     $Check_deposit_claim_bonus_deposit,
                     [
-                        'target' => 'Bonus Existing Member',
-                        'activity' => 'Bonus Existing Member Giveup',
+                        'target' => $constantBonus->nama_bonus,
+                        'activity' => $constantBonus->nama_bonus . ' Giveup',
                         'ip_member' => $this->memberActive->last_login_ip,
                     ],
-                    $member->username . ' Deducted Bonus Existing Member amount from member balance  ' . number_format($bonus)
+                    $member->username . ' Deducted ' . $constantBonus->nama_bonus . ' amount from member balance  ' . number_format($bonus)
                 );
 
                 // WEB SOCKET START
@@ -849,7 +889,7 @@ class DepositController extends ApiController
 
             return $this->errorResponse("Maaf, Bonus Existing Member sudah tidak aktif atau kadaluarsa.", 400);
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }

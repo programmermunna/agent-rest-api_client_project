@@ -183,6 +183,26 @@ class BetsTogelController extends ApiController
                         'created_by' => 0,
                         'created_at' => Carbon::now(),
                     ]);
+
+                    $constantBonus = ConstantBonusModel::select('nama_bonus')->find(3);
+
+                    # Create Report Bonus History
+                    BonusHistoryReport::create([
+                        'bonus_history_id' => $bonusHistory->id,
+                        'constant_bonus_id' => 3,
+                        'name_bonus' => $constantBonus->nama_bonus,
+                        'member_id' => $bonusHistory->member_id,
+                        'member_username' => $referal->username,
+                        'credit' => $bonusHistory->credit,
+                        'user_id' => 0,
+                        'user_username' => 'System',
+                        'jumlah' => $bonusHistory->jumlah,
+                        'hadiah' => $bonusHistory->hadiah,
+                        'status' => 'Claim',
+                        'created_by' => 0,
+                        'bonus_date' => $bonusHistory->created_at,
+                    ]);
+
                 }
 
                 $payBetTogel = $togel['pay_amount'];
@@ -1664,7 +1684,7 @@ class BetsTogelController extends ApiController
                 return false;
             }
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -2044,7 +2064,7 @@ class BetsTogelController extends ApiController
 
             return false;
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
