@@ -1,0 +1,44 @@
+
+name: Deploy Member API staging boyslot 
+
+on:
+  push:
+    branches: [staging.boyslot]
+
+jobs:
+  deploy:
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staging.boyslot 
+      - name: Deploy Agent Rest API To staging.boyslot 
+        uses: appleboy/ssh-action@master 
+        with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapiboyslot.sh
+        
+  slackNotification:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staging.boyslot
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_FOOTER: "Efforts don't betray the results!"
+          SLACK_USERNAME: "CikaTech"
+          SLACK_ICON_EMOJI: ':cuddle:'
+          SLACK_LINK_NAMES: true
+          SLACK_MESSAGE: ':gas: Member API staging boyslot deployed successfully @backdev-team'
+          SLACK_TITLE:   ${{ github.event.head_commit.message }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK}}
