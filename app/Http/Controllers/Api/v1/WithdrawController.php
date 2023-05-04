@@ -184,7 +184,6 @@ class WithdrawController extends ApiController
         } catch (\Throwable $th) {
             DB::rollback();
             Log::error($th);
-            return $th;
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -328,7 +327,6 @@ class WithdrawController extends ApiController
             return $this->successResponse($datas, $message, 200);
 
         } catch (\Throwable $th) {
-            return $th;
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
