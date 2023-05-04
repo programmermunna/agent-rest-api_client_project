@@ -12,9 +12,9 @@ class WithdrawModel extends Model
 
     protected $connection = 'mysql';
 
-     protected $dispatchesEvents = [
-         'created' => CreateWithdrawalEvent::class
-     ];
+    protected $dispatchesEvents = [
+        'created' => CreateWithdrawalEvent::class,
+    ];
 
     /**
      * The attributes that should be mutated to dates.
@@ -63,6 +63,7 @@ class WithdrawModel extends Model
         'note',
         'rek_member_id',
         'is_claim_bonus',
+        'deposit_id',
         'approval_status',
         'approval_status_by',
         'approval_status_at',
