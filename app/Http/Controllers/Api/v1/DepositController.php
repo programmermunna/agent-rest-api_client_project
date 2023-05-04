@@ -484,84 +484,98 @@ class DepositController extends ApiController
             $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
-            $Check_deposit_claim_bonus_deposit = DepositModel::where('members_id', $this->memberActive->id)
+
+            # Check Claim Bonus Existing Member
+            $Check_deposit_claim_bonus_exisiting = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 6)
-                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
-            if ($bonus_deposit->status_bonus == 1 && $Check_deposit_claim_bonus_deposit) {
+                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->get();
+
+            if ($bonus_deposit->status_bonus == 1) {
                 $providerId = explode(',', $bonus_deposit->constant_provider_id);
-                if (!in_array(16, $providerId)) {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
+                $datas = [];
+                foreach ($Check_deposit_claim_bonus_exisiting as $key => $existingMemberBonus) {
+                    if (!in_array(16, $providerId)) {
+                        $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                            ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, now()])
+                            ->where('created_by', $this->memberActive->id)
+                            ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
-                    $TOMember = $TOSlotCasinoFish;
-                } else {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
+                        $TOMember = $TOSlotCasinoFish;
+                    } else {
+                        $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                            ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, now()])
+                            ->where('created_by', $this->memberActive->id)
+                            ->whereIn('constant_provider_id', $providerId)->sum('bet');
+                        $TOTogel = BetsTogel::whereBetween('created_at', [$existingMemberBonus->approval_status_at, now()])
+                            ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
-                }
+                        $TOMember = $TOSlotCasinoFish + $TOTogel;
+                    }
 
-                $total_depo = $Check_deposit_claim_bonus_deposit->jumlah;
-                $total_bonus = $Check_deposit_claim_bonus_deposit->bonus_amount;
-                $turnover_x = $bonus_deposit->turnover_x;
-                $bonus_amount = $bonus_deposit->bonus_amount;
+                    $total_depo = $existingMemberBonus->jumlah;
+                    $total_bonus = $existingMemberBonus->bonus_amount;
+                    $turnover_x = $bonus_deposit->turnover_x;
+                    $bonus_amount = $bonus_deposit->bonus_amount;
 
-                /**
-                 * Below is to make the Turnover Target is same with TO on Member's side in Account > Bonus.
-                 */
-                $TO = ($total_depo + $total_bonus) * $turnover_x;
+                    /**
+                     * Below is to make the Turnover Target is same with TO on Member's side in Account > Bonus.
+                     */
+                    $TO = ($total_depo + $total_bonus) * $turnover_x;
 
-                if ($Check_deposit_claim_bonus_deposit->status_bonus == 2) {
-                    $status = preg_match("/menyerah/i", $Check_deposit_claim_bonus_deposit->reason_bonus) ? 'Menyerah' : 'Gagal';
-                    $date = $Check_deposit_claim_bonus_deposit->approval_status_at;
-                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
-                    $data = [
-                        'turnover' => $TO,
-                        'turnover_member' => $TOMember,
-                        'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
-                        'status_bonus' => $bonus_deposit->status_bonus,
-                        'is_claim_bonus' => $Check_deposit_claim_bonus_deposit->is_claim_bonus,
-                        'bonus_amount' => $Check_deposit_claim_bonus_deposit->bonus_amount,
-                        'status_bonus_member' => $status,
-                        'date_claim_again' => $dateClaim,
-                    ];
-                } else {
-                    $status = $Check_deposit_claim_bonus_deposit->status_bonus == 0 ? 'Klaim' : 'Selesai';
-                    $date = $Check_deposit_claim_bonus_deposit->approval_status_at;
-                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
-                    $data = [
-                        'turnover' => $TO,
-                        'turnover_member' => $TOMember,
-                        'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
-                        'status_bonus' => $bonus_deposit->status_bonus,
-                        'is_claim_bonus' => $Check_deposit_claim_bonus_deposit->is_claim_bonus,
-                        'bonus_amount' => $Check_deposit_claim_bonus_deposit->bonus_amount,
-                        'status_bonus_member' => $status,
-                        'date_claim_again' => $dateClaim,
-                    ];
+                    if ($existingMemberBonus->status_bonus == 2) {
+                        $status = preg_match("/menyerah/i", $existingMemberBonus->reason_bonus) ? 'Menyerah' : 'Gagal';
+                        $date = $existingMemberBonus->approval_status_at;
+                        $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                        $datas[] = [
+                            'turnover' => $TO,
+                            'turnover_member' => $TOMember,
+                            'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
+                            'status_bonus' => $bonus_deposit->status_bonus,
+                            'is_claim_bonus' => $existingMemberBonus->is_claim_bonus,
+                            'deposit_amount' => $existingMemberBonus->jumlah,
+                            'bonus_amount' => $existingMemberBonus->bonus_amount,
+                            'status_bonus_member' => $status,
+                            'date_claim_again' => $dateClaim,
+                            'depositID' => $existingMemberBonus->id,
+                        ];
+                    } else {
+                        $status = $existingMemberBonus->status_bonus == 0 ? 'Klaim' : 'Selesai';
+                        $date = $existingMemberBonus->approval_status_at;
+                        $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                        $datas[] = [
+                            'turnover' => $TO,
+                            'turnover_member' => $TOMember,
+                            'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
+                            'status_bonus' => $bonus_deposit->status_bonus,
+                            'is_claim_bonus' => $existingMemberBonus->is_claim_bonus,
+                            'deposit_amount' => $existingMemberBonus->jumlah,
+                            'bonus_amount' => $existingMemberBonus->bonus_amount,
+                            'status_bonus_member' => $status,
+                            'date_claim_again' => $dateClaim,
+                            'depositID' => $existingMemberBonus->id,
+                        ];
+                    }
                 }
             } else {
-                $data = [
-                    'turnover' => 0,
-                    'turnover_member' => 0,
-                    'durasi_bonus_promo' => 0,
-                    'status_bonus' => 0,
-                    'is_claim_bonus' => 0,
-                    'bonus_amount' => 0,
-                    'status_bonus_member' => null,
-                    'date_claim_again' => null,
+                $datas = [
+                    [
+                        'turnover' => 0,
+                        'turnover_member' => 0,
+                        'durasi_bonus_promo' => 0,
+                        'status_bonus' => 0,
+                        'is_claim_bonus' => 0,
+                        'deposit_amount' => 0,
+                        'bonus_amount' => 0,
+                        'status_bonus_member' => null,
+                        'date_claim_again' => null,
+                        'depositID' => null,
+                    ],
                 ];
             }
-            return $this->successResponse([$data], 'Datanya ada', 200);
+            return $this->successResponse($datas, 'Datanya ada', 200);
         } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
+            return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
 
@@ -723,7 +737,7 @@ class DepositController extends ApiController
     // }
 
     # Bonus Existing Member Promotion Give Up
-    public function BonusDepositGivUp(Request $request)
+    public function BonusDepositGivUp(Request $request, $depositID)
     {
         try {
             $memberId = $this->memberActive->id;
@@ -748,8 +762,11 @@ class DepositController extends ApiController
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 6)
                 ->where('status_bonus', 0)
-                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
+                ->where('id', $depositID)
+                ->whereBetween('approval_status_at', [$subDay, $today])
+                ->orderBy('approval_status_at', 'desc')
                 ->first();
+
             if ($bonus_deposit->status_bonus == 1 && $Check_deposit_claim_bonus_deposit) {
                 $currentCreditMember = MembersModel::where('id', $this->memberActive->id)->first()->credit;
                 $bonusGiven = $Check_deposit_claim_bonus_deposit->bonus_amount;

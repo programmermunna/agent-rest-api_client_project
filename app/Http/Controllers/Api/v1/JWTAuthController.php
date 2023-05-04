@@ -7,10 +7,10 @@ use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BonusHistoryModel;
+use App\Models\ConstantRekeningModel;
 use App\Models\DepositModel;
 use App\Models\FreeBetModel;
 use App\Models\MembersModel;
-use App\Models\ConstantRekeningModel;
 use App\Models\MemberToken;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
@@ -93,10 +93,9 @@ class JWTAuthController extends ApiController
             //     }
             // }
 
-
-            /** 
+            /**
              * -----------------------------------------------------------
-             * NOTE about member's status : 
+             * NOTE about member's status :
              * Banned = Can't login anymore.
              * Suspend = Member can still login but can not perform deposit and withdraw.
              * -----------------------------------------------------------
@@ -106,8 +105,8 @@ class JWTAuthController extends ApiController
 
             if ($member->status == 0) { // user yang di banned tidak boleh lagi login.
                 return $this->errorResponse('Akun anda telah di blokir (banned)', 401);
-            // } elseif ($member->status == 2) { // suspend masih boleh login, lihat note di atas.
-            //     return $this->errorResponse('Akun anda telah di tangguhkan', 401);
+                // } elseif ($member->status == 2) { // suspend masih boleh login, lihat note di atas.
+                //     return $this->errorResponse('Akun anda telah di tangguhkan', 401);
             } elseif (Hash::check($input['password'], $member->password)) {
                 SessionEvent::dispatch($member->id);
                 $credentials = [$fieldType => $input['user_account'], 'password' => $input['password']];
@@ -152,7 +151,7 @@ class JWTAuthController extends ApiController
             try {
                 auth('api')->setToken($item->token)->invalidate();
                 $item->delete();
-            } catch (\Exception$exception) {
+            } catch (\Exception $exception) {
                 //handle exception
             }
             $item->delete();
@@ -217,7 +216,7 @@ class JWTAuthController extends ApiController
                 ['lastWin' => [$lastWin ?? ['win' => 0, 'created_at' => auth('api')->user()->created_at]]],
             ];
             return $this->successResponse($data);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -358,7 +357,7 @@ class JWTAuthController extends ApiController
             // }
 
             return $this->successResponse($lastBet);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -419,7 +418,7 @@ class JWTAuthController extends ApiController
                             LIMIT 1
                         ");
             return $this->successResponse($lastWin);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -457,7 +456,7 @@ class JWTAuthController extends ApiController
             } else {
                 return $this->successResponse('Tidak ada histori', 204);
             }
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -545,8 +544,8 @@ class JWTAuthController extends ApiController
                     'email' => 'required|email|max:100|unique:members',
                     'password' => 'required|min:6|regex:/^\S*$/u',
                     'bank_name' => 'required',
-                    'account_number' => 'required',
-                    'account_name' => 'required',
+                    'account_number' => 'required|numeric',
+                    'account_name' => 'required|alpha',
                     // 'provider' => 'required',
                     'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7|unique:members',
                 ],
@@ -563,11 +562,11 @@ class JWTAuthController extends ApiController
             $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
             $constantRekening = ConstantRekeningModel::where('id', $request->bank_name)->first();
-            
+
             // also prevent error in here:
             // Don't let user continue register successfully when there is no Agent's bank set as Deposit.
-            if(is_null($rekeningDepoMember) || empty($rekeningDepoMember)){
-                return $this->errorResponse('Silakan minta CS kami untuk siapkan bank '. $constantRekening->name .' untuk deposit. Terima kasih.', 400);
+            if (is_null($rekeningDepoMember) || empty($rekeningDepoMember)) {
+                return $this->errorResponse('Silakan minta CS kami untuk siapkan bank ' . $constantRekening->name . ' untuk deposit. Terima kasih.', 400);
             }
 
             // check no rekening
@@ -689,7 +688,7 @@ class JWTAuthController extends ApiController
 
             return $this->successResponse(null, 'Member berhasil didaftar.', 201);
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -745,7 +744,7 @@ class JWTAuthController extends ApiController
             } else {
                 return $this->errorResponse('Password lama yang anda masukan salah', 400);
             }
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -769,7 +768,7 @@ class JWTAuthController extends ApiController
             //Artisan::call('optimize');
             return $this->successResponse('Success force logout all members');
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             Log::error($th);
             return $this->errorResponse('Internal Error Server!.', 500);
         }
@@ -838,7 +837,7 @@ class JWTAuthController extends ApiController
         auth('api')->user()->authTokens->each(function ($item) {
             try {
                 auth('api')->setToken($item->token)->invalidate();
-            } catch (\Exception$exception) {
+            } catch (\Exception $exception) {
                 //handle exception
             }
             $item->delete();
@@ -950,7 +949,7 @@ class JWTAuthController extends ApiController
 
             return $this->successResponse(null, 'Member successfully registered.', 201);
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -1004,7 +1003,7 @@ class JWTAuthController extends ApiController
             ]);
             return $this->successResponse(null, 'Member successfully updated', 201);
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -1025,7 +1024,7 @@ class JWTAuthController extends ApiController
                 return $this->successResponse(null, 'account deleted successfully', 200);
             }
             return $this->errorResponse('account not found!', 400);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -1053,7 +1052,7 @@ class JWTAuthController extends ApiController
                 return $this->successResponse($data, 'account list successfully displayed', 200);
             }
             return $this->successResponse('account list does not exist', 200);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
