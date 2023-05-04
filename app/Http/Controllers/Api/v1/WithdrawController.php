@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\v1;
 
-use App\Events\CreateWithdrawalEvent;
 use App\Events\WithdrawalCreateBalanceEvent;
 use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
@@ -63,12 +62,12 @@ class WithdrawController extends ApiController
                 ->first();
             if ($bankAsalTransferForWd) {
                 $bonus_freebet = BonusSettingModel::select(
-                                    'status_bonus',
-                                    'min_depo', 'max_depo', 
-                                    'bonus_amount', 
-                                    'turnover_x', 
-                                    'constant_provider_id')
-                                ->where('constant_bonus_id', 4)->first();
+                    'status_bonus',
+                    'min_depo', 'max_depo',
+                    'bonus_amount',
+                    'turnover_x',
+                    'constant_provider_id')
+                    ->where('constant_bonus_id', 4)->first();
                 # Check Bonus New Member
                 if ($bonus_freebet->status_bonus == 1) {
                     $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $memberId)
@@ -95,17 +94,18 @@ class WithdrawController extends ApiController
 
                             $TOMember = $TOSlotCasinoFish + $TOTogel;
                         }
-                        
+
                         $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
+                        $total_bonus = $Check_deposit_claim_bonus_freebet->bonus_amount;
                         $turnover_x = $bonus_freebet->turnover_x;
                         $bonus_amount = $bonus_freebet->bonus_amount;
-                        $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                        $TO = $depoPlusBonus * $turnover_x;
-                        
+
+                        $TO = ($total_depo + $total_bonus) * $turnover_x;
+
                         if ($TOMember < $TO) {
                             return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
                         }
-                        
+
                         $payload = [
                             'members_id' => $memberId,
                             'rekening_id' => $bankAsalTransferForWd->id,
@@ -117,7 +117,7 @@ class WithdrawController extends ApiController
                             'created_by' => $memberId,
                             'created_at' => Carbon::now(),
                         ];
-                        
+
                         $withdrawal = WithdrawModel::create($payload);
 
                         # update balance member
@@ -125,12 +125,12 @@ class WithdrawController extends ApiController
                         MembersModel::where('id', $memberId)->update([
                             'credit' => $member->credit - $jumlah,
                         ]);
-                        
+
                         // WEB SOCKET START
                         WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
                         // CreateWithdrawalEvent::dispatch($withdrawal->toArray());
                         // WEB SOCKET FINISH
-                        
+
                         # activity Log
                         UserLogModel::logMemberActivity(
                             'Withdrawal Created',
@@ -180,14 +180,11 @@ class WithdrawController extends ApiController
                         }
 
                         $total_depo = $Check_deposit_claim_bonus_deposit->jumlah;
+                        $total_bonus = $Check_deposit_claim_bonus_deposit->bonus_amount;
                         $turnover_x = $bonus_deposit->turnover_x;
                         $bonus_amount = $bonus_deposit->bonus_amount;
-                        if ($total_depo > $bonus_deposit->max_bonus) {
-                            $depoPlusBonus = $total_depo + $bonus_deposit->max_bonus;
-                        } else {
-                            $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                        }
-                        $TO = $depoPlusBonus * $turnover_x;
+
+                        $TO = ($total_depo + $total_bonus) * $turnover_x;
 
                         if ($TOMember < $TO) {
                             return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Existing Member. Turnover Anda belum mencapai target saat ini, yaitu sebesar Rp. ' . number_format($TOMember) . '. Turnover yang harus anda capai adalah sebesar Rp. ' . number_format($TO), 400);
@@ -283,7 +280,7 @@ class WithdrawController extends ApiController
             }
 
             return $this->errorResponse('Bank Tujuan Untuk Withdraw Sedang Offline, Silahkan Hubungi Customer service', 400);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             DB::rollback();
             Log::error($th);
             return $this->errorResponse('Internal Server Error', 500);
