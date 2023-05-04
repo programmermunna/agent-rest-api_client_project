@@ -788,7 +788,7 @@ class DepositController extends ApiController
                  */
                 $TO = ($total_depo + $total_bonus) * $turnover_x;
 
-                if ($TOmember > $TO) {
+                if ($TOmember >= $TO) {
                     return $this->errorResponse("Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) {$constantBonus->nama_bonus} Promotion, silahkan Withdraw sekarang", 400);
                 }
 
