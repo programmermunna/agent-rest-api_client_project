@@ -531,18 +531,14 @@ class JWTAuthController extends ApiController
                     'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
                     'email' => 'required|email|max:100|unique:members',
                     'password' => 'required|min:6|regex:/^\S*$/u',
-                     // only number
-                    'bank_name' => 'required|numeric',
-                    'account_number' => 'required|numeric',
-                     // only aphabet and spasi  
-                    'account_name' => 'required|regex:/^[A-Za-z ]+$/',
-                    // 'provider' => 'required',
+                    'bank_name' => 'required',
+                    'account_number' => 'required',
+                    'account_name' => 'required',
                     'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7|unique:members',
                 ],
                 [
                     'password.regex' => 'Password tidak boleh menggunakan spasi.',
                     'phone.unique' => 'nomor telepon sudah ada sebelumnya.',
-                    'account_name.regex' => 'Nama rekening tidak boleh menggunakan number.',
                 ]
             );
 
