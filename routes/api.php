@@ -67,7 +67,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             # Bonus Existing Member
             Route::get('/setting-bonus-deposit', 'DepositController@settingBonusDeposit');
             Route::get('/deposit-list', 'DepositController@depositBonus');
-            Route::post('/bonus-deposit-giveup', 'DepositController@BonusDepositGivUp');
+            Route::post('/bonus-deposit-giveup/{depositID}', 'DepositController@BonusDepositGivUp');
         });
 
         //Withdraw
