@@ -97,7 +97,7 @@ class WithdrawController extends ApiController
                         'jumlah' => $jumlah,
                         'credit' => $credit,
                         'note' => $request->note,
-                        'deposit_id' => $request->deposit_id,
+                        'deposit_id' => ',' . $request->deposit_id . ',',
                         'created_by' => $memberId,
                         'created_at' => Carbon::now(),
                     ];
