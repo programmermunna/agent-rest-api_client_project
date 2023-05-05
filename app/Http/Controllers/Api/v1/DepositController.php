@@ -20,6 +20,7 @@ use App\Models\MemoModel;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
 use App\Models\UserLogModel;
+use App\Models\WithdrawModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -386,20 +387,26 @@ class DepositController extends ApiController
              * Check if bonus is active and New member bonus has been approved in deposit
              */
             if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
+                $withdraw = WithdrawModel::where('members_id', $this->memberActive->id)
+                    ->whereRaw("IF(is_claim_bonus = 0, deposit_id like ?, is_claim_bonus = 4
+                        )", ["%,{$Check_deposit_claim_bonus_freebet->id},%"])
+                    ->first();
+
+                $date = $withdraw ? $withdraw->created_at : now();
                 $providerId = explode(',', $bonus_freebet->constant_provider_id);
                 if (!in_array(16, $providerId)) {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $date])
                         ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
                     $TOMember = $TOSlotCasinoFish;
                 } else {
                     $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $date])
                         ->where('created_by', $this->memberActive->id)
                         ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $date])
                         ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
                     $TOMember = $TOSlotCasinoFish + $TOTogel;
@@ -495,19 +502,25 @@ class DepositController extends ApiController
                 $providerId = explode(',', $bonus_deposit->constant_provider_id);
                 $datas = [];
                 foreach ($Check_deposit_claim_bonus_exisiting as $key => $existingMemberBonus) {
+                    $withdraw = WithdrawModel::where('members_id', $this->memberActive->id)
+                        ->whereRaw("IF(is_claim_bonus = 0, deposit_id like ?, is_claim_bonus = 6
+                        )", ["%,{$existingMemberBonus->id},%"])
+                        ->first();
+
+                    $date = $withdraw ? $withdraw->created_at : now();
                     if (!in_array(16, $providerId)) {
                         $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                            ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, now()])
+                            ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, $date])
                             ->where('created_by', $this->memberActive->id)
                             ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
                         $TOMember = $TOSlotCasinoFish;
                     } else {
                         $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                            ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, now()])
+                            ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, $date])
                             ->where('created_by', $this->memberActive->id)
                             ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                        $TOTogel = BetsTogel::whereBetween('created_at', [$existingMemberBonus->approval_status_at, now()])
+                        $TOTogel = BetsTogel::whereBetween('created_at', [$existingMemberBonus->approval_status_at, $date])
                             ->where('created_by', $this->memberActive->id)->sum('pay_amount');
 
                         $TOMember = $TOSlotCasinoFish + $TOTogel;
