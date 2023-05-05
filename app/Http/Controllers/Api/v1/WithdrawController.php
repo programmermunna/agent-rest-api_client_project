@@ -343,7 +343,6 @@ class WithdrawController extends ApiController
             return $this->successResponse($datas, $message ?? null, 200);
 
         } catch (\Throwable $th) {
-            return $th;
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
