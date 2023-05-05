@@ -228,7 +228,8 @@ class WithdrawController extends ApiController
                 return $this->successResponse([], 'Bonus tidak aktif', 200);
             }
 
-            $message = null;
+            $message1 = false;
+            $message2 = false;
             $datas = [];
 
             $durasiBonus = $bonus_existing->durasi_bonus_promo - 1;
@@ -242,7 +243,7 @@ class WithdrawController extends ApiController
                 ->where('status_bonus', 0)
                 ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->get();
             if ($Check_deposit_claim_bonus_existing->toArray() == []) {
-                $message = 'Tidak ada klaim bonus.';
+                $message1 = true;
             } else {
                 $providerId = explode(',', $bonus_existing->constant_provider_id);
                 foreach ($Check_deposit_claim_bonus_existing as $key => $existingMemberBonus) {
@@ -328,16 +329,21 @@ class WithdrawController extends ApiController
                         ];
                     }
                 } else {
-                    $message = 'Tidak ada klaim bonus.';
+                    $message2 = true;
                 }
             }
-            if ($datas == [] && $message == null) {
-                $message = 'Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member atau Bonus Existing Member. Anda harus mencapai turnover untuk melakukan withdraw';
+            if ($datas == []) {
+                if ($message1 == false && $message2 == false) {
+                    $message = 'Tidak klaim bonus';
+                } else {
+                    $message = 'Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member atau Bonus Existing Member. Anda harus mencapai turnover untuk melakukan withdraw';
+                }
             }
 
-            return $this->successResponse($datas, $message, 200);
+            return $this->successResponse($datas, $message ?? null, 200);
 
         } catch (\Throwable $th) {
+            return $th;
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
