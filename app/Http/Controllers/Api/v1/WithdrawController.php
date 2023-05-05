@@ -104,6 +104,17 @@ class WithdrawController extends ApiController
 
                     $withdrawal = WithdrawModel::create($payload);
 
+                    # Create History Withdraw
+                    DepositWithdrawHistory::create([
+                        'withdraw_id' => $withdrawal->id,
+                        'member_id' => $withdrawal->members_id,
+                        'status' => 'Pending',
+                        'amount' => $withdrawal->jumlah,
+                        'credit' => $withdrawal->credit,
+                        'description' => 'Withdraw : Pending',
+                        'created_by' => $memberId,
+                    ]);
+
                     # update balance member
                     $member = MembersModel::find($memberId);
                     MembersModel::where('id', $memberId)->update([
