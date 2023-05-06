@@ -545,7 +545,7 @@ class JWTAuthController extends ApiController
                     'password' => 'required|min:6|regex:/^\S*$/u',
                     'bank_name' => 'required',
                     'account_number' => 'required|numeric',
-                    'account_name' => 'required|alpha',
+                    'account_name' => 'required',
                     // 'provider' => 'required',
                     'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:7|unique:members',
                 ],
