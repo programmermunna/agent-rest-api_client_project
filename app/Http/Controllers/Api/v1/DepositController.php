@@ -570,6 +570,22 @@ class DepositController extends ApiController
                         ];
                     }
                 }
+                if ($datas == []) {
+                    $datas = [
+                        [
+                            'turnover' => 0,
+                            'turnover_member' => 0,
+                            'durasi_bonus_promo' => 0,
+                            'status_bonus' => 0,
+                            'is_claim_bonus' => 0,
+                            'deposit_amount' => 0,
+                            'bonus_amount' => 0,
+                            'status_bonus_member' => null,
+                            'date_claim_again' => null,
+                            'depositID' => null,
+                        ],
+                    ];
+                }
             } else {
                 $datas = [
                     [

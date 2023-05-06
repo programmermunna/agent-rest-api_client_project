@@ -333,7 +333,7 @@ class WithdrawController extends ApiController
                 }
             }
             if ($datas == []) {
-                if ($message1 == false && $message2 == false) {
+                if ($message1 == true && $message2 == true) {
                     $message = 'Tidak klaim bonus';
                 } else {
                     $message = 'Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member atau Bonus Existing Member. Anda harus mencapai turnover untuk melakukan withdraw';
