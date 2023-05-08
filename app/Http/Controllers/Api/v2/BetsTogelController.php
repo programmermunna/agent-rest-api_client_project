@@ -214,7 +214,7 @@ class BetsTogelController extends ApiController
                     foreach ($turnoverMembers as $key => $turnoverMember) {
                         $turnover = $turnoverMember->turnover_member;
                         $turnoverMember->update([
-                            'turnover_member' => $turnover + $amountbet,
+                            'turnover_member' => $turnover + $togel['pay_amount'],
                         ]);
                     }
                 }
