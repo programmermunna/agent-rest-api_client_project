@@ -22,6 +22,7 @@ use App\Models\TogelBlokAngka;
 use App\Models\TogelGame;
 use App\Models\TogelSettingGames;
 use App\Models\TogelShioNameModel;
+use App\Models\TurnoverMember;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
 use Exception as NewException;
@@ -205,6 +206,17 @@ class BetsTogelController extends ApiController
                         'bonus_date' => $bonusHistory->created_at,
                     ]);
 
+                }
+
+                # Check bonus New Member and Bonus Existing Member then add current turnover member
+                if ($checkBonusFreebet->status_bonus == 1 || $checkBonusDeposit->status_bonus == 1) {
+                    $turnoverMembers = TurnoverMember::where('status', false)->where('member_id', $memberID)->get();
+                    foreach ($turnoverMembers as $key => $turnoverMember) {
+                        $turnover = $turnoverMember->turnover_member;
+                        $turnoverMember->update([
+                            'turnover_member' => $turnover + $amountbet,
+                        ]);
+                    }
                 }
 
                 $payBetTogel = $togel['pay_amount'];
