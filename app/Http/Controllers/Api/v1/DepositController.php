@@ -390,11 +390,12 @@ class DepositController extends ApiController
                         'turnover_members.turnover_member',
                         'turnover_members.deposit_id',
                         'turnover_members.member_id',
+                        'turnover_members.status',
                         'deposit.approval_status_at',
                         'deposit.jumlah',
                         'deposit.bonus_amount',
                     ])
-                    ->where('member_id', $this->memberActive->id)->where('constant_bonus_id', 4)->first();
+                    ->where('turnover_members.member_id', $this->memberActive->id)->where('turnover_members.constant_bonus_id', 4)->first();
                 if (!$checkBonusNewMember) {
                     $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
                         ->where('approval_status', 1)
@@ -550,6 +551,7 @@ class DepositController extends ApiController
                         'turnover_members.turnover_member',
                         'turnover_members.deposit_id',
                         'turnover_members.member_id',
+                        'turnover_members.status',
                         'deposit.approval_status_at',
                         'deposit.jumlah',
                         'deposit.bonus_amount',

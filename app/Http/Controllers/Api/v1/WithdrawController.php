@@ -94,6 +94,9 @@ class WithdrawController extends ApiController
                                 'created_by' => $memberId,
                             ]);
 
+                            # Update Withdraw di to table Turnover Members
+                            TurnoverMember::whereIn('deposit_id', $turnoverMember)->update(['withdraw_id' => $withdrawal->id]);
+
                             # update balance member
                             $member = MembersModel::find($memberId);
                             MembersModel::where('id', $memberId)->update([
@@ -292,7 +295,7 @@ class WithdrawController extends ApiController
             # Check Claim Bonus Existing Member
             if ($bonus_existing->status_bonus == 1) {
                 $checkBonusExisting = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 6)
-                    ->where('status', false)->get();
+                    ->whereNull('withdraw_id')->get();
                 if ($checkBonusExisting->toArray() == []) {
                     $checkBonusExisting = DepositModel::where('members_id', $memberId)
                         ->where('approval_status', 1)
@@ -354,7 +357,7 @@ class WithdrawController extends ApiController
                                 'date_claim' => $existingMemberBonus->approval_status_at,
                                 'turnover' => $TO,
                                 'turnover_member' => $TOMember,
-                                'deposit_id' => $existingMemberBonus->id,
+                                'deposit_id' => $existingMemberBonus->deposit_id,
                                 'deposit_amount' => $existingMemberBonus->jumlah,
                                 'bonus_amount' => $existingMemberBonus->bonus_amount,
                             ];
