@@ -382,7 +382,19 @@ class DepositController extends ApiController
              * Check if bonus is active and New member bonus has been approved in deposit
              */
             if ($bonus_freebet->status_bonus == 1) {
-                $checkBonusNewMember = TurnoverMember::where('member_id', $this->memberActive->id)->where('constant_bonus_id', 4)->first();
+                $checkBonusNewMember = TurnoverMember::leftJoin('deposit', 'deposit.id', 'turnover_members.deposit_id')
+                    ->select([
+                        'turnover_members.id',
+                        'turnover_members.deposit_id',
+                        'turnover_members.turnover_target',
+                        'turnover_members.turnover_member',
+                        'turnover_members.deposit_id',
+                        'turnover_members.member_id',
+                        'deposit.approval_status_at',
+                        'deposit.jumlah',
+                        'deposit.bonus_amount',
+                    ])
+                    ->where('member_id', $this->memberActive->id)->where('constant_bonus_id', 4)->first();
                 if (!$checkBonusNewMember) {
                     $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
                         ->where('approval_status', 1)
@@ -433,8 +445,8 @@ class DepositController extends ApiController
                             $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
                             $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
                             $data = [
-                                'turnover' => $TO,
-                                'turnover_member' => $TOMember,
+                                'turnover' => (float) $TO,
+                                'turnover_member' => (float) $TOMember,
                                 // 'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo, // remove duration for New Member Bonus
                                 'status_bonus' => $bonus_freebet->status_bonus,
                                 'is_claim_bonus' => $Check_deposit_claim_bonus_freebet->is_claim_bonus,
@@ -478,11 +490,11 @@ class DepositController extends ApiController
                     $TOMember = $checkBonusNewMember->turnover_member;
                     $status = $checkBonusNewMember->status == 0 ? 'Klaim' : ($checkBonusNewMember->status == 1 ? 'Selesai' : ($checkBonusNewMember->status == 2 ? 'Menyerah' : 'Gagal'));
                     $data = [
-                        'turnover' => $TO,
-                        'turnover_member' => $TOMember,
+                        'turnover' => (float) $TO,
+                        'turnover_member' => (float) $TOMember,
                         'status_bonus' => $bonus_freebet->status_bonus,
                         'is_claim_bonus' => 4,
-                        // 'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
+                        'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
                         'status_bonus_member' => $status,
                     ];
                 }
@@ -530,8 +542,20 @@ class DepositController extends ApiController
             # Check Claim Bonus Existing Member
 
             if ($bonus_deposit->status_bonus == 1) {
-                $checkBonusExisting = TurnoverMember::where('member_id', $this->memberActive->id)->where('constant_bonus_id', 6)
-                    ->whereBetween('created_at', [$subDay, $today])->orderBy('created_at', 'desc')->get();
+                $checkBonusExisting = TurnoverMember::leftJoin('deposit', 'deposit.id', 'turnover_members.deposit_id')
+                    ->select([
+                        'turnover_members.id',
+                        'turnover_members.deposit_id',
+                        'turnover_members.turnover_target',
+                        'turnover_members.turnover_member',
+                        'turnover_members.deposit_id',
+                        'turnover_members.member_id',
+                        'deposit.approval_status_at',
+                        'deposit.jumlah',
+                        'deposit.bonus_amount',
+                    ])
+                    ->where('turnover_members.member_id', $this->memberActive->id)->where('turnover_members.constant_bonus_id', 6)
+                    ->whereBetween('deposit.approval_status_at', [$subDay, $today])->orderBy('turnover_members.created_at', 'desc')->get();
 
                 $datas = [];
                 if ($checkBonusExisting->toArray() == []) {
@@ -581,8 +605,8 @@ class DepositController extends ApiController
                             $date = $existingMemberBonus->approval_status_at;
                             $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
                             $datas[] = [
-                                'turnover' => $TO,
-                                'turnover_member' => $TOMember,
+                                'turnover' => (float) $TO,
+                                'turnover_member' => (float) $TOMember,
                                 'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
                                 'status_bonus' => $bonus_deposit->status_bonus,
                                 'is_claim_bonus' => $existingMemberBonus->is_claim_bonus,
@@ -597,8 +621,8 @@ class DepositController extends ApiController
                             $date = $existingMemberBonus->approval_status_at;
                             $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
                             $datas[] = [
-                                'turnover' => $TO,
-                                'turnover_member' => $TOMember,
+                                'turnover' => (float) $TO,
+                                'turnover_member' => (float) $TOMember,
                                 'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
                                 'status_bonus' => $bonus_deposit->status_bonus,
                                 'is_claim_bonus' => $existingMemberBonus->is_claim_bonus,
@@ -614,18 +638,18 @@ class DepositController extends ApiController
                 } else {
                     foreach ($checkBonusExisting as $key => $existingMemberBonus) {
                         $status = $existingMemberBonus->status == 0 ? 'Klaim' : ($existingMemberBonus->status == 1 ? 'Selesai' : ($existingMemberBonus->status == 2 ? 'Menyerah' : 'Gagal'));
-                        $date = $existingMemberBonus->created_at;
+                        $date = $existingMemberBonus->approval_status_at;
                         $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
-                        $TO = $existingMemberBonus->turnover_target;
-                        $TOMember = $existingMemberBonus->turnover_member;
+                        $TO = (float) $existingMemberBonus->turnover_target;
+                        $TOMember = (float) $existingMemberBonus->turnover_member;
                         $datas[] = [
                             'turnover' => $TO,
                             'turnover_member' => $TOMember,
                             'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
                             'status_bonus' => $bonus_deposit->status_bonus,
                             'is_claim_bonus' => 6,
-                            // 'deposit_amount' => $existingMemberBonus->jumlah,
-                            // 'bonus_amount' => $existingMemberBonus->bonus_amount,
+                            'deposit_amount' => $existingMemberBonus->jumlah,
+                            'bonus_amount' => $existingMemberBonus->bonus_amount,
                             'status_bonus_member' => $status,
                             'date_claim_again' => $dateClaim,
                             'depositID' => $existingMemberBonus->deposit_id,
