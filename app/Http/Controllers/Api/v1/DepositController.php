@@ -515,7 +515,6 @@ class DepositController extends ApiController
             }
             return $this->successResponse([$data], 'Datanya ada', 200);
         } catch (\Throwable $th) {
-            dd($th);
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
