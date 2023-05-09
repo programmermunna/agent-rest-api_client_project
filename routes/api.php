@@ -67,11 +67,12 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             # Bonus Existing Member
             Route::get('/setting-bonus-deposit', 'DepositController@settingBonusDeposit');
             Route::get('/deposit-list', 'DepositController@depositBonus');
-            Route::post('/bonus-deposit-giveup', 'DepositController@BonusDepositGivUp');
+            Route::post('/bonus-deposit-giveup/{depositID}', 'DepositController@BonusDepositGivUp');
         });
 
         //Withdraw
         Route::post('/withdraw/create', 'WithdrawController@create');
+        Route::get('/withdraw/bonus-existing-list', 'WithdrawController@listClaimBonus');
         Route::get('/win_lose_status', 'MemberController@winLoseStatus');
         Route::get('/deposit_withdraw_status', 'MemberController@depostiWithdrawStatus');
 
@@ -227,7 +228,7 @@ Route::group(['prefix' => 'endpoint'], function () {
     // Route::match(['get', 'post'], "sisaQuota", [TogelSettingGameController::class, 'sisaQuota']);
     Route::get('provider', [OutResult::class, 'getResultByProvider']);
     Route::get('paitoEight', [OutResult::class, 'paitoEight']);
-    Route::match(['get', 'post'], "paitoAll", [OutResult::class, 'paitoAll']);
+    Route::match (['get', 'post'], "paitoAll", [OutResult::class, 'paitoAll']);
     // Route::match(['get', 'post'], "paitoTest", [OutResult::class, 'paitoTestAll']);
     Route::get('shio', [OutResult::class, 'getShioTables']);
     Route::get('list_out_result', [OutResult::class, 'getAllResult']);

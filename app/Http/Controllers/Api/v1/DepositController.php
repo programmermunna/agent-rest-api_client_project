@@ -9,7 +9,9 @@ use App\Http\Controllers\ApiController;
 use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BonusHistoryModel;
+use App\Models\BonusHistoryReport;
 use App\Models\BonusSettingModel;
+use App\Models\ConstantBonusModel;
 use App\Models\ConstantProvider;
 use App\Models\DepositModel;
 use App\Models\DepositWithdrawHistory;
@@ -17,7 +19,9 @@ use App\Models\MembersModel;
 use App\Models\MemoModel;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
+use App\Models\TurnoverMember;
 use App\Models\UserLogModel;
+use App\Models\WithdrawModel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +36,7 @@ class DepositController extends ApiController
     {
         try {
             $this->memberActive = auth('api')->user();
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Token is Invalid or Expired', 401);
         }
     }
@@ -197,7 +201,7 @@ class DepositController extends ApiController
             );
             DB::commit();
             return $this->successResponse(null, 'Deposit berhasil');
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             DB::rollback();
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
@@ -277,7 +281,7 @@ class DepositController extends ApiController
                     'bonus_amount' => (int) $item->bonus_amount,
                     'turnover_x' => $item->turnover_x,
                     'turnover_amount' => (float) $item->turnover_amount,
-                    // 'bonus_amount' => $checkKlaimBonus->bonus_amount ?? 0,
+                    'bonus_amount_member' => $checkKlaimBonus->bonus_amount ?? 0,
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
@@ -287,7 +291,7 @@ class DepositController extends ApiController
                 ];
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus New Member berhasil ditampilkan');
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -341,7 +345,7 @@ class DepositController extends ApiController
                     'bonus_amount' => (int) $item->bonus_amount,
                     'turnover_x' => $item->turnover_x,
                     'turnover_amount' => (float) $item->turnover_amount,
-                    // 'bonus_amount' => $checkKlaimBonus->bonus_amount ?? 0,
+                    'bonus_amount_member' => $checkKlaimBonus->bonus_amount ?? 0,
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
@@ -350,7 +354,7 @@ class DepositController extends ApiController
                 ];
             }
             return $this->successResponse($dataBonusSetting, 'Setting Bonus Existing Member berhasil ditampilkan');
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -373,72 +377,126 @@ class DepositController extends ApiController
             $durasiBonus = $bonus_freebet->durasi_bonus_promo - 1;
             // $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             // $today = Carbon::now()->format('Y-m-d 23:59:59');
-            $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
-                ->where('approval_status', 1)
-                ->where('is_claim_bonus', 4)
-            // ->whereBetween('approval_status_at', [$subDay, $today])
-                ->orderBy('approval_status_at', 'desc')
-                ->first();
 
             /**
              * Check if bonus is active and New member bonus has been approved in deposit
              */
-            if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
-                $providerId = explode(',', $bonus_freebet->constant_provider_id);
-                if (!in_array(16, $providerId)) {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
+            if ($bonus_freebet->status_bonus == 1) {
+                $checkBonusNewMember = TurnoverMember::leftJoin('deposit', 'deposit.id', 'turnover_members.deposit_id')
+                    ->select([
+                        'turnover_members.id',
+                        'turnover_members.deposit_id',
+                        'turnover_members.turnover_target',
+                        'turnover_members.turnover_member',
+                        'turnover_members.deposit_id',
+                        'turnover_members.member_id',
+                        'turnover_members.status',
+                        'deposit.approval_status_at',
+                        'deposit.jumlah',
+                        'deposit.bonus_amount',
+                    ])
+                    ->where('turnover_members.member_id', $this->memberActive->id)->where('turnover_members.constant_bonus_id', 4)->first();
+                if (!$checkBonusNewMember) {
+                    $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
+                        ->where('approval_status', 1)
+                        ->where('is_claim_bonus', 4)
+                    // ->whereBetween('approval_status_at', [$subDay, $today])
+                        ->orderBy('approval_status_at', 'desc')
+                        ->first();
 
-                    $TOMember = $TOSlotCasinoFish;
+                    if ($Check_deposit_claim_bonus_freebet) {
+
+                        $withdraw = WithdrawModel::where('members_id', $this->memberActive->id)
+                            ->whereRaw("IF(is_claim_bonus = 0, deposit_id like ?, is_claim_bonus = 4
+                            )", ["%,{$Check_deposit_claim_bonus_freebet->id},%"])
+                            ->first();
+
+                        $date = $withdraw ? $withdraw->created_at : now();
+                        $providerId = explode(',', $bonus_freebet->constant_provider_id);
+                        if (!in_array(16, $providerId)) {
+                            $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                                ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $date])
+                                ->where('created_by', $this->memberActive->id)
+                                ->whereIn('constant_provider_id', $providerId)->sum('bet');
+
+                            $TOMember = $TOSlotCasinoFish;
+                        } else {
+                            $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                                ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $date])
+                                ->where('created_by', $this->memberActive->id)
+                                ->whereIn('constant_provider_id', $providerId)->sum('bet');
+                            $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, $date])
+                                ->where('created_by', $this->memberActive->id)->sum('pay_amount');
+
+                            $TOMember = $TOSlotCasinoFish + $TOTogel;
+                        }
+
+                        $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
+                        $total_bonus = $Check_deposit_claim_bonus_freebet->bonus_amount;
+                        $turnover_x = $bonus_freebet->turnover_x;
+                        $bonus_amount = $bonus_freebet->bonus_amount;
+
+                        $TO = ($total_depo + $total_bonus) * $turnover_x;
+                        /**
+                         * Check if status new member bonus has been rejected.
+                         * Status bonus in DB -> 0 = Default, 1 = Approve, 2 = Reject
+                         */
+                        if ($Check_deposit_claim_bonus_freebet->status_bonus == 2) {
+                            $status = preg_match("/menyerah/i", $Check_deposit_claim_bonus_freebet->reason_bonus) ? 'Menyerah' : 'Gagal';
+                            $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
+                            $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                            $data = [
+                                'turnover' => (float) $TO,
+                                'turnover_member' => (float) $TOMember,
+                                // 'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo, // remove duration for New Member Bonus
+                                'status_bonus' => $bonus_freebet->status_bonus,
+                                'is_claim_bonus' => $Check_deposit_claim_bonus_freebet->is_claim_bonus,
+                                'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
+                                'status_bonus_member' => $status,
+                                // 'date_claim_again' => $dateClaim, // remove duration for New Member Bonus
+                            ];
+                        } else {
+                            $status = $Check_deposit_claim_bonus_freebet->status_bonus == 0 ? 'Klaim' : 'Selesai';
+                            $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
+                            $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                            $data = [
+                                'turnover' => $TO,
+                                'turnover_member' => $TOMember,
+                                // 'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo, // remove duration for New Member Bonus
+                                'status_bonus' => $bonus_freebet->status_bonus,
+                                'is_claim_bonus' => $Check_deposit_claim_bonus_freebet->is_claim_bonus,
+                                'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
+                                'status_bonus_member' => $status,
+                                // 'date_claim_again' => $dateClaim, // remove duration for New Member Bonus
+                            ];
+                        }
+
+                    } else {
+                        /**
+                         * Bonus is nothing
+                         */
+                        $data = [
+                            'turnover' => 0,
+                            'turnover_member' => 0,
+                            // 'durasi_bonus_promo' => 0, // remove duration for New Member Bonus
+                            'status_bonus' => 0,
+                            'is_claim_bonus' => 0,
+                            'bonus_amount' => 0,
+                            'status_bonus_member' => null,
+                            // 'date_claim_again' => null, // remove duration for New Member Bonus
+                        ];
+                    }
                 } else {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
-
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
-                }
-
-                $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
-                $turnover_x = $bonus_freebet->turnover_x;
-                $bonus_amount = $bonus_freebet->bonus_amount;
-                $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                $TO = $depoPlusBonus * $turnover_x;
-                /**
-                 * Check if status new member bonus has been rejected.
-                 * Status bonus in DB -> 0 = Default, 1 = Approve, 2 = Reject
-                 */
-                if ($Check_deposit_claim_bonus_freebet->status_bonus == 2) {
-                    $status = preg_match("/menyerah/i", $Check_deposit_claim_bonus_freebet->reason_bonus) ? 'Menyerah' : 'Gagal';
-                    $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
-                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                    $TO = $checkBonusNewMember->turnover_target;
+                    $TOMember = $checkBonusNewMember->turnover_member;
+                    $status = $checkBonusNewMember->status == 0 ? 'Klaim' : ($checkBonusNewMember->status == 1 ? 'Selesai' : ($checkBonusNewMember->status == 2 ? 'Menyerah' : 'Gagal'));
                     $data = [
-                        'turnover' => $TO,
-                        'turnover_member' => $TOMember,
-                        // 'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo, // remove duration for New Member Bonus
+                        'turnover' => (float) $TO,
+                        'turnover_member' => (float) $TOMember,
                         'status_bonus' => $bonus_freebet->status_bonus,
-                        'is_claim_bonus' => $Check_deposit_claim_bonus_freebet->is_claim_bonus,
-                        'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
+                        'is_claim_bonus' => 4,
+                        'bonus_amount' => $checkBonusNewMember->bonus_amount,
                         'status_bonus_member' => $status,
-                        // 'date_claim_again' => $dateClaim, // remove duration for New Member Bonus
-                    ];
-                } else {
-                    $status = $Check_deposit_claim_bonus_freebet->status_bonus == 0 ? 'Klaim' : 'Selesai';
-                    $date = $Check_deposit_claim_bonus_freebet->approval_status_at;
-                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
-                    $data = [
-                        'turnover' => $TO,
-                        'turnover_member' => $TOMember,
-                        // 'durasi_bonus_promo' => $bonus_freebet->durasi_bonus_promo, // remove duration for New Member Bonus
-                        'status_bonus' => $bonus_freebet->status_bonus,
-                        'is_claim_bonus' => $Check_deposit_claim_bonus_freebet->is_claim_bonus,
-                        'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
-                        'status_bonus_member' => $status,
-                        // 'date_claim_again' => $dateClaim, // remove duration for New Member Bonus
                     ];
                 }
             } else {
@@ -457,8 +515,8 @@ class DepositController extends ApiController
                 ];
             }
             return $this->successResponse([$data], 'Datanya ada', 200);
-        } catch (\Throwable$th) {
-            return $this->errorResponse('Internal Server Error', 500);
+        } catch (\Throwable $th) {
+            return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
 
@@ -481,232 +539,327 @@ class DepositController extends ApiController
             $durasiBonus = $bonus_deposit->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
             $today = Carbon::now()->format('Y-m-d 23:59:59');
-            $Check_deposit_claim_bonus_deposit = DepositModel::where('members_id', $this->memberActive->id)
-                ->where('approval_status', 1)
-                ->where('is_claim_bonus', 6)
-                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
-            if ($bonus_deposit->status_bonus == 1 && $Check_deposit_claim_bonus_deposit) {
-                $providerId = explode(',', $bonus_deposit->constant_provider_id);
-                if (!in_array(16, $providerId)) {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
-                    $TOMember = $TOSlotCasinoFish;
+            # Check Claim Bonus Existing Member
+
+            if ($bonus_deposit->status_bonus == 1) {
+                $checkBonusExisting = TurnoverMember::leftJoin('deposit', 'deposit.id', 'turnover_members.deposit_id')
+                    ->select([
+                        'turnover_members.id',
+                        'turnover_members.deposit_id',
+                        'turnover_members.turnover_target',
+                        'turnover_members.turnover_member',
+                        'turnover_members.deposit_id',
+                        'turnover_members.member_id',
+                        'turnover_members.status',
+                        'deposit.approval_status_at',
+                        'deposit.jumlah',
+                        'deposit.bonus_amount',
+                    ])
+                    ->where('turnover_members.member_id', $this->memberActive->id)->where('turnover_members.constant_bonus_id', 6)
+                    ->whereBetween('deposit.approval_status_at', [$subDay, $today])->orderBy('turnover_members.created_at', 'desc')->get();
+
+                $datas = [];
+                if ($checkBonusExisting->toArray() == []) {
+                    $Check_deposit_claim_bonus_exisiting = DepositModel::where('members_id', $this->memberActive->id)
+                        ->where('approval_status', 1)
+                        ->where('is_claim_bonus', 6)
+                        ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->get();
+
+                    $providerId = explode(',', $bonus_deposit->constant_provider_id);
+                    foreach ($Check_deposit_claim_bonus_exisiting as $key => $existingMemberBonus) {
+                        $withdraw = WithdrawModel::where('members_id', $this->memberActive->id)
+                            ->whereRaw("IF(is_claim_bonus = 0, deposit_id like ?, is_claim_bonus = 6
+                                )", ["%,{$existingMemberBonus->id},%"])
+                            ->first();
+
+                        $date = $withdraw ? $withdraw->created_at : now();
+                        if (!in_array(16, $providerId)) {
+                            $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                                ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, $date])
+                                ->where('created_by', $this->memberActive->id)
+                                ->whereIn('constant_provider_id', $providerId)->sum('bet');
+
+                            $TOMember = $TOSlotCasinoFish;
+                        } else {
+                            $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                                ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, $date])
+                                ->where('created_by', $this->memberActive->id)
+                                ->whereIn('constant_provider_id', $providerId)->sum('bet');
+                            $TOTogel = BetsTogel::whereBetween('created_at', [$existingMemberBonus->approval_status_at, $date])
+                                ->where('created_by', $this->memberActive->id)->sum('pay_amount');
+
+                            $TOMember = $TOSlotCasinoFish + $TOTogel;
+                        }
+
+                        $total_depo = $existingMemberBonus->jumlah;
+                        $total_bonus = $existingMemberBonus->bonus_amount;
+                        $turnover_x = $bonus_deposit->turnover_x;
+                        $bonus_amount = $bonus_deposit->bonus_amount;
+
+                        /**
+                         * Below is to make the Turnover Target is same with TO on Member's side in Account > Bonus.
+                         */
+                        $TO = ($total_depo + $total_bonus) * $turnover_x;
+
+                        if ($existingMemberBonus->status_bonus == 2) {
+                            $status = preg_match("/menyerah/i", $existingMemberBonus->reason_bonus) ? 'Menyerah' : 'Gagal';
+                            $date = $existingMemberBonus->approval_status_at;
+                            $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                            $datas[] = [
+                                'turnover' => (float) $TO,
+                                'turnover_member' => (float) $TOMember,
+                                'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
+                                'status_bonus' => $bonus_deposit->status_bonus,
+                                'is_claim_bonus' => $existingMemberBonus->is_claim_bonus,
+                                'deposit_amount' => $existingMemberBonus->jumlah,
+                                'bonus_amount' => $existingMemberBonus->bonus_amount,
+                                'status_bonus_member' => $status,
+                                'date_claim_again' => $dateClaim,
+                                'depositID' => $existingMemberBonus->id,
+                            ];
+                        } else {
+                            $status = $existingMemberBonus->status_bonus == 0 ? 'Klaim' : 'Selesai';
+                            $date = $existingMemberBonus->approval_status_at;
+                            $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                            $datas[] = [
+                                'turnover' => (float) $TO,
+                                'turnover_member' => (float) $TOMember,
+                                'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
+                                'status_bonus' => $bonus_deposit->status_bonus,
+                                'is_claim_bonus' => $existingMemberBonus->is_claim_bonus,
+                                'deposit_amount' => $existingMemberBonus->jumlah,
+                                'bonus_amount' => $existingMemberBonus->bonus_amount,
+                                'status_bonus_member' => $status,
+                                'date_claim_again' => $dateClaim,
+                                'depositID' => $existingMemberBonus->id,
+                            ];
+
+                        }
+                    }
                 } else {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
-
-                    $TOMember = $TOSlotCasinoFish + $TOTogel;
+                    foreach ($checkBonusExisting as $key => $existingMemberBonus) {
+                        $status = $existingMemberBonus->status == 0 ? 'Klaim' : ($existingMemberBonus->status == 1 ? 'Selesai' : ($existingMemberBonus->status == 2 ? 'Menyerah' : 'Gagal'));
+                        $date = $existingMemberBonus->approval_status_at;
+                        $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
+                        $TO = (float) $existingMemberBonus->turnover_target;
+                        $TOMember = (float) $existingMemberBonus->turnover_member;
+                        $datas[] = [
+                            'turnover' => $TO,
+                            'turnover_member' => $TOMember,
+                            'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
+                            'status_bonus' => $bonus_deposit->status_bonus,
+                            'is_claim_bonus' => 6,
+                            'deposit_amount' => $existingMemberBonus->jumlah,
+                            'bonus_amount' => $existingMemberBonus->bonus_amount,
+                            'status_bonus_member' => $status,
+                            'date_claim_again' => $dateClaim,
+                            'depositID' => $existingMemberBonus->deposit_id,
+                        ];
+                    }
                 }
-
-                $total_depo = $Check_deposit_claim_bonus_deposit->jumlah;
-                $turnover_x = $bonus_deposit->turnover_x;
-                $bonus_amount = $bonus_deposit->bonus_amount;
-                // if ($total_depo > $bonus_deposit->max_bonus) {
-                //     $depoPlusBonus = $total_depo + $bonus_deposit->max_bonus;
-                // } else {
-                //     $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                // }
-                /**
-                 * Below is to make the Turnover Target is same with TO on Member's side in Account > Bonus.
-                 */
-                $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-
-                $TO = $depoPlusBonus * $turnover_x;
-                if ($Check_deposit_claim_bonus_deposit->status_bonus == 2) {
-                    $status = preg_match("/menyerah/i", $Check_deposit_claim_bonus_deposit->reason_bonus) ? 'Menyerah' : 'Gagal';
-                    $date = $Check_deposit_claim_bonus_deposit->approval_status_at;
-                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
-                    $data = [
-                        'turnover' => $TO,
-                        'turnover_member' => $TOMember,
-                        'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
-                        'status_bonus' => $bonus_deposit->status_bonus,
-                        'is_claim_bonus' => $Check_deposit_claim_bonus_deposit->is_claim_bonus,
-                        'bonus_amount' => $Check_deposit_claim_bonus_deposit->bonus_amount,
-                        'status_bonus_member' => $status,
-                        'date_claim_again' => $dateClaim,
-                    ];
-                } else {
-                    $status = $Check_deposit_claim_bonus_deposit->status_bonus == 0 ? 'Klaim' : 'Selesai';
-                    $date = $Check_deposit_claim_bonus_deposit->approval_status_at;
-                    $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
-                    $data = [
-                        'turnover' => $TO,
-                        'turnover_member' => $TOMember,
-                        'durasi_bonus_promo' => $bonus_deposit->durasi_bonus_promo,
-                        'status_bonus' => $bonus_deposit->status_bonus,
-                        'is_claim_bonus' => $Check_deposit_claim_bonus_deposit->is_claim_bonus,
-                        'bonus_amount' => $Check_deposit_claim_bonus_deposit->bonus_amount,
-                        'status_bonus_member' => $status,
-                        'date_claim_again' => $dateClaim,
+                if ($datas == []) {
+                    $datas = [
+                        [
+                            'turnover' => 0,
+                            'turnover_member' => 0,
+                            'durasi_bonus_promo' => 0,
+                            'status_bonus' => 0,
+                            'is_claim_bonus' => 0,
+                            'deposit_amount' => 0,
+                            'bonus_amount' => 0,
+                            'status_bonus_member' => null,
+                            'date_claim_again' => null,
+                            'depositID' => null,
+                        ],
                     ];
                 }
             } else {
-                $data = [
-                    'turnover' => 0,
-                    'turnover_member' => 0,
-                    'durasi_bonus_promo' => 0,
-                    'status_bonus' => 0,
-                    'is_claim_bonus' => 0,
-                    'bonus_amount' => 0,
-                    'status_bonus_member' => null,
-                    'date_claim_again' => null,
+                $datas = [
+                    [
+                        'turnover' => 0,
+                        'turnover_member' => 0,
+                        'durasi_bonus_promo' => 0,
+                        'status_bonus' => 0,
+                        'is_claim_bonus' => 0,
+                        'deposit_amount' => 0,
+                        'bonus_amount' => 0,
+                        'status_bonus_member' => null,
+                        'date_claim_again' => null,
+                        'depositID' => null,
+                    ],
                 ];
             }
-            return $this->successResponse([$data], 'Datanya ada', 200);
-        } catch (\Throwable$th) {
-            return $this->errorResponse('Internal Server Error', 500);
-        }
-    }
-
-    # Bonus New Member Promotion Give Up
-    public function BonusFreebetGivUp(Request $request)
-    {
-        try {
-            $memberId = $this->memberActive->id;
-            $bonus_freebet = BonusSettingModel::select(
-                'min_depo',
-                'max_depo',
-                'bonus_amount',
-                'turnover_x',
-                'turnover_amount',
-                'info',
-                'status_bonus',
-                // 'durasi_bonus_promo', **remove duration for New Member Bonus
-                'constant_provider_id',
-            )->where('constant_bonus_id', 4)->first();
-            $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
-                ->where('approval_status', 1)
-                ->where('is_claim_bonus', 4)
-                ->where('status_bonus', 0)->orderBy('approval_status_at', 'asc')
-                ->first();
-            if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
-                $currentCreditMember = MembersModel::where('id', $this->memberActive->id)->first()->credit;
-                $bonusGiven = $Check_deposit_claim_bonus_freebet->bonus_amount;
-                if ($currentCreditMember < $bonusGiven) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah memakai bonus New Member', 400);
-                }
-
-                $providerId = explode(',', $bonus_freebet->constant_provider_id);
-                if (!in_array(16, $providerId)) {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-
-                    $TOmember = $TOSlotCasinoFish;
-                } else {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
-
-                    $TOmember = $TOSlotCasinoFish + $TOTogel;
-                }
-
-                $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
-                $turnover_x = $bonus_freebet->turnover_x;
-                $bonus_amount = $bonus_freebet->bonus_amount;
-                $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                $TO = $depoPlusBonus * $turnover_x;
-
-                if ($TOmember > $TO) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus New Member Promotion, silahkan Withdraw sekarang', 400);
-                }
-
-                $bonus = $Check_deposit_claim_bonus_freebet->bonus_amount;
-                $member = MembersModel::where('id', $memberId)->first();
-                $credit = $member->credit - $bonus;
-
-                MembersModel::where('id', $memberId)
-                    ->update([
-                        'credit' => $credit,
-                        'updated_by' => $this->memberActive->id,
-                        'updated_at' => Carbon::now(),
-                    ]);
-
-                DepositModel::where('id', $Check_deposit_claim_bonus_freebet->id)
-                    ->update([
-                        'status_bonus' => 2,
-                        'reason_bonus' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO,
-                        'updated_by' => $this->memberActive->id,
-                        'updated_at' => Carbon::now(),
-                    ]);
-
-                BonusHistoryModel::create([
-                    'is_send' => 1,
-                    'is_use' => 1,
-                    'is_delete' => 0,
-                    'constant_bonus_id' => 4,
-                    'jumlah' => $bonus * -1,
-                    'credit' => MembersModel::where('id', $memberId)->first()->credit,
-                    'member_id' => $this->memberActive->id,
-                    'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
-                    'type' => 'uang',
-                    'created_by' => 0,
-                    'created_at' => Carbon::now(),
-                ]);
-
-                $createMemo = MemoModel::create([
-                    'member_id' => $this->memberActive->id,
-                    'sender_id' => 0,
-                    'send_type' => 'System',
-                    'subject' => 'Bonus New Member',
-                    'is_reply' => 1,
-                    'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus New Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
-                    'created_at' => Carbon::now(),
-                ]);
-
-                // WEB SOCKET START
-                // ========================================
-                NotifyNewMemoEvent::dispatch($createMemo);
-                // ========================================
-                // WEB SOCKET FINISH
-
-                UserLogModel::logMemberActivity(
-                    'Bonus New Member Giveup',
-                    $member,
-                    $Check_deposit_claim_bonus_freebet,
-                    [
-                        'target' => 'Bonus New Member',
-                        'activity' => 'Bonus New Member Giveup',
-                        'ip_member' => $this->memberActive->last_login_ip,
-                    ],
-                    $member->username . ' Deducted Bonus New Member amount from member balance  ' . number_format($bonus)
-                );
-
-                // WEB SOCKET START
-                GiveUpBonusEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
-                // WEB SOCKET FINISH
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Penyerahan Bonus New Member berhasil.',
-                ]);
-            }
-
-            return $this->errorResponse("Maaf, Bonus New Member sudah tidak aktif atau kadaluarsa.", 400);
-
-        } catch (\Throwable$th) {
+            return $this->successResponse($datas, 'Datanya ada', 200);
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
 
+    # Bonus New Member Promotion Give Up
+    // Temporary not used
+    // public function BonusFreebetGivUp(Request $request)
+    // {
+    //     try {
+    //         $memberId = $this->memberActive->id;
+    //         $constantBonus = ConstantBonusModel::select('nama_bonus')->find(4);
+
+    //         $bonus_freebet = BonusSettingModel::select(
+    //             'min_depo',
+    //             'max_depo',
+    //             'bonus_amount',
+    //             'turnover_x',
+    //             'turnover_amount',
+    //             'info',
+    //             'status_bonus',
+    //             // 'durasi_bonus_promo', **remove duration for New Member Bonus
+    //             'constant_provider_id',
+    //         )->where('constant_bonus_id', 4)->first();
+    //         $Check_deposit_claim_bonus_freebet = DepositModel::where('members_id', $this->memberActive->id)
+    //             ->where('approval_status', 1)
+    //             ->where('is_claim_bonus', 4)
+    //             ->where('status_bonus', 0)->orderBy('approval_status_at', 'asc')
+    //             ->first();
+    //         if ($bonus_freebet->status_bonus == 1 && $Check_deposit_claim_bonus_freebet) {
+    //             $currentCreditMember = MembersModel::where('id', $this->memberActive->id)->first()->credit;
+    //             $bonusGiven = $Check_deposit_claim_bonus_freebet->bonus_amount;
+    //             if ($currentCreditMember < $bonusGiven) {
+    //                 return $this->errorResponse("Maaf, Anda tidak dapat menyerah, karena Anda telah memakai {$constantBonus->nama_bonus}", 400);
+    //             }
+
+    //             $providerId = explode(',', $bonus_freebet->constant_provider_id);
+    //             if (!in_array(16, $providerId)) {
+    //                 $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+    //                     ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+    //                     ->where('created_by', $this->memberActive->id)
+    //                     ->whereIn('constant_provider_id', $providerId)->sum('bet');
+
+    //                 $TOmember = $TOSlotCasinoFish;
+    //             } else {
+    //                 $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+    //                     ->whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+    //                     ->where('created_by', $this->memberActive->id)
+    //                     ->whereIn('constant_provider_id', $providerId)->sum('bet');
+    //                 $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_freebet->approval_status_at, now()])
+    //                     ->where('created_by', $this->memberActive->id)->sum('pay_amount');
+
+    //                 $TOmember = $TOSlotCasinoFish + $TOTogel;
+    //             }
+
+    //             $total_depo = $Check_deposit_claim_bonus_freebet->jumlah;
+    //             $total_bonus = $Check_deposit_claim_bonus_freebet->bonus_amount;
+    //             $turnover_x = $bonus_freebet->turnover_x;
+    //             $bonus_amount = $bonus_freebet->bonus_amount;
+
+    //             $TO = ($total_depo + $total_bonus) * $turnover_x;
+
+    //             if ($TOmember > $TO) {
+    //                 return $this->errorResponse("Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) {$constantBonus->nama_bonus} Promotion, silahkan Withdraw sekarang", 400);
+    //             }
+
+    //             $bonus = $Check_deposit_claim_bonus_freebet->bonus_amount;
+    //             $member = MembersModel::where('id', $memberId)->first();
+    //             $credit = $member->credit - $bonus;
+
+    //             MembersModel::where('id', $memberId)
+    //                 ->update([
+    //                     'credit' => $credit,
+    //                     'updated_by' => $this->memberActive->id,
+    //                     'updated_at' => Carbon::now(),
+    //                 ]);
+
+    //             DepositModel::where('id', $Check_deposit_claim_bonus_freebet->id)
+    //                 ->update([
+    //                     'status_bonus' => 2,
+    //                     'reason_bonus' => 'anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . $TO,
+    //                     'updated_by' => $this->memberActive->id,
+    //                     'updated_at' => Carbon::now(),
+    //                 ]);
+
+    //             $bonusHistory = BonusHistoryModel::create([
+    //                 'is_send' => 1,
+    //                 'is_use' => 1,
+    //                 'is_delete' => 0,
+    //                 'constant_bonus_id' => 4,
+    //                 'jumlah' => $bonus * -1,
+    //                 'credit' => MembersModel::where('id', $memberId)->first()->credit,
+    //                 'member_id' => $this->memberActive->id,
+    //                 'hadiah' => 'Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+    //                 'type' => 'uang',
+    //                 'created_by' => 0,
+    //                 'created_at' => Carbon::now(),
+    //             ]);
+
+    //             # Create Report Bonus History
+    //             BonusHistoryReport::create([
+    //                 'bonus_history_id' => $bonusHistory->id,
+    //                 'constant_bonus_id' => 4,
+    //                 'name_bonus' => $constantBonus->nama_bonus,
+    //                 'member_id' => $bonusHistory->member_id,
+    //                 'member_username' => $member->username,
+    //                 'credit' => $bonusHistory->credit,
+    //                 'user_id' => 0,
+    //                 'user_username' => 'System',
+    //                 'jumlah' => $bonusHistory->jumlah,
+    //                 'hadiah' => $bonusHistory->hadiah,
+    //                 'status' => 'Menyerah',
+    //                 'created_by' => 0,
+    //                 'bonus_date' => $bonusHistory->created_at,
+    //             ]);
+
+    //             $createMemo = MemoModel::create([
+    //                 'member_id' => $this->memberActive->id,
+    //                 'sender_id' => 0,
+    //                 'send_type' => 'System',
+    //                 'subject' => $constantBonus->nama_bonus,
+    //                 'is_reply' => 1,
+    //                 'is_bonus' => 1,
+    //                 'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim ' . $constantBonus->nama_bonus . ', Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+    //                 'created_at' => Carbon::now(),
+    //             ]);
+
+    //             // WEB SOCKET START
+    //             // ========================================
+    //             NotifyNewMemoEvent::dispatch($createMemo);
+    //             // ========================================
+    //             // WEB SOCKET FINISH
+
+    //             UserLogModel::logMemberActivity(
+    //                 $constantBonus->nama_bonus . ' Giveup',
+    //                 $member,
+    //                 $Check_deposit_claim_bonus_freebet,
+    //                 [
+    //                     'target' => $constantBonus->nama_bonus,
+    //                     'activity' => $constantBonus->nama_bonus . ' Giveup',
+    //                     'ip_member' => $this->memberActive->last_login_ip,
+    //                 ],
+    //                 $member->username . ' Deducted ' . $constantBonus->nama_bonus . ' amount from member balance  ' . number_format($bonus)
+    //             );
+
+    //             // WEB SOCKET START
+    //             GiveUpBonusEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+    //             // WEB SOCKET FINISH
+
+    //             return response()->json([
+    //                 'status' => 'success',
+    //                 'message' => 'Penyerahan Bonus New Member berhasil.',
+    //             ]);
+    //         }
+
+    //         return $this->errorResponse("Maaf, Bonus New Member sudah tidak aktif atau kadaluarsa.", 400);
+
+    //     } catch (\Throwable $th) {
+    //         return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
+    //     }
+    // }
+
     # Bonus Existing Member Promotion Give Up
-    public function BonusDepositGivUp(Request $request)
+    public function BonusDepositGivUp(Request $request, $depositID)
     {
         try {
             $memberId = $this->memberActive->id;
+            $constantBonus = ConstantBonusModel::select('nama_bonus')->find(6);
+
             $bonus_deposit = BonusSettingModel::select(
                 'min_depo',
                 'max_depo',
@@ -726,53 +879,66 @@ class DepositController extends ApiController
                 ->where('approval_status', 1)
                 ->where('is_claim_bonus', 6)
                 ->where('status_bonus', 0)
-                ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
+                ->where('id', $depositID)
+                ->whereBetween('approval_status_at', [$subDay, $today])
+                ->orderBy('approval_status_at', 'desc')
                 ->first();
+
             if ($bonus_deposit->status_bonus == 1 && $Check_deposit_claim_bonus_deposit) {
                 $currentCreditMember = MembersModel::where('id', $this->memberActive->id)->first()->credit;
                 $bonusGiven = $Check_deposit_claim_bonus_deposit->bonus_amount;
 
                 # Check bonuses that have been used
                 if ($currentCreditMember < $bonusGiven) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah memakai bonus Existing Member', 400);
+                    return $this->errorResponse("Maaf, Anda tidak dapat menyerah, karena Anda telah memakai {$constantBonus->nama_bonus}", 400);
                 }
 
-                $providerId = explode(',', $bonus_deposit->constant_provider_id);
-                if (!in_array(16, $providerId)) {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-
-                    $TOmember = $TOSlotCasinoFish;
+                $checkBonusExisting = TurnoverMember::where('member_id', $memberId)
+                    ->where('deposit_id', $depositID)
+                    ->where('constant_bonus_id', 6)
+                    ->where('status', false)->first();
+                if ($checkBonusExisting) {
+                    $TOmember = $checkBonusExisting->turnover_member;
+                    $TO = $checkBonusExisting->turnover_target;
                 } else {
-                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                        ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)
-                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                    $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
-                        ->where('created_by', $this->memberActive->id)->sum('pay_amount');
+                    $providerId = explode(',', $bonus_deposit->constant_provider_id);
+                    if (!in_array(16, $providerId)) {
+                        $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                            ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
+                            ->where('created_by', $this->memberActive->id)
+                            ->whereIn('constant_provider_id', $providerId)->sum('bet');
 
-                    $TOmember = $TOSlotCasinoFish + $TOTogel;
+                        $TOmember = $TOSlotCasinoFish;
+                    } else {
+                        $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
+                            ->whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
+                            ->where('created_by', $this->memberActive->id)
+                            ->whereIn('constant_provider_id', $providerId)->sum('bet');
+                        $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_deposit->approval_status_at, now()])
+                            ->where('created_by', $this->memberActive->id)->sum('pay_amount');
+
+                        $TOmember = $TOSlotCasinoFish + $TOTogel;
+                    }
+
+                    $total_depo = $Check_deposit_claim_bonus_deposit->jumlah;
+                    $total_bonus = $Check_deposit_claim_bonus_deposit->bonus_amount;
+                    $turnover_x = $bonus_deposit->turnover_x;
+                    $bonus_amount = $bonus_deposit->bonus_amount;
+
+                    /**
+                     * Below is to make the Turnover Target is same with TO on Member's side in Account > Bonus.
+                     */
+                    $TO = ($total_depo + $total_bonus) * $turnover_x;
                 }
 
-                $total_depo = $Check_deposit_claim_bonus_deposit->jumlah;
-                $turnover_x = $bonus_deposit->turnover_x;
-                $bonus_amount = $bonus_deposit->bonus_amount;
-                // if ($total_depo > $bonus_deposit->max_bonus) {
-                //     $depoPlusBonus = $total_depo + $bonus_deposit->max_bonus;
-                // } else {
-                //     $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
-                // }
-                /**
-                 * Below is to make the Turnover Target is same with TO on Member's side in Account > Bonus.
-                 */
-                $depoPlusBonus = $total_depo + (($total_depo * $bonus_amount) / 100);
+                if ($TOmember >= $TO) {
+                    return $this->errorResponse("Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) {$constantBonus->nama_bonus}, silahkan Withdraw sekarang", 400);
+                }
 
-                $TO = $depoPlusBonus * $turnover_x;
-
-                if ($TOmember > $TO) {
-                    return $this->errorResponse('Maaf, Anda tidak dapat menyerah, karena Anda telah mencapai TO (Turnover) Bonus Existing Member Promotion, silahkan Withdraw sekarang', 400);
+                if ($checkBonusExisting) {
+                    $checkBonusExisting->update([
+                        'status' => 2,
+                    ]);
                 }
 
                 $bonus = $Check_deposit_claim_bonus_deposit->bonus_amount;
@@ -794,7 +960,7 @@ class DepositController extends ApiController
                         'updated_at' => Carbon::now(),
                     ]);
 
-                BonusHistoryModel::create([
+                $bonusHistory = BonusHistoryModel::create([
                     'is_send' => 1,
                     'is_use' => 1,
                     'is_delete' => 0,
@@ -808,14 +974,31 @@ class DepositController extends ApiController
                     'created_at' => Carbon::now(),
                 ]);
 
+                # Create Report Bonus History
+                BonusHistoryReport::create([
+                    'bonus_history_id' => $bonusHistory->id,
+                    'constant_bonus_id' => 6,
+                    'name_bonus' => $constantBonus->nama_bonus,
+                    'member_id' => $bonusHistory->member_id,
+                    'member_username' => $member->username,
+                    'credit' => $bonusHistory->credit,
+                    'user_id' => 0,
+                    'user_username' => 'System',
+                    'jumlah' => $bonusHistory->jumlah,
+                    'hadiah' => $bonusHistory->hadiah,
+                    'status' => 'Menyerah',
+                    'created_by' => 0,
+                    'bonus_date' => $bonusHistory->created_at,
+                ]);
+
                 $createMemo = MemoModel::create([
                     'member_id' => $this->memberActive->id,
                     'sender_id' => 0,
                     'send_type' => 'System',
-                    'subject' => 'Bonus Existing Member',
+                    'subject' => $constantBonus->nama_bonus,
                     'is_reply' => 1,
                     'is_bonus' => 1,
-                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim Bonus Existing Member, Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
+                    'content' => 'Maaf Anda tidak memenuhi persyaratan mengklaim ' . $constantBonus->nama_bonus . ', Anda menyerah untuk mencapai TO (Turn Over) sebesar Rp. ' . number_format($TO) . ',  bonus sebesar Rp. ' . number_format($bonus) . ' kami tarik kembali, dari balance anda.',
                     'created_at' => Carbon::now(),
                 ]);
 
@@ -826,15 +1009,15 @@ class DepositController extends ApiController
                 // WEB SOCKET FINISH
 
                 UserLogModel::logMemberActivity(
-                    'Bonus Existing Member Giveup',
+                    $constantBonus->nama_bonus . ' Giveup',
                     $member,
                     $Check_deposit_claim_bonus_deposit,
                     [
-                        'target' => 'Bonus Existing Member',
-                        'activity' => 'Bonus Existing Member Giveup',
+                        'target' => $constantBonus->nama_bonus,
+                        'activity' => $constantBonus->nama_bonus . ' Giveup',
                         'ip_member' => $this->memberActive->last_login_ip,
                     ],
-                    $member->username . ' Deducted Bonus Existing Member amount from member balance  ' . number_format($bonus)
+                    $member->username . ' Deducted ' . $constantBonus->nama_bonus . ' amount from member balance  ' . number_format($bonus)
                 );
 
                 // WEB SOCKET START
@@ -849,7 +1032,7 @@ class DepositController extends ApiController
 
             return $this->errorResponse("Maaf, Bonus Existing Member sudah tidak aktif atau kadaluarsa.", 400);
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }

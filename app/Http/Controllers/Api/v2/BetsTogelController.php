@@ -11,7 +11,9 @@ use App\Models\BetsTogelQuotaLimitModel;
 use App\Models\BetTogelLimitLineSettingsModel;
 use App\Models\BetTogelLimitLineTransactionsModel;
 use App\Models\BonusHistoryModel;
+use App\Models\BonusHistoryReport;
 use App\Models\BonusSettingModel;
+use App\Models\ConstantBonusModel;
 use App\Models\ConstantProvider;
 use App\Models\ConstantProviderTogelModel;
 use App\Models\DepositModel;
@@ -20,6 +22,7 @@ use App\Models\TogelBlokAngka;
 use App\Models\TogelGame;
 use App\Models\TogelSettingGames;
 use App\Models\TogelShioNameModel;
+use App\Models\TurnoverMember;
 use App\Models\UserLogModel;
 use Carbon\Carbon;
 use Exception as NewException;
@@ -170,7 +173,7 @@ class BetsTogelController extends ApiController
                     ]);
 
                     # create bonus history
-                    BonusHistoryModel::create([
+                    $bonusHistory = BonusHistoryModel::create([
                         'member_id' => $member->referrer_id,
                         'constant_bonus_id' => 3,
                         'is_send' => 1,
@@ -183,6 +186,37 @@ class BetsTogelController extends ApiController
                         'created_by' => 0,
                         'created_at' => Carbon::now(),
                     ]);
+
+                    $constantBonus = ConstantBonusModel::select('nama_bonus')->find(3);
+
+                    # Create Report Bonus History
+                    BonusHistoryReport::create([
+                        'bonus_history_id' => $bonusHistory->id,
+                        'constant_bonus_id' => 3,
+                        'name_bonus' => $constantBonus->nama_bonus,
+                        'member_id' => $bonusHistory->member_id,
+                        'member_username' => $referal->username,
+                        'credit' => $bonusHistory->credit,
+                        'user_id' => 0,
+                        'user_username' => 'System',
+                        'jumlah' => $bonusHistory->jumlah,
+                        'hadiah' => $bonusHistory->hadiah,
+                        'status' => 'Claim',
+                        'created_by' => 0,
+                        'bonus_date' => $bonusHistory->created_at,
+                    ]);
+
+                }
+
+                # Check bonus New Member and Bonus Existing Member then add current turnover member
+                if ($checkBonusFreebet->status_bonus == 1 || $checkBonusDeposit->status_bonus == 1) {
+                    $turnoverMembers = TurnoverMember::where('status', false)->where('member_id', $memberID)->get();
+                    foreach ($turnoverMembers as $key => $turnoverMember) {
+                        $turnover = $turnoverMember->turnover_member;
+                        $turnoverMember->update([
+                            'turnover_member' => $turnover + $togel['pay_amount'],
+                        ]);
+                    }
                 }
 
                 $payBetTogel = $togel['pay_amount'];
@@ -1664,7 +1698,7 @@ class BetsTogelController extends ApiController
                 return false;
             }
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -2044,7 +2078,7 @@ class BetsTogelController extends ApiController
 
             return false;
 
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
