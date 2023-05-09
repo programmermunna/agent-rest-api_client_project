@@ -295,7 +295,7 @@ class WithdrawController extends ApiController
             # Check Claim Bonus Existing Member
             if ($bonus_existing->status_bonus == 1) {
                 $checkBonusExisting = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 6)
-                    ->whereNull('withdraw_id')->get();
+                    ->whereNull('withdraw_id')->where('status', false)->get();
                 if ($checkBonusExisting->toArray() == []) {
                     $checkBonusExisting = DepositModel::where('members_id', $memberId)
                         ->where('approval_status', 1)
