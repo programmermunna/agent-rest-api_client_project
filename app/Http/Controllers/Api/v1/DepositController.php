@@ -494,7 +494,7 @@ class DepositController extends ApiController
                         'turnover_member' => (float) $TOMember,
                         'status_bonus' => $bonus_freebet->status_bonus,
                         'is_claim_bonus' => 4,
-                        'bonus_amount' => $Check_deposit_claim_bonus_freebet->bonus_amount,
+                        'bonus_amount' => $checkBonusNewMember->bonus_amount,
                         'status_bonus_member' => $status,
                     ];
                 }
@@ -515,6 +515,7 @@ class DepositController extends ApiController
             }
             return $this->successResponse([$data], 'Datanya ada', 200);
         } catch (\Throwable $th) {
+            dd($th);
             return $this->errorResponse('Internal Server Error', 500, $th->getMessage());
         }
     }
