@@ -175,6 +175,9 @@ class WithdrawController extends ApiController
                         'created_by' => $memberId,
                     ]);
 
+                    # Update Withdraw di to table Turnover Members
+                    TurnoverMember::whereIn('deposit_id', $turnoverMember)->update(['withdraw_id' => $withdrawal->id]);
+
                     # update balance member
                     $member = MembersModel::find($memberId);
                     MembersModel::where('id', $memberId)->update([
