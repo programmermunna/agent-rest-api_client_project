@@ -374,6 +374,8 @@ class WithdrawController extends ApiController
                         }
                     }
                 }
+            } else {
+                $message1 = true;
             }
 
             # Check Bonus New Member
@@ -449,7 +451,10 @@ class WithdrawController extends ApiController
                         $message2 = true;
                     }
                 }
+            } else {
+                $message2 = true;
             }
+
             if ($datas == []) {
                 if ($message1 == true && $message2 == true) {
                     $message = 'Tidak klaim bonus';
