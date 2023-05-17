@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Domains\Auth\Models\User;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -35,12 +37,26 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->configureRateLimiting();
+
         // To be able to restore a user, since the default binding is a find and would result in a 404
         Route::bind('deletedUser', function ($id) {
             return User::onlyTrashed()->find($id);
         });
 
         parent::boot();
+    }
+
+    /**
+     * Configure the rate limiters for the application.
+     *
+     * @return void
+     */
+    protected function configureRateLimiting()
+    {
+        RateLimiter::for ('api', function (Request $request) {
+            return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
+        });
     }
 
     /**
@@ -68,13 +84,13 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::middleware('web')
             ->namespace($this->namespace)
-             ->group(base_path('routes/web.php'));
+            ->group(base_path('routes/web.php'));
 
         // For the 'Login As' functionality from the 404labfr/laravel-impersonate package
         Route::middleware('web')
-        ->group(function (Router $router) {
-            $router->impersonate();
-        });
+            ->group(function (Router $router) {
+                $router->impersonate();
+            });
     }
 
     /**
@@ -90,7 +106,7 @@ class RouteServiceProvider extends ServiceProvider
             prefix('api')
             ->name('api.')
             ->middleware('api')
-            ->namespace($this->namespace .'\Api')
+            ->namespace($this->namespace . '\Api')
             ->group(base_path('routes/api.php'));
     }
 }
