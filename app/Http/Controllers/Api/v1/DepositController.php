@@ -367,7 +367,7 @@ class DepositController extends ApiController
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
 
-                $statusBonus = $item->status_bonus == 1 && $turnoverMember && $member->credit > 200 ? 0 : $item->status_bonus;
+                $canClaimAgain = $item->status_bonus == 1 && $turnoverMember && $member->credit > 200 ? 0 : $item->status_bonus;
 
                 $dataBonusSetting[] = [
                     'id' => $item->id,
@@ -380,7 +380,8 @@ class DepositController extends ApiController
                     'turnover_amount' => (float) $item->turnover_amount,
                     'bonus_amount_member' => $checkKlaimBonus->bonus_amount ?? 0,
                     'info' => $item->info,
-                    'status_bonus' => $statusBonus,
+                    'status_bonus' => $item->status_bonus,
+                    'can_claim_again' => $canClaimAgain,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
                     'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
                     'provider_id' => $item->constant_provider_id ? $providers : [],
