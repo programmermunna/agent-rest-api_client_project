@@ -139,10 +139,10 @@ class DepositController extends ApiController
                             ->orderBy('id', 'desc')->first();
                         if ($turnoverMember) {
                             # Check the previous Turnover Bonus
-                            if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit > 500)) {
+                            if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit > 200)) {
                                 return $this->errorResponse("Maaf, untuk Klaim Bonus Exising Member, Anda harus mencapai turnover bonus anda sebelumnya.", 400);
                             }
-                            if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 500)) {
+                            if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) {
                                 $turnoverMember->update([
                                     'status' => true,
                                 ]);
@@ -367,7 +367,7 @@ class DepositController extends ApiController
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
 
-                $statusBonus = $item->status_bonus == 1 && $turnoverMember && $member->credit > 500 ? 0 : $item->status_bonus;
+                $statusBonus = $item->status_bonus == 1 && $turnoverMember && $member->credit > 200 ? 0 : $item->status_bonus;
 
                 $dataBonusSetting[] = [
                     'id' => $item->id,
