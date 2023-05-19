@@ -65,7 +65,7 @@ class WithdrawController extends ApiController
                 if ($request->deposit_id == null) {
                     $bonus_new_member = BonusSettingModel::select('status_bonus')->where('constant_bonus_id', 4)->first();
                     if ($bonus_new_member->status_bonus == 1) {
-                        $turnoverMember = TurnoverMember::select('deposit_id')->where('member_id', $memberId)->where('status', false)
+                        $turnoverMember = TurnoverMember::select('deposit_id')->where('member_id', $memberId)->whereNull('withdraw_id')
                             ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
 
                         if ($turnoverMember != []) {
@@ -298,7 +298,7 @@ class WithdrawController extends ApiController
             # Check Claim Bonus Existing Member
             if ($bonus_existing->status_bonus == 1) {
                 $checkBonusExisting = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 6)
-                    ->whereNull('withdraw_id')->where('status', false)->get();
+                    ->whereNull('withdraw_id')->get();
                 if ($checkBonusExisting->toArray() == []) {
                     $checkBonusExisting = DepositModel::where('members_id', $memberId)
                         ->where('approval_status', 1)
