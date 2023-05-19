@@ -365,7 +365,9 @@ class DepositController extends ApiController
                 $turnoverMember = TurnoverMember::where('member_id', $userId)->where('constant_bonus_id', 6)->where('status', false)
                     ->orderBy('id', 'desc')->first();
 
-                $statusBonus = $item->status_bonus == 1 && $turnoverMember ? 0 : $item->status_bonus;
+                $member = MembersModel::select(['id', 'credit'])->find($userId);
+
+                $statusBonus = $item->status_bonus == 1 && $turnoverMember && $member->credit > 500 ? 0 : $item->status_bonus;
 
                 $dataBonusSetting[] = [
                     'id' => $item->id,
