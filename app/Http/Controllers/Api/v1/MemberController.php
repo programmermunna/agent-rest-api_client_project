@@ -4578,7 +4578,7 @@ class MemberController extends ApiController
                 ->select([
                     'rekening.id',
                     'rekening.nama_rekening',
-                    DB::raw("IF(constant_rekening.name = 'QRIS' OR constant_rekening.name = 'Qris' OR constant_rekening.name = 'qris', null, rekening.nomor_rekening) as nomor_rekening"),
+                    'rekening.nomor_rekening',
                     'rekening.path as qrcode',
                     'constant_rekening.name',
                 ])
