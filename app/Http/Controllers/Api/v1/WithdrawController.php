@@ -64,88 +64,80 @@ class WithdrawController extends ApiController
             if ($bankAsalTransferForWd) {
                 if ($request->deposit_id == null) {
                     $bonus_new_member = BonusSettingModel::select('status_bonus')->where('constant_bonus_id', 4)->first();
-                    if ($bonus_new_member->status_bonus == 1) {
-                        $turnoverMember = TurnoverMember::select('deposit_id')->where('member_id', $memberId)->whereNull('withdraw_id')
-                            ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
-
-                        if ($turnoverMember != []) {
-                            $payload = [
-                                'members_id' => $memberId,
-                                'rekening_id' => $bankAsalTransferForWd->id,
-                                'rek_member_id' => $rekMember->id,
-                                'jumlah' => $jumlah,
-                                'credit' => $credit,
-                                'note' => $request->note,
-                                'deposit_id' => ',' . implode(',', $turnoverMember) . ',',
-                                'created_by' => $memberId,
-                                'created_at' => Carbon::now(),
-                            ];
-
-                            $withdrawal = WithdrawModel::create($payload);
-
-                            # Create History Withdraw
-                            DepositWithdrawHistory::create([
-                                'withdraw_id' => $withdrawal->id,
-                                'member_id' => $withdrawal->members_id,
-                                'status' => 'Pending',
-                                'amount' => $withdrawal->jumlah,
-                                'credit' => $withdrawal->credit,
-                                'description' => 'Withdraw : Pending',
-                                'created_by' => $memberId,
-                            ]);
-
-                            # Update Withdraw di to table Turnover Members
-                            TurnoverMember::whereIn('deposit_id', $turnoverMember)->update(['withdraw_id' => $withdrawal->id]);
-
-                            # update balance member
-                            $member = MembersModel::find($memberId);
-                            MembersModel::where('id', $memberId)->update([
-                                'credit' => $member->credit - $jumlah,
-                            ]);
-
-                            // WEB SOCKET START
-                            WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
-                            // WEB SOCKET FINISH
-
-                            # activity Log
-                            UserLogModel::logMemberActivity(
-                                'Withdrawal Created',
-                                $member,
-                                $withdrawal,
-                                [
-                                    'target' => 'Withdrawal',
-                                    'activity' => 'Create',
-                                    'ip_member' => $member->last_login_ip,
-                                ],
-                                "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
-                            );
-                            DB::commit();
-                            return $this->successResponse(null, 'Berhasil request withdraw');
-                        } else {
-                            $Check_deposit_claim_bonus_new_member = DepositModel::where('members_id', $memberId)
-                                ->where('approval_status', 1)
-                                ->where('is_claim_bonus', 4)
-                                ->where('status_bonus', 0)
-                                ->orderBy('approval_status_at', 'desc')->first();
-                            if ($Check_deposit_claim_bonus_new_member) {
-                                return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
-                            }
-                        }
-
-                    }
                     $bonus_existing_member = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo')->where('constant_bonus_id', 6)->first();
+                    $datas = [];
+                    if ($bonus_new_member->status_bonus == 1) {
+                        $datas[] = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
+                            ->where('constant_bonus_id', 4)
+                            ->whereNull('withdraw_id')
+                            ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
+                    }
                     if ($bonus_existing_member->status_bonus == 1) {
                         $durasiBonus = $bonus_existing_member->durasi_bonus_promo - 1;
                         $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                         $today = Carbon::now()->format('Y-m-d 23:59:59');
-                        $Check_deposit_claim_bonus_existing_member = DepositModel::where('members_id', $memberId)
-                            ->where('approval_status', 1)
-                            ->where('is_claim_bonus', 6)
-                            ->where('status_bonus', 0)
-                            ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
-                        if ($Check_deposit_claim_bonus_existing_member) {
-                            return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Existing Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
-                        }
+                        $datas[] = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
+                            ->where('constant_bonus_id', 6)
+                            ->whereNull('withdraw_id')
+                            ->whereBetween('created_at', [$subDay, $today])
+                            ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
+                    }
+
+                    if ($datas != []) {
+                        $payload = [
+                            'members_id' => $memberId,
+                            'rekening_id' => $bankAsalTransferForWd->id,
+                            'rek_member_id' => $rekMember->id,
+                            'jumlah' => $jumlah,
+                            'credit' => $credit,
+                            'note' => $request->note,
+                            'deposit_id' => ',' . implode(',', $turnoverMember) . ',',
+                            'created_by' => $memberId,
+                            'created_at' => Carbon::now(),
+                        ];
+
+                        $withdrawal = WithdrawModel::create($payload);
+
+                        # Create History Withdraw
+                        DepositWithdrawHistory::create([
+                            'withdraw_id' => $withdrawal->id,
+                            'member_id' => $withdrawal->members_id,
+                            'status' => 'Pending',
+                            'amount' => $withdrawal->jumlah,
+                            'credit' => $withdrawal->credit,
+                            'description' => 'Withdraw : Pending',
+                            'created_by' => $memberId,
+                        ]);
+
+                        # Update Withdraw di to table Turnover Members
+                        TurnoverMember::whereIn('deposit_id', $turnoverMember)->update(['withdraw_id' => $withdrawal->id]);
+
+                        # update balance member
+                        $member = MembersModel::find($memberId);
+                        MembersModel::where('id', $memberId)->update([
+                            'credit' => $member->credit - $jumlah,
+                        ]);
+
+                        // WEB SOCKET START
+                        WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
+                        // WEB SOCKET FINISH
+
+                        # activity Log
+                        UserLogModel::logMemberActivity(
+                            'Withdrawal Created',
+                            $member,
+                            $withdrawal,
+                            [
+                                'target' => 'Withdrawal',
+                                'activity' => 'Create',
+                                'ip_member' => $member->last_login_ip,
+                            ],
+                            "$member->username Created a Withdrawal with amount {$withdrawal->jumlah}"
+                        );
+                        DB::commit();
+                        return $this->successResponse(null, 'Berhasil request withdraw');
+                    } else {
+                        return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member atau Existing Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
                     }
                 }
 
@@ -298,6 +290,7 @@ class WithdrawController extends ApiController
             # Check Claim Bonus Existing Member
             if ($bonus_existing->status_bonus == 1) {
                 $checkBonusExisting = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 6)
+                    ->whereBetween('created_at', [$subDay, $today])
                     ->whereNull('withdraw_id')->get();
                 if ($checkBonusExisting->toArray() == []) {
                     $checkBonusExisting = DepositModel::where('members_id', $memberId)
