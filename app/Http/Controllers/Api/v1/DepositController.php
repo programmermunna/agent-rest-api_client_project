@@ -580,6 +580,7 @@ class DepositController extends ApiController
                     ->select([
                         'turnover_members.id',
                         'turnover_members.deposit_id',
+                        'turnover_members.withdraw_id',
                         'turnover_members.turnover_target',
                         'turnover_members.turnover_member',
                         'turnover_members.deposit_id',
@@ -672,7 +673,10 @@ class DepositController extends ApiController
                     }
                 } else {
                     foreach ($checkBonusExisting as $key => $existingMemberBonus) {
-                        $status = $existingMemberBonus->status == 0 ? 'Klaim' : ($existingMemberBonus->status == 1 ? 'Selesai' : ($existingMemberBonus->status == 2 ? 'Menyerah' : 'Gagal'));
+                        $status = $existingMemberBonus->status == 0 ? 'Klaim' :
+                        ($existingMemberBonus->status == 1 && $existingMemberBonus->withdraw_id != null ? 'Selesai' :
+                            ($existingMemberBonus->status == 1 && $existingMemberBonus->withdraw_id == null && $existingMemberBonus->turnover_target <= $existingMemberBonus->turnover_member ? 'Capai TO' :
+                                ($existingMemberBonus->status == 2 ? 'Menyerah' : 'Gagal')));
                         $date = $existingMemberBonus->approval_status_at;
                         $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
                         $TO = (float) $existingMemberBonus->turnover_target;
