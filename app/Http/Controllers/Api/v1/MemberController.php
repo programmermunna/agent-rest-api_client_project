@@ -4583,6 +4583,7 @@ class MemberController extends ApiController
                     'constant_rekening.name',
                 ])
                 ->where('is_default', 1)
+                ->where('is_none', 0)
                 ->get()->toArray();
 
             $listRek = array_merge($bankAgent, $nonBankAgent);
