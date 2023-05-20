@@ -44,7 +44,7 @@ class DepositController extends ApiController
 
     public function create(Request $request)
     {
-        if ($this->status != 0) {
+        if ($this->status != 1) {
             return $this->errorResponse("Maaf, Akun anda telah di tangguhkan, Anda tidak dapat melakukan transaksi deposit dan withdraw.", 400);
         }
         DB::beginTransaction();
