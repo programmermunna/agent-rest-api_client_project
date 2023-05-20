@@ -25,6 +25,9 @@ class WithdrawController extends ApiController
 {
     public function create(Request $request)
     {
+        if (auth('api')->user()->status != 0) {
+            return $this->errorResponse("Maaf, Akun anda telah di tangguhkan, Anda tidak dapat melakukan transaksi deposit dan withdraw.", 400);
+        }
         DB::beginTransaction();
         try {
             $memberId = auth('api')->user()->id; // atau bisa juga Auth::user()->id,
