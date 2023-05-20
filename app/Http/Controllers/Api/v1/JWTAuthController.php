@@ -104,7 +104,7 @@ class JWTAuthController extends ApiController
              */
 
             if ($member->status == 0) { // user yang di banned tidak boleh lagi login.
-                return $this->errorResponse('Akun anda telah di blokir (banned)', 401);
+                return $this->errorResponse('Akun anda telah di blokir (banned)', 403);
                 // } elseif ($member->status == 2) { // suspend masih boleh login, lihat note di atas.
                 //     return $this->errorResponse('Akun anda telah di tangguhkan', 401);
             } elseif (Hash::check($input['password'], $member->password)) {
