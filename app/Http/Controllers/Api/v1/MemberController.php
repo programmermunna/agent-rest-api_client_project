@@ -2299,7 +2299,7 @@ class MemberController extends ApiController
                 ];
 
             }
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -2336,7 +2336,7 @@ class MemberController extends ApiController
             } else {
                 return $this->successResponse($bonus->get(), 'Ada bonus harian', 200);
             }
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -4271,7 +4271,7 @@ class MemberController extends ApiController
     {
         try {
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -4369,7 +4369,7 @@ class MemberController extends ApiController
             } else {
                 return $this->successResponse('Tidak ada statement', 204);
             }
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -4411,7 +4411,7 @@ class MemberController extends ApiController
             ];
 
             return $this->successResponse($response);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -4485,7 +4485,7 @@ class MemberController extends ApiController
 
                 return $this->successResponse(null, 'Berhasil membuat rekening baru', 200);
             }
-        } catch (\Exception$e) {
+        } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
     }
@@ -4529,7 +4529,7 @@ class MemberController extends ApiController
             ]);
 
             return $this->successResponse(null, 'Berhasil mengubah Rekening withdraw', 200);
-        } catch (\Exception$e) {
+        } catch (\Exception $e) {
             return $this->errorResponse('Hubungi CS kami untuk mengubah Rekening Withdraw', 500);
         }
     }
@@ -4552,7 +4552,7 @@ class MemberController extends ApiController
                 ->get();
 
             return $this->successResponse($rekMember, 'Daftar Rekening ', 200);
-        } catch (\Exception$e) {
+        } catch (\Exception $e) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -4588,7 +4588,7 @@ class MemberController extends ApiController
             $listRek = array_merge($bankAgent, $nonBankAgent);
 
             return $this->successResponse($listRek, 'Daftar Rekening Agent', 200);
-        } catch (\Exception$e) {
+        } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
         }
     }
@@ -4608,7 +4608,7 @@ class MemberController extends ApiController
                 ->get();
 
             return $this->successResponse($rekMember, 'Daftar Rekening', 200);
-        } catch (\Exception$e) {
+        } catch (\Exception $e) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -4856,7 +4856,7 @@ class MemberController extends ApiController
         }
 
         try {
-        } catch (\Exception$e) {
+        } catch (\Exception $e) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -4954,7 +4954,7 @@ class MemberController extends ApiController
                     return $this->successResponse(null, 'Tidak ada bonus cashback slot yang di peroleh', 200);
                 }
             }
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -4973,7 +4973,7 @@ class MemberController extends ApiController
                 $data[] = ["live_casino" => ConstantProvider::select('constant_provider_name', 'value')->whereIn('id', [8, 10, 11])->get()];
                 return $this->successResponse($data, 'Bonus referal', 200);
             }
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
