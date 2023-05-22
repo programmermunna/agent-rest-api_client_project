@@ -65,9 +65,10 @@ class WithdrawController extends ApiController
                 if ($request->deposit_id == null) {
                     $bonus_new_member = BonusSettingModel::select('status_bonus')->where('constant_bonus_id', 4)->first();
                     $bonus_existing_member = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo')->where('constant_bonus_id', 6)->first();
-                    $datas = [];
+                    $datasNew = [];
+                    $datasExis = [];
                     if ($bonus_new_member->status_bonus == 1) {
-                        $datas[] = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
+                        $datasNew = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
                             ->where('constant_bonus_id', 4)
                             ->whereNull('withdraw_id')
                             ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
@@ -76,13 +77,13 @@ class WithdrawController extends ApiController
                         $durasiBonus = $bonus_existing_member->durasi_bonus_promo - 1;
                         $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                         $today = Carbon::now()->format('Y-m-d 23:59:59');
-                        $datas[] = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
+                        $datasExis = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
                             ->where('constant_bonus_id', 6)
                             ->whereNull('withdraw_id')
                             ->whereBetween('created_at', [$subDay, $today])
                             ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
                     }
-
+                    $datas = array_merge($datasNew, $datasExis);
                     if ($datas != []) {
                         $payload = [
                             'members_id' => $memberId,
@@ -91,7 +92,7 @@ class WithdrawController extends ApiController
                             'jumlah' => $jumlah,
                             'credit' => $credit,
                             'note' => $request->note,
-                            'deposit_id' => ',' . implode(',', $turnoverMember) . ',',
+                            'deposit_id' => ',' . implode(',', $datas) . ',',
                             'created_by' => $memberId,
                             'created_at' => Carbon::now(),
                         ];
@@ -110,7 +111,7 @@ class WithdrawController extends ApiController
                         ]);
 
                         # Update Withdraw di to table Turnover Members
-                        TurnoverMember::whereIn('deposit_id', $turnoverMember)->update(['withdraw_id' => $withdrawal->id]);
+                        TurnoverMember::whereIn('deposit_id', $datas)->update(['withdraw_id' => $withdrawal->id]);
 
                         # update balance member
                         $member = MembersModel::find($memberId);
@@ -136,9 +137,10 @@ class WithdrawController extends ApiController
                         );
                         DB::commit();
                         return $this->successResponse(null, 'Berhasil request withdraw');
-                    } else {
-                        return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member atau Existing Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
                     }
+                    // else {
+                    //     return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member atau Existing Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
+                    // }
                 }
 
                 if ($request->deposit_id != null) {
