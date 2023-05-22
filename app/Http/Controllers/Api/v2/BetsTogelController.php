@@ -216,6 +216,13 @@ class BetsTogelController extends ApiController
                         $turnoverMember->update([
                             'turnover_member' => $turnover + $togel['pay_amount'],
                         ]);
+                        if ($turnoverMember->constant_bonus_id == 6) {
+                            if (($turnoverMember->turnover_member >= $turnoverMember->turnover_target) || ($credit->credit <= 500)) {
+                                $turnoverMember->update([
+                                    'status' => true,
+                                ]);
+                            }
+                        }
                     }
                 }
 
