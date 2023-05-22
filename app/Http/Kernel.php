@@ -105,9 +105,6 @@ class Kernel extends HttpKernel
 
         //log middleware
         'log-viewer' => \App\Http\Middleware\LogViewerMiddleware::class,
-
-        # Cannot Access Endpoint If Member Is Banned
-        'member.banned' => \App\Http\Middleware\BanMemberMiddleware::class,
     ];
 
     /**
