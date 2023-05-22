@@ -149,6 +149,7 @@ class WithdrawController extends ApiController
                                 ->where('constant_bonus_id', 6)
                                 ->whereNull('withdraw_id')
                                 ->whereBetween('created_at', [$subDay, $today])
+                                ->where('status', '!=', 2)
                                 ->whereRaw("IF(turnover_member >= turnover_target, false, true)")->first();
 
                             if ($datasExis || $datasNew) {
@@ -308,6 +309,7 @@ class WithdrawController extends ApiController
             if ($bonus_existing->status_bonus == 1) {
                 $checkBonusExisting = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 6)
                     ->whereBetween('created_at', [$subDay, $today])
+                    ->where('status', '!=', 2)
                     ->whereNull('withdraw_id')->get();
                 if ($checkBonusExisting->toArray() == []) {
                     $checkBonusExisting = DepositModel::where('members_id', $memberId)
