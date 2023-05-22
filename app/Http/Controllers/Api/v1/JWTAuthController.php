@@ -104,7 +104,7 @@ class JWTAuthController extends ApiController
              */
 
             if ($member->status == 0) { // user yang di banned tidak boleh lagi login.
-                return $this->errorResponse('Akun anda telah di blokir (banned)', 403);
+                return $this->errorResponse('Akun anda telah di blokir (banned)', 401);
                 // } elseif ($member->status == 2) { // suspend masih boleh login, lihat note di atas.
                 //     return $this->errorResponse('Akun anda telah di tangguhkan', 401);
             } elseif (Hash::check($input['password'], $member->password)) {
@@ -166,7 +166,7 @@ class JWTAuthController extends ApiController
     public function getAuthenticatedMember()
     {
         try {
-            $member = MembersModel::select(['id', 'username', 'last_login_at', 'last_login_ip', 'status'])->where('id', $this->memberID)->first();
+            $member = MembersModel::select(['id', 'username', 'last_login_at', 'last_login_ip'])->where('id', $this->memberID)->first();
             if (!$member) {
                 return $this->errorResponse('Member tidak ditemukan', 404);
             }
