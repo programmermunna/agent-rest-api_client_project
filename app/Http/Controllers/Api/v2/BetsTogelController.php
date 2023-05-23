@@ -39,6 +39,9 @@ class BetsTogelController extends ApiController
      */
     public function store(BetsTogelRequest $request)
     {
+        if (auth('api')->user()->status == 0) {
+            return $this->errorResponse("Maaf, Akun anda telah di blokir(Banned), Anda tidak dapat bermain game Togel.", 403);
+        }
         $memberID = auth('api')->user()->id;
         $checkBonusFreebet = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount'])->where('constant_bonus_id', 4)->first();
         $checkBonusDeposit = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount', 'max_bonus'])->where('constant_bonus_id', 6)->first();
