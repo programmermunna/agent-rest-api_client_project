@@ -1,0 +1,43 @@
+name: Deploy Member API staging bocah77 
+
+on:
+  push:
+    branches: [staging.bocah77]
+
+jobs:
+  deploy:
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staging.bocah77 
+      - name: Deploy Agent Rest API To staging.bocah77 
+        uses: appleboy/ssh-action@master 
+        with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapibocah77.sh
+        
+  slackNotification:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staging.bocah77
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_FOOTER: "Efforts don't betray the results!"
+          SLACK_USERNAME: "CikaTech"
+          SLACK_ICON_EMOJI: ':cuddle:'
+          SLACK_LINK_NAMES: true
+          SLACK_MESSAGE: ':gas: Member API staging bocah77 deployed successfully @backdev-team'
+          SLACK_TITLE:   ${{ github.event.head_commit.message }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK}}
