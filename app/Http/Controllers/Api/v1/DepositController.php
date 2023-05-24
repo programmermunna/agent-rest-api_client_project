@@ -384,7 +384,7 @@ class DepositController extends ApiController
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
 
-                $canClaimAgain = $item->status_bonus == 1 && $turnoverMember && $member->credit > 200 ? 0 : $item->status_bonus;
+                $canClaimAgain = $item->status_bonus == 1 && $turnoverMember ? 0 : $item->status_bonus;
 
                 $dataBonusSetting[] = [
                     'id' => $item->id,
