@@ -692,7 +692,7 @@ class DepositController extends ApiController
                 } else {
                     foreach ($checkBonusExisting as $key => $existingMemberBonus) {
                         $status = $existingMemberBonus->status == 0 && $existingMemberBonus->turnover_target > $existingMemberBonus->turnover_member ? 'Klaim' :
-                        ($existingMemberBonus->status == 0 && $existingMemberBonus->turnover_target <= $existingMemberBonus->turnover_member ? 'Capai TO' :
+                        (in_array($existingMemberBonus->status, [0, 1]) && $existingMemberBonus->turnover_target <= $existingMemberBonus->turnover_member ? 'Capai TO' :
                             ($existingMemberBonus->status == 1 && $existingMemberBonus->withdraw_id != null ? 'Selesai' :
                                 ($existingMemberBonus->status == 2 ? 'Menyerah' : 'Gagal')));
                         $date = $existingMemberBonus->approval_status_at;
