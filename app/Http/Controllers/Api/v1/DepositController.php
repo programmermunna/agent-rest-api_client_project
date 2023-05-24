@@ -83,7 +83,7 @@ class DepositController extends ApiController
                 ->orderBy('id', 'desc')->first();
             if ($turnoverMember) {
                 # Finish Bonus If Balance Member <= 200 and TO is not reached
-                if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) {
+                if ((($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) || ($turnoverMember->turnover_member >= $turnoverMember->turnover_target)) {
                     $turnoverMember->update([
                         'status' => true,
                     ]);
@@ -373,6 +373,7 @@ class DepositController extends ApiController
 
                 $turnoverMember = TurnoverMember::where('member_id', $userId)->where('constant_bonus_id', 6)->where('status', false)
                     ->whereBetween('created_at', [$subDay, $today])
+                    ->whereRaw("IF(turnover_member < turnover_target, true, false)")
                     ->orderBy('id', 'desc')->first();
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
@@ -684,9 +685,9 @@ class DepositController extends ApiController
                     }
                 } else {
                     foreach ($checkBonusExisting as $key => $existingMemberBonus) {
-                        $status = $existingMemberBonus->status == 0 ? 'Klaim' :
-                        ($existingMemberBonus->status == 1 && $existingMemberBonus->withdraw_id != null ? 'Selesai' :
-                            ($existingMemberBonus->status == 1 && $existingMemberBonus->withdraw_id == null && $existingMemberBonus->turnover_target <= $existingMemberBonus->turnover_member ? 'Capai TO' :
+                        $status = $existingMemberBonus->status == 0 && $existingMemberBonus->turnover_target > $existingMemberBonus->turnover_member ? 'Klaim' :
+                        ($existingMemberBonus->status == 0 && $existingMemberBonus->turnover_target <= $existingMemberBonus->turnover_member ? 'Capai TO' :
+                            ($existingMemberBonus->status == 1 && $existingMemberBonus->withdraw_id != null ? 'Selesai' :
                                 ($existingMemberBonus->status == 2 ? 'Menyerah' : 'Gagal')));
                         $date = $existingMemberBonus->approval_status_at;
                         $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
