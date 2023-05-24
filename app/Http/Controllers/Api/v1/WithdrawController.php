@@ -26,7 +26,7 @@ class WithdrawController extends ApiController
     public function create(Request $request)
     {
         if (auth('api')->user()->status != 1) {
-            return $this->errorResponse("tessssssssssssMaaf, Akun anda telah di tangguhkan, Anda tidak dapat melakukan transaksi withdraw.", 400);
+            return $this->errorResponse("Maaf, Akun anda telah di tangguhkan, Anda tidak dapat melakukan transaksi withdraw.", 400);
         }
         DB::beginTransaction();
         try {
