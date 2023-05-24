@@ -77,6 +77,19 @@ class DepositController extends ApiController
 
             $member = MembersModel::select(['id', 'credit'])->where('id', $this->memberActive->id)->first();
 
+            # Check Bonus Existing
+            $turnoverMember = TurnoverMember::where('member_id', $this->memberActive->id)
+                ->where('constant_bonus_id', 6)->where('status', false)
+                ->orderBy('id', 'desc')->first();
+            if ($turnoverMember) {
+                # Finish Bonus Existing
+                if ((($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) || ($turnoverMember->turnover_member >= $turnoverMember->turnover_target)) {
+                    $turnoverMember->update([
+                        'status' => true,
+                    ]);
+                }
+            }
+
             # Check Bonus New Member
             if ($request->is_claim_bonus == 4) {
                 $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')
@@ -138,18 +151,16 @@ class DepositController extends ApiController
                             }
                         }
 
-                        $turnoverMember = TurnoverMember::where('member_id', $this->memberActive->id)
-                            ->where('constant_bonus_id', $request->is_claim_bonus)->where('status', false)
-                            ->orderBy('id', 'desc')->first();
                         if ($turnoverMember) {
                             # Check the previous Turnover Bonus
-                            if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit > 200)) {
-                                return $this->errorResponse("Maaf, untuk Klaim Bonus Exising Member, Anda harus mencapai turnover bonus anda sebelumnya.", 400);
-                            }
-                            if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) {
-                                $turnoverMember->update([
-                                    'status' => true,
-                                ]);
+                            if ($turnoverMember->turnover_member < $turnoverMember->turnover_target) {
+                                if ($member->credit > 200) {
+                                    return $this->errorResponse("Maaf, untuk Klaim Bonus Exising Member, Anda harus mencapai turnover bonus anda sebelumnya.", 400);
+                                } else {
+                                    $turnoverMember->update([
+                                        'status' => true,
+                                    ]);
+                                }
                             }
                         }
 
@@ -367,11 +378,13 @@ class DepositController extends ApiController
                     ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
 
                 $turnoverMember = TurnoverMember::where('member_id', $userId)->where('constant_bonus_id', 6)->where('status', false)
+                    ->whereBetween('created_at', [$subDay, $today])
+                    ->whereRaw("IF(turnover_member < turnover_target, true, false)")
                     ->orderBy('id', 'desc')->first();
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
 
-                $canClaimAgain = $item->status_bonus == 1 && $turnoverMember && $member->credit > 200 ? 0 : $item->status_bonus;
+                $canClaimAgain = $item->status_bonus == 1 && $turnoverMember ? 0 : $item->status_bonus;
 
                 $dataBonusSetting[] = [
                     'id' => $item->id,
@@ -678,9 +691,9 @@ class DepositController extends ApiController
                     }
                 } else {
                     foreach ($checkBonusExisting as $key => $existingMemberBonus) {
-                        $status = $existingMemberBonus->status == 0 ? 'Klaim' :
-                        ($existingMemberBonus->status == 1 && $existingMemberBonus->withdraw_id != null ? 'Selesai' :
-                            ($existingMemberBonus->status == 1 && $existingMemberBonus->withdraw_id == null && $existingMemberBonus->turnover_target <= $existingMemberBonus->turnover_member ? 'Capai TO' :
+                        $status = $existingMemberBonus->status == 0 && $existingMemberBonus->turnover_target > $existingMemberBonus->turnover_member ? 'Klaim' :
+                        ($existingMemberBonus->status == 1 && $existingMemberBonus->withdraw_id != null && $existingMemberBonus->turnover_target <= $existingMemberBonus->turnover_member ? 'Selesai' :
+                            (in_array($existingMemberBonus->status, [0, 1]) && $existingMemberBonus->turnover_target <= $existingMemberBonus->turnover_member ? 'Capai TO' :
                                 ($existingMemberBonus->status == 2 ? 'Menyerah' : 'Gagal')));
                         $date = $existingMemberBonus->approval_status_at;
                         $dateClaim = Carbon::parse($date)->addDays($durasiBonus + 1)->format('Y-m-d 00:00:00');
