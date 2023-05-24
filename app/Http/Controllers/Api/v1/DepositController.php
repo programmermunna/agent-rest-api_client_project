@@ -30,12 +30,13 @@ use Illuminate\Support\Facades\Validator;
 
 class DepositController extends ApiController
 {
-    public $memberActive;
+    public $memberActive, $status;
 
     public function __construct()
     {
         try {
             $this->memberActive = auth('api')->user();
+            $this->status = auth('api')->user()->status;
         } catch (\Throwable $th) {
             return $this->errorResponse('Token is Invalid or Expired', 401);
         }
@@ -43,6 +44,9 @@ class DepositController extends ApiController
 
     public function create(Request $request)
     {
+        if ($this->status != 1) {
+            return $this->errorResponse("Maaf, Akun anda telah di tangguhkan, Anda tidak dapat melakukan transaksi deposit.", 400);
+        }
         DB::beginTransaction();
         try {
             $validator = Validator::make(
@@ -363,6 +367,7 @@ class DepositController extends ApiController
                     ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
 
                 $turnoverMember = TurnoverMember::where('member_id', $userId)->where('constant_bonus_id', 6)->where('status', false)
+                    ->whereBetween('created_at', [$subDay, $today])
                     ->orderBy('id', 'desc')->first();
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
