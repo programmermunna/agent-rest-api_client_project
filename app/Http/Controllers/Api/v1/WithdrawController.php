@@ -80,8 +80,7 @@ class WithdrawController extends ApiController
                         $today = Carbon::now()->format('Y-m-d 23:59:59');
                         $datasExis = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
                             ->where('constant_bonus_id', 6)
-                            ->where('status', true)
-                            ->whereNull('withdraw_id')
+                            ->where('status', 0)
                             ->whereBetween('created_at', [$subDay, $today])
                             ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
 
@@ -324,7 +323,7 @@ class WithdrawController extends ApiController
             if ($bonus_existing->status_bonus == 1) {
                 $checkBonusExisting = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 6)
                     ->whereBetween('created_at', [$subDay, $today])
-                    ->where('status', '!=', 2)
+                    ->where('status', 0)
                     ->whereNull('withdraw_id')->get();
                 if ($checkBonusExisting->toArray() == []) {
                     $checkBonusExisting = DepositModel::where('members_id', $memberId)
