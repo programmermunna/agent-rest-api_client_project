@@ -80,7 +80,7 @@ class WithdrawController extends ApiController
                         $today = Carbon::now()->format('Y-m-d 23:59:59');
                         $datasExis = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
                             ->where('constant_bonus_id', 6)
-                            ->whereNull('withdraw_id')
+                            ->where('status', 0)
                             ->whereBetween('created_at', [$subDay, $today])
                             ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
 
@@ -111,8 +111,12 @@ class WithdrawController extends ApiController
                                 'created_by' => $memberId,
                             ]);
 
-                            # Update Withdraw di to table Turnover Members
-                            TurnoverMember::whereIn('deposit_id', $datas)->update(['withdraw_id' => $withdrawal->id]);
+                            # Update Withdraw ID and Status bonus in table Turnover Members
+                            TurnoverMember::whereIn('deposit_id', $datas)
+                                ->update([
+                                    'withdraw_id' => $withdrawal->id,
+                                    'status' => true,
+                                ]);
 
                             # update balance member
                             $member = MembersModel::find($memberId);
@@ -152,11 +156,14 @@ class WithdrawController extends ApiController
                                 ->where('constant_bonus_id', 6)
                                 ->whereNull('withdraw_id')
                                 ->whereBetween('created_at', [$subDay, $today])
-                                ->where('status', '!=', 2)
+                                ->where('status', false)
                                 ->whereRaw("IF(turnover_member >= turnover_target, false, true)")->first();
 
-                            if ($datasExis || $datasNew) {
-                                return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member atau Existing Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
+                            if ($datasExis) {
+                                return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Existing Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
+                            }
+                            if ($datasNew) {
+                                return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
                             }
                         }
                     }
@@ -188,8 +195,12 @@ class WithdrawController extends ApiController
                         'created_by' => $memberId,
                     ]);
 
-                    # Update Withdraw di to table Turnover Members
-                    TurnoverMember::whereIn('deposit_id', explode(',', $request->deposit_id))->update(['withdraw_id' => $withdrawal->id]);
+                    # Update Withdraw ID and Status bonus in table Turnover Members
+                    TurnoverMember::whereIn('deposit_id', explode(',', $request->deposit_id))
+                        ->update([
+                            'withdraw_id' => $withdrawal->id,
+                            'status' => true,
+                        ]);
 
                     # update balance member
                     $member = MembersModel::find($memberId);
@@ -312,7 +323,7 @@ class WithdrawController extends ApiController
             if ($bonus_existing->status_bonus == 1) {
                 $checkBonusExisting = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 6)
                     ->whereBetween('created_at', [$subDay, $today])
-                    ->where('status', '!=', 2)
+                    ->where('status', 0)
                     ->whereNull('withdraw_id')->get();
                 if ($checkBonusExisting->toArray() == []) {
                     $checkBonusExisting = DepositModel::where('members_id', $memberId)
