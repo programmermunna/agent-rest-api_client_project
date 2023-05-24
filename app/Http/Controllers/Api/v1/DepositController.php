@@ -82,8 +82,8 @@ class DepositController extends ApiController
                 ->where('constant_bonus_id', 6)->where('status', false)
                 ->orderBy('id', 'desc')->first();
             if ($turnoverMember) {
-                # Finish TO is reached update finish
-                if ($turnoverMember->turnover_member >= $turnoverMember->turnover_target) {
+                # Finish Bonus Existing
+                if ((($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) || ($turnoverMember->turnover_member >= $turnoverMember->turnover_target)) {
                     $turnoverMember->update([
                         'status' => true,
                     ]);
@@ -379,7 +379,7 @@ class DepositController extends ApiController
 
                 $turnoverMember = TurnoverMember::where('member_id', $userId)->where('constant_bonus_id', 6)->where('status', false)
                     ->whereBetween('created_at', [$subDay, $today])
-                    ->whereRaw("IF(turnover_member < turnover_target, true, false)")
+                    ->whereRaw("IF(turnover_member >= turnover_target, true, false)")
                     ->orderBy('id', 'desc')->first();
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
