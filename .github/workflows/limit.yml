@@ -22,7 +22,7 @@ jobs:
             pwd
             whoami
             ls -la
-            ./memberapi.sh
+            ./memberapi.limit.bonus.existing.member.agenda.mei.2023.sh
         
   slackNotification:
     needs: deploy
