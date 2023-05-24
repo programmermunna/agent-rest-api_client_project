@@ -367,6 +367,7 @@ class DepositController extends ApiController
                     ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
 
                 $turnoverMember = TurnoverMember::where('member_id', $userId)->where('constant_bonus_id', 6)->where('status', false)
+                    ->whereBetween('created_at', [$subDay, $today])
                     ->orderBy('id', 'desc')->first();
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
