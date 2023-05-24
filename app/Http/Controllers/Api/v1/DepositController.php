@@ -77,6 +77,19 @@ class DepositController extends ApiController
 
             $member = MembersModel::select(['id', 'credit'])->where('id', $this->memberActive->id)->first();
 
+            # Check Bonus Existing
+            $turnoverMember = TurnoverMember::where('member_id', $this->memberActive->id)
+                ->where('constant_bonus_id', 6)->where('status', false)
+                ->orderBy('id', 'desc')->first();
+            if ($turnoverMember) {
+                # Finish Bonus If Balance Member <= 200 and TO is not reached
+                if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) {
+                    $turnoverMember->update([
+                        'status' => true,
+                    ]);
+                }
+            }
+
             # Check Bonus New Member
             if ($request->is_claim_bonus == 4) {
                 $bonus_freebet = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo', 'min_depo', 'max_depo', 'bonus_amount', 'max_bonus')
@@ -138,18 +151,10 @@ class DepositController extends ApiController
                             }
                         }
 
-                        $turnoverMember = TurnoverMember::where('member_id', $this->memberActive->id)
-                            ->where('constant_bonus_id', $request->is_claim_bonus)->where('status', false)
-                            ->orderBy('id', 'desc')->first();
                         if ($turnoverMember) {
                             # Check the previous Turnover Bonus
                             if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit > 200)) {
                                 return $this->errorResponse("Maaf, untuk Klaim Bonus Exising Member, Anda harus mencapai turnover bonus anda sebelumnya.", 400);
-                            }
-                            if (($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) {
-                                $turnoverMember->update([
-                                    'status' => true,
-                                ]);
                             }
                         }
 
