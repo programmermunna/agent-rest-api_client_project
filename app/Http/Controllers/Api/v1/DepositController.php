@@ -379,7 +379,7 @@ class DepositController extends ApiController
 
                 $turnoverMember = TurnoverMember::where('member_id', $userId)->where('constant_bonus_id', 6)->where('status', false)
                     ->whereBetween('created_at', [$subDay, $today])
-                    ->whereRaw("IF(turnover_member >= turnover_target, true, false)")
+                    ->whereRaw("IF(turnover_member < turnover_target, true, false)")
                     ->orderBy('id', 'desc')->first();
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
