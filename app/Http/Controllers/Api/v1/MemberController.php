@@ -626,6 +626,50 @@ class MemberController extends ApiController
                     'status' => 'success',
                     'referralSV388Live' => $data,
                 ];
+            } elseif ($request->type == 'referralSAGaming') { # History Referral SA Gaming Live Casino
+                $SAGamingReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $SAGaming = collect($item['bets'])->where('constant_provider_id', 19)->all();
+                        foreach ($SAGaming as $value) {
+                            $SAGamingReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain SV88 Live',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($SAGamingReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralSAGaming' => $data,
+                ];
+            } elseif ($request->type == 'referralBGGaming') { # History Referral BG Gaming Live Casino
+                $BGGamingReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $BGGaming = collect($item['bets'])->where('constant_provider_id', 17)->all();
+                        foreach ($BGGaming as $value) {
+                            $BGGamingReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain SV88 Live',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+
+                    }
+                }
+
+                $data = $this->paginate($BGGamingReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralBGGaming' => $data,
+                ];
             } elseif ($request->type == 'referralIONXLiveCasino') { # History Referral IONX Live Casino
                 $IONXLiveCasinoReferal = [];
                 foreach ($referalMembers['referrals'] as $key => $item) {
@@ -1022,6 +1066,54 @@ class MemberController extends ApiController
                 return [
                     'status' => 'success',
                     'transaksiSV388Live' => $data,
+                ];
+            } elseif ($request->type == 'transaksiSAGaming') { # History Transaksi SA Gaming Live Casino
+                $SAGaming = $query->select(
+                    'bets.bet',
+                    'bets.game_info',
+                    'bets.bet_id',
+                    'bets.game_id',
+                    'bets.deskripsi',
+                    'bets.credit',
+                    'bets.type',
+                    'bets.win',
+                    'bets.created_at',
+                    'constant_provider.constant_provider_name'
+                )
+                    ->where('bets.created_by', auth('api')->user()->id)
+                    ->where('bets.constant_provider_id', 19)
+                    ->orderBy('bets.created_at', 'desc')->get();
+
+                // $this->gamehallBet = $ghBet->toArray();
+                $data = $this->paginate($SAGaming->toArray(), $this->perPage);
+
+                return [
+                    'status' => 'success',
+                    'transaksiSAGaming' => $data,
+                ];
+            } elseif ($request->type == 'transaksiBGGaming') { # History Transaksi BG Gaming Live Casino
+                $BGGaming = $query->select(
+                    'bets.bet',
+                    'bets.game_info',
+                    'bets.bet_id',
+                    'bets.game_id',
+                    'bets.deskripsi',
+                    'bets.credit',
+                    'bets.type',
+                    'bets.win',
+                    'bets.created_at',
+                    'constant_provider.constant_provider_name'
+                )
+                    ->where('bets.created_by', auth('api')->user()->id)
+                    ->where('bets.constant_provider_id', 17)
+                    ->orderBy('bets.created_at', 'desc')->get();
+
+                // $this->gamehallBet = $ghBet->toArray();
+                $data = $this->paginate($BGGaming->toArray(), $this->perPage);
+
+                return [
+                    'status' => 'success',
+                    'transaksiBGGaming' => $data,
                 ];
             } elseif ($request->type == 'transaksiIONXLiveCasino') { # History Transaksi IONX Live Casino
                 $ionxCasino = $query->select(
