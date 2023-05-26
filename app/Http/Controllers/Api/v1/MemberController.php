@@ -634,7 +634,7 @@ class MemberController extends ApiController
                         foreach ($SAGaming as $value) {
                             $SAGamingReferal[] = [
                                 'created_at' => $value['created_at'],
-                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain SV88 Live',
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain SA Gaming Live Casino',
                                 'bonus' => $value['bonus_daily_referal'],
                                 'balance' => $value['credit_upline_referral'],
                             ];
@@ -656,7 +656,7 @@ class MemberController extends ApiController
                         foreach ($BGGaming as $value) {
                             $BGGamingReferal[] = [
                                 'created_at' => $value['created_at'],
-                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain SV88 Live',
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain BG Gaming Live Casino',
                                 'bonus' => $value['bonus_daily_referal'],
                                 'balance' => $value['credit_upline_referral'],
                             ];
