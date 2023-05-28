@@ -1,8 +1,8 @@
-name: Deploy Member API Staging 
+name: Deploy Member API staging-cikaslot 
 
 on:
   push:
-    branches: [staging]
+    branches: [staging-cikaslot]
 
 jobs:
   deploy:
@@ -10,8 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: master 
-      - name: Deploy Agent Rest API To Staging 
+          ref: staging-cikaslot 
+      - name: Deploy Agent Rest API To staging-cikaslot 
         uses: appleboy/ssh-action@master 
         with:
           host: ${{ secrets.AGENT_REST_STAGING_IP }}
@@ -30,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: staging
+          ref: staging-cikaslot
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:
@@ -38,6 +38,6 @@ jobs:
           SLACK_USERNAME: "CikaTech"
           SLACK_ICON_EMOJI: ':cuddle:'
           SLACK_LINK_NAMES: true
-          SLACK_MESSAGE: ':gas: Member API Staging deployed successfully @backdev-team'
+          SLACK_MESSAGE: ':gas: Member API staging-cikaslot deployed successfully @backdev-team'
           SLACK_TITLE:   ${{ github.event.head_commit.message }}
           SLACK_WEBHOOK: ${{ secrets.SLACK}}
