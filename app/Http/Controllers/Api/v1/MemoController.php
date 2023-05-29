@@ -40,7 +40,7 @@ class MemoController extends ApiController
             $this->memberID = $member->id;
             $this->memberUsername = $member->username;
             $this->memberIP = $member->last_login_ip;
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Token invalid', 400);
         }
     }
@@ -82,20 +82,19 @@ class MemoController extends ApiController
 
             $user = $this->memberActive;
             UserLogModel::logMemberActivity(
-                'Memo Created',
+                'Message Created',
                 $user,
                 $memo,
                 [
-                    'target' => "memo {$memo->subject}",
+                    'target' => "Message {$memo->subject}",
                     'activity' => 'Create',
                     'ip_member' => $this->memberIP,
                 ],
-                "$user->username Created a Memo"
+                "$user->username Created a Message"
             );
 
-            return $this->successResponse(null, 'Berhasil membuat memo', 200);
-        } catch (\Exception$e) {
-            dd($e);
+            return $this->successResponse(null, 'Berhasil membuat pesan', 200);
+        } catch (\Exception $e) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -112,7 +111,7 @@ class MemoController extends ApiController
                 }]);
             $inbox = $memo->paginate($this->perPage)->withPath('');
             return $this->successResponse($inbox, 200);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -137,7 +136,7 @@ class MemoController extends ApiController
                 }]);
             $inbox = $memo->paginate($this->perPage)->withPath('/');
             return $this->successResponse($inbox, 200);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
 
@@ -156,16 +155,16 @@ class MemoController extends ApiController
             }
 
             $memo = MemoModel::select('id', 'is_read')->whereIn('send_type', ['Admin', 'System'])->where('id', $request->id)->orWhere('memo_id', $request->id)
-            ->update([
-                'is_read' => 1,
-            ]);
+                ->update([
+                    'is_read' => 1,
+                ]);
 
             // WEB SOCKET START
             NotifyReadMessageEvent::dispatch(MemoModel::find($request->id));
             // WEB SOCKET FINISH
 
             return $this->successResponse($request->id);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             Log::error($th->getMessage());
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -210,19 +209,19 @@ class MemoController extends ApiController
 
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
-                'Memo Created',
+                'Message Created',
                 $user,
                 $memo,
                 [
-                    'target' => "memo {$memo->subject}",
-                    'activity' => 'Replied to a memo',
+                    'target' => "Message {$memo->subject}",
+                    'activity' => 'Replied to a message',
                     'ip_member' => $this->memberIP,
                 ],
-                "$user->username Replied a Memo"
+                "$user->username Replied a Message"
             );
 
-            return $this->successResponse(null, 'Berhasil membalas memo', 200);
-        } catch (\Exception$e) {
+            return $this->successResponse(null, 'Berhasil membalas pesan', 200);
+        } catch (\Exception $e) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -244,7 +243,7 @@ class MemoController extends ApiController
             'memoData' => $this->memoData,
             'modMemberId' => $this->modMemberId,
         ];
-        return $this->successResponse($data, 'Detail memo', 201);
+        return $this->successResponse($data, 'Detail pesan', 201);
     }
 
     public function NotifyMemo()
@@ -258,7 +257,7 @@ class MemoController extends ApiController
                     'notify' => $notify > 9 ? '9+' : $notify,
                 ],
             ]);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             Log::error($th->getMessage());
             return response()->json([
                 'status' => 'error',
