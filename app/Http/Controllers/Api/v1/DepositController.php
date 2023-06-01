@@ -271,7 +271,7 @@ class DepositController extends ApiController
     }
 
     # Bonus New Member Promotion Setting
-    public function settingBonusFreebet()
+    public function settingBonusNewMember()
     {
         try {
             $userId = $this->memberActive->id;
@@ -304,14 +304,18 @@ class DepositController extends ApiController
                 $durasiBonus = $item->durasi_bonus_promo - 1;
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                 $today = Carbon::now()->format('Y-m-d 23:59:59');
-                $checkKlaimBonus = DepositModel::select('bonus_amount', 'is_claim_bonus', 'status_bonus')
-                    ->where('is_claim_bonus', 4)
-                    ->where('status_bonus', 0)
-                    ->where('approval_status', 1)
-                    ->where('members_id', $userId)
-                    ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')
-                    ->first();
-                $cekSudahPernahDepo = DepositModel::where('members_id', $userId)->first();
+
+                $turnoverMember = TurnoverMember::select(['turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                    ->where('member_id', $userId)
+                    ->where('constant_bonus_id', 4)
+                    ->orderBy('id', 'desc')->first();
+
+                if (!$turnoverMember) {
+                    $cekSudahPernahDepo = DepositModel::select('id')->where('members_id', $userId)->first();
+                } else {
+                    $cekSudahPernahDepo = true;
+                }
+
                 $dataBonusSetting[] = [
                     'id' => $item->id,
                     'name_bonus' => $item->nama_bonus,
@@ -321,11 +325,11 @@ class DepositController extends ApiController
                     'bonus_amount' => (int) $item->bonus_amount,
                     'turnover_x' => $item->turnover_x,
                     'turnover_amount' => (float) $item->turnover_amount,
-                    'bonus_amount_member' => $checkKlaimBonus->bonus_amount ?? 0,
+                    // 'bonus_amount_member' => $checkKlaimBonus->bonus_amount ?? 0,
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
-                    'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
+                    'is_claim_bonus' => $turnoverMember ? ($turnoverMember->status == 0 ? 0 : 1) : 0,
                     'provider_id' => $item->constant_provider_id ? $providers : [],
                     'is_new_member' => $cekSudahPernahDepo ? 0 : 1, // 1 = new member | 0 = existing member
                 ];
@@ -337,10 +341,12 @@ class DepositController extends ApiController
     }
 
     # Bonus Existing Member Promotion Setting
-    public function settingBonusDeposit()
+    public function settingBonusExisting()
     {
         try {
             $userId = $this->memberActive->id;
+
+            # Setting Bonus
             $dataSetting = BonusSettingModel::join('constant_bonus', 'constant_bonus.id', 'bonus_setting.constant_bonus_id')
                 ->select(
                     'bonus_setting.id',
@@ -370,21 +376,42 @@ class DepositController extends ApiController
                 $durasiBonus = $item->durasi_bonus_promo - 1;
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                 $today = Carbon::now()->format('Y-m-d 23:59:59');
-                $checkKlaimBonus = DepositModel::select('bonus_amount', 'is_claim_bonus', 'status_bonus')
-                    ->where('is_claim_bonus', 6)
-                    ->where('status_bonus', 0)
-                    ->where('approval_status', 1)
-                    ->where('members_id', $userId)
-                    ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->first();
 
-                $turnoverMember = TurnoverMember::where('member_id', $userId)->where('constant_bonus_id', 6)->where('status', false)
+                # Check Member Claim Bonus
+                $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                    ->where('member_id', $userId)
+                    ->where('constant_bonus_id', 6)
+                    ->where('status', false)
                     ->whereBetween('created_at', [$subDay, $today])
-                    ->whereRaw("IF(turnover_member < turnover_target, true, false)")
                     ->orderBy('id', 'desc')->first();
 
                 $member = MembersModel::select(['id', 'credit'])->find($userId);
 
-                $canClaimAgain = $item->status_bonus == 1 && $turnoverMember ? 0 : $item->status_bonus;
+                # Check can claim bonus again
+                $canClaim = false;
+                $checkKlaimBonus = false;
+                $bonusMember = 0;
+                if ($turnoverMember) {
+                    $canClaim = $turnoverMember->target > $turnoverMember->to_member;
+
+                    $deposit = DepositModel::select('bonus_amount', 'is_claim_bonus', 'status_bonus')->find($turnoverMember->deposit_id);
+                    $bonusMember = $deposit->bonus_amount;
+
+                    # Finish Bonus Existing when balance member <= 200
+                    if ((($turnoverMember->to_member < $turnoverMember->target) && ($member->credit <= 200)) || ($turnoverMember->to_member >= $turnoverMember->target)) {
+                        $turnoverMember->update([
+                            'status' => true,
+                        ]);
+
+                        $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                            ->where('member_id', $userId)
+                            ->where('constant_bonus_id', 6)
+                            ->where('status', false)
+                            ->whereBetween('created_at', [$subDay, $today])
+                            ->orderBy('id', 'desc')->first();
+                    }
+                }
+                $canClaimAgain = $item->status_bonus == 1 && $canClaim ? 0 : $item->status_bonus;
 
                 $dataBonusSetting[] = [
                     'id' => $item->id,
@@ -395,12 +422,12 @@ class DepositController extends ApiController
                     'bonus_amount' => (int) $item->bonus_amount,
                     'turnover_x' => $item->turnover_x,
                     'turnover_amount' => (float) $item->turnover_amount,
-                    'bonus_amount_member' => $checkKlaimBonus->bonus_amount ?? 0,
+                    'bonus_amount_member' => $bonusMember,
                     'info' => $item->info,
                     'status_bonus' => $item->status_bonus,
                     'can_claim_again' => $canClaimAgain,
                     'durasi_bonus_promo' => $item->durasi_bonus_promo,
-                    'is_claim_bonus' => $checkKlaimBonus ? 1 : 0,
+                    'is_claim_bonus' => $turnoverMember ? 1 : 0,
                     'provider_id' => $item->constant_provider_id ? $providers : [],
                 ];
             }
