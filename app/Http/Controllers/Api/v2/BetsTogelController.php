@@ -16,7 +16,6 @@ use App\Models\BonusSettingModel;
 use App\Models\ConstantBonusModel;
 use App\Models\ConstantProvider;
 use App\Models\ConstantProviderTogelModel;
-use App\Models\DepositModel;
 use App\Models\MembersModel;
 use App\Models\TogelBlokAngka;
 use App\Models\TogelGame;
@@ -51,13 +50,11 @@ class BetsTogelController extends ApiController
             $provider_id = explode(',', $checkBonusFreebet->constant_provider_id);
             $durasiBonus = $checkBonusFreebet->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-            $checkKlaimBonus = DepositModel::select(['bonus_amount', 'jumlah', 'approval_status_at'])
-                ->where('is_claim_bonus', 4)
-                ->where('status_bonus', 0)
-                ->where('approval_status', 1)
-                ->where('members_id', $memberID)
-                ->whereBetween('approval_status_at', [$subDay, now()])->orderBy('approval_status_at', 'desc')->first();
-            if ($checkKlaimBonus) {
+            $checkKlaimBonus = TurnoverMember::select(['status'])
+                ->where('member_id', $memberID)
+                ->where('constant_bonus_id', 4)
+                ->orderBy('id', 'desc')->first();
+            if ($checkKlaimBonus && $checkKlaimBonus->status == 0) {
                 $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
                 $providers = implode(', ', $providers);
                 if (!in_array(16, $provider_id)) {
@@ -75,12 +72,13 @@ class BetsTogelController extends ApiController
             $provider_id = explode(',', $checkBonusDeposit->constant_provider_id);
             $durasiBonus = $checkBonusDeposit->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-            $checkClaimBonus = DepositModel::select(['bonus_amount', 'jumlah', 'approval_status_at'])
-                ->where('is_claim_bonus', 6)
-                ->where('status_bonus', 0)
-                ->where('approval_status', 1)
-                ->where('members_id', $memberID)
-                ->whereBetween('approval_status_at', [$subDay, now()])->orderBy('approval_status_at', 'desc')->first();
+
+            $checkClaimBonus = TurnoverMember::select(['turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                ->where('member_id', $memberID)
+                ->where('constant_bonus_id', 6)
+                ->where('status', false)
+                ->whereBetween('created_at', [$subDay, now()])
+                ->orderBy('id', 'desc')->first();
             if ($checkClaimBonus) {
                 $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
                 $providers = implode(', ', $providers);
