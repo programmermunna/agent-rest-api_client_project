@@ -378,7 +378,7 @@ class DepositController extends ApiController
                 $today = Carbon::now()->format('Y-m-d 23:59:59');
 
                 # Check Member Claim Bonus
-                $turnoverMember = TurnoverMember::select(['turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
                     ->where('member_id', $userId)
                     ->where('constant_bonus_id', 6)
                     ->where('status', false)
@@ -396,6 +396,13 @@ class DepositController extends ApiController
 
                     $deposit = DepositModel::select('bonus_amount', 'is_claim_bonus', 'status_bonus')->find($turnoverMember->deposit_id);
                     $bonusMember = $deposit->bonus_amount;
+
+                    # Finish Bonus Existing
+                    if ((($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) || ($turnoverMember->turnover_member >= $turnoverMember->turnover_target)) {
+                        $turnoverMember->update([
+                            'status' => true,
+                        ]);
+                    }
                 }
                 $canClaimAgain = $item->status_bonus == 1 && $canClaim ? 0 : $item->status_bonus;
 
