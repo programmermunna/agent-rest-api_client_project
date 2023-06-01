@@ -397,11 +397,18 @@ class DepositController extends ApiController
                     $deposit = DepositModel::select('bonus_amount', 'is_claim_bonus', 'status_bonus')->find($turnoverMember->deposit_id);
                     $bonusMember = $deposit->bonus_amount;
 
-                    # Finish Bonus Existing
-                    if ((($turnoverMember->turnover_member < $turnoverMember->turnover_target) && ($member->credit <= 200)) || ($turnoverMember->turnover_member >= $turnoverMember->turnover_target)) {
+                    # Finish Bonus Existing when balance member <= 200
+                    if ((($turnoverMember->to_member < $turnoverMember->target) && ($member->credit <= 200)) || ($turnoverMember->to_member >= $turnoverMember->target)) {
                         $turnoverMember->update([
                             'status' => true,
                         ]);
+
+                        $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                            ->where('member_id', $userId)
+                            ->where('constant_bonus_id', 6)
+                            ->where('status', false)
+                            ->whereBetween('created_at', [$subDay, $today])
+                            ->orderBy('id', 'desc')->first();
                     }
                 }
                 $canClaimAgain = $item->status_bonus == 1 && $canClaim ? 0 : $item->status_bonus;
