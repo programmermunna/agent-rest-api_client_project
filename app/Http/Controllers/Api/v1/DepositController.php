@@ -305,7 +305,7 @@ class DepositController extends ApiController
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                 $today = Carbon::now()->format('Y-m-d 23:59:59');
 
-                $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id', 'status'])
                     ->where('member_id', $userId)
                     ->where('constant_bonus_id', 4)
                     ->orderBy('id', 'desc')->first();
@@ -323,7 +323,7 @@ class DepositController extends ApiController
                         ]);
                     }
 
-                    $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                    $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id', 'status'])
                         ->where('member_id', $userId)
                         ->where('constant_bonus_id', 4)
                         ->orderBy('id', 'desc')->first();
