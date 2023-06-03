@@ -305,7 +305,7 @@ class DepositController extends ApiController
                 $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                 $today = Carbon::now()->format('Y-m-d 23:59:59');
 
-                $turnoverMember = TurnoverMember::select(['turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
                     ->where('member_id', $userId)
                     ->where('constant_bonus_id', 4)
                     ->orderBy('id', 'desc')->first();
@@ -314,6 +314,19 @@ class DepositController extends ApiController
                     $cekSudahPernahDepo = DepositModel::select('id')->where('members_id', $userId)->first();
                 } else {
                     $cekSudahPernahDepo = true;
+                    $member = MembersModel::select(['id', 'credit'])->find($userId);
+
+                    # Finish Bonus Existing when balance member <= 200
+                    if ((($turnoverMember->to_member < $turnoverMember->target) && ($member->credit <= 200)) || ($turnoverMember->to_member >= $turnoverMember->target)) {
+                        $turnoverMember->update([
+                            'status' => true,
+                        ]);
+                    }
+
+                    $turnoverMember = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+                        ->where('member_id', $userId)
+                        ->where('constant_bonus_id', 4)
+                        ->orderBy('id', 'desc')->first();
                 }
 
                 $dataBonusSetting[] = [
