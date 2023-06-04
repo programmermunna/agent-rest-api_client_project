@@ -73,7 +73,7 @@ class WithdrawController extends ApiController
                         $datasNew = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
                             ->where('constant_bonus_id', 4)
                             ->whereNull('withdraw_id')
-                            ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
+                            ->where('status', true)->pluck('deposit_id')->toArray();
 
                         $durasiBonus = $bonus_existing_member->durasi_bonus_promo - 1;
                         $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
@@ -147,7 +147,7 @@ class WithdrawController extends ApiController
                             $datasNew = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
                                 ->where('constant_bonus_id', 4)
                                 ->whereNull('withdraw_id')
-                                ->whereRaw("IF(turnover_member >= turnover_target, false, true)")->first();
+                                ->where('status', false)->first();
 
                             $durasiBonus = $bonus_existing_member->durasi_bonus_promo - 1;
                             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
@@ -408,55 +408,9 @@ class WithdrawController extends ApiController
             if ($bonus_new_member->status_bonus == 1) {
                 $checkBonusNewMember = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 4)
                     ->whereNull('withdraw_id')
-                    ->where('status', false)->first();
+                    ->where('status', true)->first();
 
-                if (!$checkBonusNewMember) {
-                    $Check_deposit_claim_bonus_new_member = DepositModel::where('members_id', $memberId)
-                        ->where('approval_status', 1)
-                        ->where('is_claim_bonus', 4)
-                        ->where('status_bonus', 0)
-                        ->first();
-
-                    $providerId = explode(',', $bonus_new_member->constant_provider_id);
-                    if ($Check_deposit_claim_bonus_new_member) {
-                        if (!in_array(16, $providerId)) {
-                            $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                                ->whereBetween('created_at', [$Check_deposit_claim_bonus_new_member->approval_status_at, now()])
-                                ->where('created_by', $memberId)
-                                ->whereIn('constant_provider_id', $providerId)->sum('bet');
-
-                            $TOMember = $TOSlotCasinoFish;
-                        } else {
-                            $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                                ->whereBetween('created_at', [$Check_deposit_claim_bonus_new_member->approval_status_at, now()])
-                                ->where('created_by', $memberId)
-                                ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                            $TOTogel = BetsTogel::whereBetween('created_at', [$Check_deposit_claim_bonus_new_member->approval_status_at, now()])
-                                ->where('created_by', $memberId)->sum('pay_amount');
-
-                            $TOMember = $TOSlotCasinoFish + $TOTogel;
-                        }
-
-                        $turnover_x = $bonus_new_member->turnover_x;
-
-                        $TO = ($Check_deposit_claim_bonus_new_member->jumlah + $Check_deposit_claim_bonus_new_member->bonus_amount) * $turnover_x;
-
-                        if ($TOMember >= $TO) {
-                            $datas[] = [
-                                'bonus_name' => $bonus_new_member->nama_bonus,
-                                'bonus_id' => $bonus_new_member->constant_bonus_id,
-                                'date_claim' => $Check_deposit_claim_bonus_new_member->approval_status_at,
-                                'turnover' => $TO,
-                                'turnover_member' => $TOMember,
-                                'deposit_id' => $Check_deposit_claim_bonus_new_member->id,
-                                'deposit_amount' => $Check_deposit_claim_bonus_new_member->jumlah,
-                                'bonus_amount' => $Check_deposit_claim_bonus_new_member->bonus_amount,
-                            ];
-                        }
-                    } else {
-                        $message2 = true;
-                    }
-                } else {
+                if ($checkBonusNewMember) {
                     $turnover_x = $bonus_new_member->turnover_x;
                     $TOMember = $checkBonusNewMember->turnover_member;
                     $TO = $checkBonusNewMember->turnover_target;
