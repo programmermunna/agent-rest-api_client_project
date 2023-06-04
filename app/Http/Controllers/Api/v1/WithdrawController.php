@@ -407,7 +407,6 @@ class WithdrawController extends ApiController
             # Check Bonus New Member
             if ($bonus_new_member->status_bonus == 1) {
                 $checkBonusNewMember = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 4)
-                    ->whereNull('withdraw_id')
                     ->where('status', true)->first();
 
                 if ($checkBonusNewMember) {
@@ -415,7 +414,7 @@ class WithdrawController extends ApiController
                     $TOMember = $checkBonusNewMember->turnover_member;
                     $TO = $checkBonusNewMember->turnover_target;
 
-                    if ($TOMember >= $TO) {
+                    if ($checkBonusNewMember->withdraw_id == null) {
                         $Check_deposit_claim_bonus_new_member = DepositModel::select('id', 'jumlah', 'bonus_amount', 'approval_status_at')->find($checkBonusNewMember->deposit_id);
                         $datas[] = [
                             'bonus_name' => $bonus_new_member->nama_bonus,
