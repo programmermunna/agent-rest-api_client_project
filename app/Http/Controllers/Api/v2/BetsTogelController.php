@@ -44,26 +44,35 @@ class BetsTogelController extends ApiController
         $memberID = auth('api')->user()->id;
         $checkBonusFreebet = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount'])->where('constant_bonus_id', 4)->first();
         $checkBonusDeposit = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount', 'max_bonus'])->where('constant_bonus_id', 6)->first();
-
         # Check Bonus New Member
         if ($checkBonusFreebet->status_bonus == 1) {
             $provider_id = explode(',', $checkBonusFreebet->constant_provider_id);
             $durasiBonus = $checkBonusFreebet->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-            $checkKlaimBonus = TurnoverMember::select(['status'])
+            $checkKlaimBonus = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id', 'status'])
                 ->where('member_id', $memberID)
                 ->where('constant_bonus_id', 4)
                 ->orderBy('id', 'desc')->first();
             if ($checkKlaimBonus && $checkKlaimBonus->status == 0) {
-                $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
-                $providers = implode(', ', $providers);
-                if (!in_array(16, $provider_id)) {
-                    return response()->json([
-                        'status' => 'info',
-                        'message' => 'Anda sedang klaim Bonus New Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
-                        'data' => null,
-                    ], 400);
+                # Finish Bonus  when balance member <= 200
+                $member = MembersModel::select('credit')->where('id', $memberID)->first();
+                if ((($checkKlaimBonus->to_member < $checkKlaimBonus->target) && ($member->credit <= 200)) || ($checkKlaimBonus->to_member >= $checkKlaimBonus->target)) {
+                    $checkKlaimBonus->update([
+                        'status' => true,
+                    ]);
                 }
+                if ($checkKlaimBonus->status == 0) {
+                    $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
+                    $providers = implode(', ', $providers);
+                    if (!in_array(16, $provider_id)) {
+                        return response()->json([
+                            'status' => 'info',
+                            'message' => 'Anda sedang klaim Bonus New Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
+                            'data' => null,
+                        ], 400);
+                    }
+                }
+
             }
         }
 
@@ -73,21 +82,30 @@ class BetsTogelController extends ApiController
             $durasiBonus = $checkBonusDeposit->durasi_bonus_promo - 1;
             $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
 
-            $checkClaimBonus = TurnoverMember::select(['turnover_target as target', 'turnover_member as to_member', 'deposit_id'])
+            $checkClaimBonus = TurnoverMember::select(['id', 'turnover_target as target', 'turnover_member as to_member', 'deposit_id', 'status'])
                 ->where('member_id', $memberID)
                 ->where('constant_bonus_id', 6)
                 ->where('status', false)
                 ->whereBetween('created_at', [$subDay, now()])
                 ->orderBy('id', 'desc')->first();
             if ($checkClaimBonus) {
-                $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
-                $providers = implode(', ', $providers);
-                if (!in_array(16, $provider_id)) {
-                    return response()->json([
-                        'status' => 'info',
-                        'message' => 'Anda sedang klaim Bonus Existing Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
-                        'data' => null,
-                    ], 400);
+                # Finish Bonus  when balance member <= 200
+                $member = MembersModel::select('credit')->where('id', $memberID)->first();
+                if ((($checkClaimBonus->to_member < $checkClaimBonus->target) && ($member->credit <= 200)) || ($checkClaimBonus->to_member >= $checkClaimBonus->target)) {
+                    $checkClaimBonus->update([
+                        'status' => true,
+                    ]);
+                }
+                if ($checkClaimBonus->status == 0) {
+                    $providers = ConstantProvider::whereIn('id', $provider_id)->pluck('constant_provider_name')->toArray() ?? [];
+                    $providers = implode(', ', $providers);
+                    if (!in_array(16, $provider_id)) {
+                        return response()->json([
+                            'status' => 'info',
+                            'message' => 'Anda sedang klaim Bonus Existing Member, Anda hanya boleh bermain permainan dari Provider : ' . $providers,
+                            'data' => null,
+                        ], 400);
+                    }
                 }
             }
         }
