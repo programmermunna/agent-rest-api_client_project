@@ -44,7 +44,6 @@ class BetsTogelController extends ApiController
         $memberID = auth('api')->user()->id;
         $checkBonusFreebet = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount'])->where('constant_bonus_id', 4)->first();
         $checkBonusDeposit = BonusSettingModel::select(['status_bonus', 'durasi_bonus_promo', 'constant_provider_id', 'turnover_x', 'bonus_amount', 'max_bonus'])->where('constant_bonus_id', 6)->first();
-
         # Check Bonus New Member
         if ($checkBonusFreebet->status_bonus == 1) {
             $provider_id = explode(',', $checkBonusFreebet->constant_provider_id);
@@ -56,6 +55,7 @@ class BetsTogelController extends ApiController
                 ->orderBy('id', 'desc')->first();
             if ($checkKlaimBonus && $checkKlaimBonus->status == 0) {
                 # Finish Bonus  when balance member <= 200
+                $member = MembersModel::select('credit')->where('id', $memberID)->first();
                 if ((($checkKlaimBonus->to_member < $checkKlaimBonus->target) && ($member->credit <= 200)) || ($checkKlaimBonus->to_member >= $checkKlaimBonus->target)) {
                     $checkKlaimBonus->update([
                         'status' => true,
@@ -90,6 +90,7 @@ class BetsTogelController extends ApiController
                 ->orderBy('id', 'desc')->first();
             if ($checkClaimBonus) {
                 # Finish Bonus  when balance member <= 200
+                $member = MembersModel::select('credit')->where('id', $memberID)->first();
                 if ((($checkClaimBonus->to_member < $checkClaimBonus->target) && ($member->credit <= 200)) || ($checkClaimBonus->to_member >= $checkClaimBonus->target)) {
                     $checkClaimBonus->update([
                         'status' => true,
