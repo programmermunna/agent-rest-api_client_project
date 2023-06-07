@@ -4718,7 +4718,7 @@ class MemberController extends ApiController
         }
     }
 
-    // Daftar Rekeningmember
+    # Daftar Rekeningmember
     public function listRekMember()
     {
         try {
@@ -4740,12 +4740,15 @@ class MemberController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
-    // New Daftar Rekeningmember
+
+    # New Daftar Rekeningmember
     public function listRekAgent()
     {
         try {
             $bankAgent = RekMemberModel::leftJoin('constant_rekening', 'constant_rekening.id', '=', 'rek_member.constant_rekening_id')
-                ->join('rekening', 'rekening.id', 'rek_member.rekening_id')
+                ->join('rekening', 'rekening.id', 'rek_member.rekening_id', function ($q) {
+                    $q->where('is_none', 0);
+                })
                 ->select([
                     'rekening.id',
                     'rekening.nama_rekening',
