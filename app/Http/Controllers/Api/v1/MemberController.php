@@ -4746,9 +4746,7 @@ class MemberController extends ApiController
     {
         try {
             $bankAgent = RekMemberModel::leftJoin('constant_rekening', 'constant_rekening.id', '=', 'rek_member.constant_rekening_id')
-                ->join('rekening', 'rekening.id', 'rek_member.rekening_id', function ($q) {
-                    $q->where('is_none', 0);
-                })
+                ->join('rekening', 'rekening.id', 'rek_member.rekening_id')
                 ->select([
                     'rekening.id',
                     'rekening.nama_rekening',
@@ -4758,6 +4756,7 @@ class MemberController extends ApiController
                 ])
                 ->whereNull('rekening.deleted_by')
                 ->whereNull('rekening.deleted_at')
+                ->where('rekening.is_none', 0)
                 ->where('rek_member.created_by', auth('api')->user()->id)
                 ->get()->toArray();
 
