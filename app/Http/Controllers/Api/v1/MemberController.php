@@ -4718,7 +4718,7 @@ class MemberController extends ApiController
         }
     }
 
-    // Daftar Rekeningmember
+    # Daftar Rekeningmember
     public function listRekMember()
     {
         try {
@@ -4740,7 +4740,8 @@ class MemberController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
-    // New Daftar Rekeningmember
+
+    # New Daftar Rekeningmember
     public function listRekAgent()
     {
         try {
@@ -4755,6 +4756,7 @@ class MemberController extends ApiController
                 ])
                 ->whereNull('rekening.deleted_by')
                 ->whereNull('rekening.deleted_at')
+                ->where('rekening.is_none', 0)
                 ->where('rek_member.created_by', auth('api')->user()->id)
                 ->get()->toArray();
 
