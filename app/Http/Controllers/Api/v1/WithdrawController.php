@@ -425,6 +425,7 @@ class WithdrawController extends ApiController
             } else {
                 if (($message1 == true && $claimBonusExisting == false) || ($message2 == true && $claimBonusNew == false)) {
                     $message = 'Tidak Capai Turnover';
+                    $datas = [];
                 }
             }
 
