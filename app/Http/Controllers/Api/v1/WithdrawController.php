@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Events\WithdrawalCreateBalanceEvent;
 use App\Http\Controllers\ApiController;
-use App\Models\BetModel;
-use App\Models\BetsTogel;
 use App\Models\BonusSettingModel;
 use App\Models\DepositModel;
 use App\Models\DepositWithdrawHistory;
@@ -70,21 +68,45 @@ class WithdrawController extends ApiController
                     $bonus_existing_member = BonusSettingModel::select('status_bonus', 'durasi_bonus_promo')->where('constant_bonus_id', 6)->first();
 
                     if ($bonus_new_member->status_bonus == 1 || $bonus_existing_member->status_bonus == 1) {
-                        $datasNew = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
+                        # Check Claim Bonus New Member
+                        $datasNew = TurnoverMember::select('deposit_id', 'status', 'turnover_target as to', 'turnover_member as to_member')->where('member_id', $memberId)
                             ->where('constant_bonus_id', 4)
-                            ->whereNull('withdraw_id')
-                            ->where('status', true)->pluck('deposit_id')->toArray();
+                            ->whereNull('withdraw_id')->first();
+                        $depositIdBonusNew = [];
+                        if ($datasNew) {
+                            if ($datasNew->to <= $datasNew->to_member) {
+                                $depositIdBonusNew[] = $datasNew->deposit_id;
+                            } else {
+                                if ($datasNew->status == 0) {
+                                    return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
+                                }
+                            }
+                        }
 
+                        # Check Claim Bonus Existing Member
                         $durasiBonus = $bonus_existing_member->durasi_bonus_promo - 1;
                         $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
                         $today = Carbon::now()->format('Y-m-d 23:59:59');
-                        $datasExis = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
+                        $datasExiss = TurnoverMember::select('deposit_id', 'status', 'turnover_target as to', 'turnover_member as to_member')->where('member_id', $memberId)
                             ->where('constant_bonus_id', 6)
-                            ->where('status', 0)
+                            ->whereNull('withdraw_id')
                             ->whereBetween('created_at', [$subDay, $today])
-                            ->whereRaw("IF(turnover_member >= turnover_target, true, false)")->pluck('deposit_id')->toArray();
+                            ->get();
+                        $depositIdBonusExisting = [];
+                        if ($datasExiss->toArray() != []) {
+                            foreach ($datasExiss as $key => $datasExis) {
+                                if ($datasExis->to <= $datasExis->to_member) {
+                                    $depositIdBonusExisting[] = $datasExis->deposit_id;
+                                } else {
+                                    if ($datasExis->status == 0) {
+                                        return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Existing Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
+                                    }
+                                }
+                            }
+                        }
 
-                        $datas = array_merge($datasNew, $datasExis);
+                        # If Member Claim Bonus and achieves TO, member can Request Withdraw
+                        $datas = array_merge($depositIdBonusNew, $depositIdBonusExisting);
                         if ($datas != []) {
                             $payload = [
                                 'members_id' => $memberId,
@@ -142,29 +164,6 @@ class WithdrawController extends ApiController
                             );
                             DB::commit();
                             return $this->successResponse(null, 'Berhasil request withdraw');
-                        } else {
-
-                            $datasNew = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
-                                ->where('constant_bonus_id', 4)
-                                ->whereNull('withdraw_id')
-                                ->where('status', false)->first();
-
-                            $durasiBonus = $bonus_existing_member->durasi_bonus_promo - 1;
-                            $subDay = Carbon::now()->subDays($durasiBonus)->format('Y-m-d 00:00:00');
-                            $today = Carbon::now()->format('Y-m-d 23:59:59');
-                            $datasExis = TurnoverMember::select('deposit_id')->where('member_id', $memberId)
-                                ->where('constant_bonus_id', 6)
-                                ->whereNull('withdraw_id')
-                                ->whereBetween('created_at', [$subDay, $today])
-                                ->where('status', false)
-                                ->whereRaw("IF(turnover_member >= turnover_target, false, true)")->first();
-
-                            if ($datasExis) {
-                                return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus Existing Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
-                            }
-                            if ($datasNew) {
-                                return $this->errorResponse('Maaf, Anda belum bisa melakukan withdraw saat ini, karena Anda belum memenuhi persyaratan untuk klaim Bonus New Member. Anda harus mencapai turnover untuk melakukan withdraw', 400);
-                            }
                         }
                     }
                 }
@@ -311,8 +310,16 @@ class WithdrawController extends ApiController
                     'bonus_setting.constant_bonus_id'
                 )->where('bonus_setting.constant_bonus_id', 4)->first();
 
-            $message1 = false;
-            $message2 = false;
+            # Member Claim Bonus Existing Member
+            $message1 = true;
+            # Member Already  reach TO Bonus Existing Member
+            $claimBonusExisting = true;
+
+            # Member Claim Bonus New Member
+            $message2 = true;
+            # Member Already  reach TO Bonus New Member
+            $claimBonusNew = true;
+
             $datas = [];
 
             $durasiBonus = $bonus_existing->durasi_bonus_promo - 1;
@@ -323,69 +330,13 @@ class WithdrawController extends ApiController
             if ($bonus_existing->status_bonus == 1) {
                 $checkBonusExisting = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 6)
                     ->whereBetween('created_at', [$subDay, $today])
-                    ->where('status', 0)
+                    ->where('status', '!=', 2)
                     ->whereNull('withdraw_id')->get();
-                if ($checkBonusExisting->toArray() == []) {
-                    $checkBonusExisting = DepositModel::where('members_id', $memberId)
-                        ->where('approval_status', 1)
-                        ->where('is_claim_bonus', 6)
-                        ->where('status_bonus', 0)
-                        ->whereBetween('approval_status_at', [$subDay, $today])->orderBy('approval_status_at', 'desc')->get();
-
-                    $checkTurnoverMember = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 6)
-                        ->whereBetween('created_at', [$subDay, $today])
-                        ->where('status', false)->first();
-                    if (!$checkTurnoverMember) {
-                        if ($checkBonusExisting->toArray() == []) {
-                            $message1 = true;
-                        } else {
-                            $providerId = explode(',', $bonus_existing->constant_provider_id);
-                            foreach ($checkBonusExisting as $key => $existingMemberBonus) {
-                                if (!in_array(16, $providerId)) {
-                                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                                        ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, now()])
-                                        ->where('created_by', $memberId)
-                                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-
-                                    $TOMember = $TOSlotCasinoFish;
-                                } else {
-                                    $TOSlotCasinoFish = BetModel::whereIn('type', ['Win', 'Lose', 'Bet', 'Settle'])
-                                        ->whereBetween('created_at', [$existingMemberBonus->approval_status_at, now()])
-                                        ->where('created_by', $memberId)
-                                        ->whereIn('constant_provider_id', $providerId)->sum('bet');
-                                    $TOTogel = BetsTogel::whereBetween('created_at', [$existingMemberBonus->approval_status_at, now()])
-                                        ->where('created_by', $memberId)->sum('pay_amount');
-
-                                    $TOMember = $TOSlotCasinoFish + $TOTogel;
-                                }
-
-                                $turnover_x = $bonus_existing->turnover_x;
-
-                                $TO = ($existingMemberBonus->jumlah + $existingMemberBonus->bonus_amount) * $turnover_x;
-
-                                if ($TOMember >= $TO) {
-                                    $datas[] = [
-                                        'bonus_name' => $bonus_existing->nama_bonus,
-                                        'bonus_id' => $bonus_existing->constant_bonus_id,
-                                        'date_claim' => $existingMemberBonus->approval_status_at,
-                                        'turnover' => $TO,
-                                        'turnover_member' => $TOMember,
-                                        'deposit_id' => $existingMemberBonus->id,
-                                        'deposit_amount' => $existingMemberBonus->jumlah,
-                                        'bonus_amount' => $existingMemberBonus->bonus_amount,
-                                    ];
-                                }
-                            }
-                        }
-                    } else {
-                        $message1 = true;
-                    }
-                } else {
+                if ($checkBonusExisting->toArray() != []) {
                     foreach ($checkBonusExisting as $key => $existingMemberBonus) {
                         $turnover_x = $bonus_existing->turnover_x;
                         $TOMember = $existingMemberBonus->turnover_member;
                         $TO = $existingMemberBonus->turnover_target;
-
                         if ($TOMember >= $TO) {
                             $datas[] = [
                                 'bonus_name' => $bonus_existing->nama_bonus,
@@ -397,24 +348,41 @@ class WithdrawController extends ApiController
                                 'deposit_amount' => $existingMemberBonus->jumlah,
                                 'bonus_amount' => $existingMemberBonus->bonus_amount,
                             ];
+                        } else {
+                            if ($existingMemberBonus->status == 0) {
+                                # Member Claim Bonus Existing Member
+                                $message1 = true;
+                                # Member not reach TO Bonus Existing Member
+                                $claimBonusExisting = false;
+                            } else {
+                                # Member not Claim Bonus Existing Member
+                                $message1 = false;
+                                # Member not reach TO Bonus Existing Member
+                                $claimBonusExisting = false;
+                            }
                         }
                     }
+                } else {
+                    # Member not Claim Bonus Existing Member
+                    $message1 = false;
+                    # Member not reach TO Bonus Existing Member
+                    $claimBonusExisting = false;
                 }
             } else {
-                $message1 = true;
+                # Member not Claim Bonus Existing Member
+                $message1 = false;
+                # Member not reach TO Bonus Existing Member
+                $claimBonusExisting = false;
             }
 
             # Check Bonus New Member
             if ($bonus_new_member->status_bonus == 1) {
-                $checkBonusNewMember = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 4)
-                    ->where('status', true)->first();
-
+                $checkBonusNewMember = TurnoverMember::where('member_id', $memberId)->where('constant_bonus_id', 4)->whereNull('withdraw_id')->first();
                 if ($checkBonusNewMember) {
                     $turnover_x = $bonus_new_member->turnover_x;
                     $TOMember = $checkBonusNewMember->turnover_member;
                     $TO = $checkBonusNewMember->turnover_target;
-
-                    if ($checkBonusNewMember->withdraw_id == null) {
+                    if ($TOMember >= $TO) {
                         $Check_deposit_claim_bonus_new_member = DepositModel::select('id', 'jumlah', 'bonus_amount', 'approval_status_at')->find($checkBonusNewMember->deposit_id);
                         $datas[] = [
                             'bonus_name' => $bonus_new_member->nama_bonus,
@@ -427,18 +395,37 @@ class WithdrawController extends ApiController
                             'bonus_amount' => $Check_deposit_claim_bonus_new_member->bonus_amount,
                         ];
                     } else {
-                        $message2 = true;
+                        if ($checkBonusNewMember->status == 0) {
+                            # Member not Claim Bonus New Member
+                            $message2 = true;
+                            # Member not Already  reach TO Bonus New Member
+                            $claimBonusNew = false;
+                        } else {
+                            # Member not Claim Bonus New Member
+                            $message2 = false;
+                            # Member not Already  reach TO Bonus New Member
+                            $claimBonusNew = false;
+                        }
                     }
+                } else {
+                    # Member not Claim Bonus New Member
+                    $message2 = false;
+                    # Member not Already  reach TO Bonus New Member
+                    $claimBonusNew = false;
                 }
             } else {
-                $message2 = true;
+                # Member not Claim Bonus New Member
+                $message2 = false;
+                # Member not Already  reach TO Bonus New Member
+                $claimBonusNew = false;
             }
 
-            if ($datas == []) {
-                if ($message1 == true && $message2 == true) {
-                    $message = 'Tidak klaim bonus';
-                } else {
+            if ($message1 == false && $message2 == false) {
+                $message = 'Tidak klaim bonus';
+            } else {
+                if (($message1 == true && $claimBonusExisting == false) || ($message2 == true && $claimBonusNew == false)) {
                     $message = 'Tidak Capai Turnover';
+                    $datas = [];
                 }
             }
 
