@@ -17,7 +17,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -30,7 +30,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -59,7 +59,7 @@ class SettingController extends ApiController
             $itempropDescription = "";
             $itempropImage = "";
             if ($metaTag->value) {
-                $dom = new \DOMdocument();
+                $dom = new \DOMdocument ();
                 $dom->loadhtml($metaTag->value);
                 if ($dom->getelementsbytagname('meta')) {
                     $datas = [];
@@ -218,8 +218,78 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             // return $this->errorResponse($th->getMessage(), 500);
+            $meta = [
+                [
+                    'name' => "description",
+                    'content' => '',
+                ],
+                [
+                    'name' => "keywords",
+                    'content' => '',
+                ],
+                [
+                    'name' => "geo.region",
+                    'content' => '',
+                ],
+                [
+                    'name' => "geo.country",
+                    'content' => '',
+                ],
+                [
+                    'name' => "language",
+                    'content' => '',
+                ],
+                [
+                    'name' => "googlebot",
+                    'content' => '',
+                ],
+                [
+                    'name' => "robots",
+                    'content' => '',
+                ],
+                [
+                    'name' => "distribution",
+                    'content' => '',
+                ],
+                [
+                    'name' => "geo.placename",
+                    'content' => '',
+                ],
+                [
+                    'name' => "author",
+                    'content' => '',
+                ],
+                [
+                    'name' => "publisher",
+                    'content' => '',
+                ],
+                [
+                    'property' => "og:type",
+                    'content' => '',
+                ],
+                [
+                    'property' => "og:locale",
+                    'content' => '',
+                ],
+                [
+                    'property' => "og:locale:alternate",
+                    'content' => '',
+                ],
+                [
+                    'itemprop' => "name",
+                    'content' => '',
+                ],
+                [
+                    'itemprop' => "description",
+                    'content' => '',
+                ],
+                [
+                    'itemprop' => "image",
+                    'content' => '',
+                ],
+            ];
             return response()->json([
                 'status' => 'error',
                 'message' => 'meta tag tidak cocok, silakan periksa kode meta tag Anda',
@@ -227,7 +297,7 @@ class SettingController extends ApiController
                     'meta' => $meta,
                     'link' => [
                         'rel' => 'canonical',
-                        'href' => $linkcanonical,
+                        'href' => '',
                     ],
                 ],
             ], 400);
@@ -278,7 +348,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -294,7 +364,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada daftar Togel', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -308,7 +378,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -322,7 +392,7 @@ class SettingController extends ApiController
                 return $this->successResponse($footer_tag->toArray());
             }
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -337,7 +407,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -368,7 +438,7 @@ class SettingController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }

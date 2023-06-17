@@ -66,13 +66,13 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::post('/bonus-deposit-giveup/{depositID}', 'DepositController@BonusDepositGivUp');
         });
 
-        //Withdraw
+        # Withdraw
         Route::post('/withdraw/create', 'WithdrawController@create');
         Route::get('/withdraw/bonus-existing-list', 'WithdrawController@listClaimBonus');
         Route::get('/win_lose_status', 'MemberController@winLoseStatus');
         Route::get('/deposit_withdraw_status', 'MemberController@depostiWithdrawStatus');
 
-        //Memo
+        # Pesan
         Route::group(['prefix' => 'memo'], function () {
             Route::post('/create', 'MemoController@create');
             Route::get('/inbox', 'MemoController@inbox');
@@ -83,31 +83,37 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::get('/notify-memo', 'MemoController@NotifyMemo');
         });
 
-        // statement slot-fish
+        # statement slot-fish
         Route::get('/statement', 'MemberController@getStatement');
         Route::get('/bonus', 'MemberController@bonusTurnover');
-        //statement depo-wd
+
+        # statement depo-wd
         Route::get('/statement-depo-wd', 'MemberController@statementWdDepo');
 
-        // create rekening member
+        # create rekening member
         Route::post('/create_rekening_member', 'MemberController@createRekeningMember');
-        //list rekening member
+
+        # list rekening member
         Route::get('/list_rekening_member', 'MemberController@listRekMember');
 
-        //New list rekening agent Deposit
+        # New list rekening agent Deposit
         Route::get('/list_rek_agent', 'MemberController@listRekAgent');
-        //rekening member is_depo
+        Route::get('/list_rek_agent_qris', 'MemberController@listRekAgentQris');
+
+        # rekening member is_depo
         Route::get('/rekening_member_wd', 'MemberController@rekMemberWd');
-        // update rekening member
+
+        # update rekening member
         Route::post('/update_rekening_member', 'MemberController@updateRekeningMemberWd');
 
-        //Referral
+        # Referral
         Route::group(['prefix' => 'referral'], function () {
             Route::get('/code', 'ReferralController@code');
             Route::get('/list', 'ReferralController@list');
         });
 
     });
+
     // cashback
     Route::get('/cashback', 'MemberController@cashbackSlot');
 
@@ -173,6 +179,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
         });
     });
 });
+
 // api for integration
 Route::group(['prefix' => 'endpoint'], function () {
     # Togel
