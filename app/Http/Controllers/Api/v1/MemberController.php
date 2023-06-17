@@ -4779,7 +4779,35 @@ class MemberController extends ApiController
             return $this->errorResponse($e->getMessage(), 500);
         }
     }
-    // rek member wd
+
+    # New Daftar Rekeningmember
+    public function listRekAgentQris()
+    {
+        try {
+            $bankQris = RekeningModel::join('constant_rekening', 'constant_rekening.id', 'rekening.constant_rekening_id')
+                ->select([
+                    'rekening.id',
+                    'constant_rekening.name',
+                    'rekening.nama_rekening',
+                    'rekening.nomor_rekening',
+                ])
+                ->where(function ($q) {
+                    $q->where('constant_rekening.name', 'QRIS')
+                        ->orWhere('constant_rekening.name', 'Qris')
+                        ->orWhere('constant_rekening.name', 'qris');
+                })
+                ->where('is_default', 1)
+                ->where('is_none', 0)
+                ->whereNull('path')
+                ->first();
+
+            return $this->successResponse($bankQris, 'Daftar Rekening QRIS Agent', 200);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
+    }
+
+    # rek member wd
     public function rekMemberWd()
     {
         try {
