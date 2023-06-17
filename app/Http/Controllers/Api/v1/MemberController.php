@@ -4768,6 +4768,7 @@ class MemberController extends ApiController
                     'rekening.path as qrcode',
                     'constant_rekening.name',
                 ])
+                ->where('constant_rekening.name', '!=', 'QRIS')
                 ->where('is_default', 1)
                 ->where('is_none', 0)
                 ->get()->toArray();
