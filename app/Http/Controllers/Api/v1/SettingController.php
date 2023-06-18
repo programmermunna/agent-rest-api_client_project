@@ -65,60 +65,61 @@ class SettingController extends ApiController
                 if ($dom->getelementsbytagname('meta')) {
                     $datas = [];
                     foreach ($dom->getelementsbytagname('meta') as $meta) {
+                        $valueContent = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
                         if ($meta->getattribute('name') == 'keywords' && $meta->getattribute('content')) {
-                            $keyword = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $keyword = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'description' && $meta->getattribute('content')) {
-                            $description = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $description = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'geo.region' && $meta->getattribute('content')) {
-                            $geoRegion = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $geoRegion = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'geo.country' && $meta->getattribute('content')) {
-                            $geoCountry = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $geoCountry = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'language' && $meta->getattribute('content')) {
-                            $language = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $language = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'googlebot' && $meta->getattribute('content')) {
-                            $googlebot = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $googlebot = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'robots' && $meta->getattribute('content')) {
-                            $robots = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $robots = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'distribution' && $meta->getattribute('content')) {
-                            $distribution = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $distribution = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'geo.placename' && $meta->getattribute('content')) {
-                            $geoPlacename = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $geoPlacename = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'author' && $meta->getattribute('content')) {
-                            $author = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $author = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'publisher' && $meta->getattribute('content')) {
-                            $publisher = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $publisher = $valueContent;
                         }
                         if ($meta->getattribute('property') == 'og:type' && $meta->getattribute('content')) {
-                            $ogType = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $ogType = $valueContent;
                         }
                         if ($meta->getattribute('property') == 'og:locale' && $meta->getattribute('content')) {
-                            $ogLocale = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $ogLocale = $valueContent;
                         }
                         if ($meta->getattribute('property') == 'og:locale:alternate' && $meta->getattribute('content')) {
-                            $ogLocaleAlternate = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $ogLocaleAlternate = $valueContent;
                         }
                         if ($meta->getattribute('name') == 'google-site-verification' && $meta->getattribute('content')) {
-                            $googleSiteVerification = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $googleSiteVerification = $valueContent;
                             $datas[] = $googleSiteVerification;
                         }
                         if ($meta->getattribute('itemprop') == 'name' && $meta->getattribute('content')) {
-                            $itempropName = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $itempropName = $valueContent;
                         }
                         if ($meta->getattribute('itemprop') == 'description' && $meta->getattribute('content')) {
-                            $itempropDescription = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $itempropDescription = $valueContent;
                         }
                         if ($meta->getattribute('itemprop') == 'image' && $meta->getattribute('content')) {
-                            $itempropImage = str_replace('*HTML_ENTITY*', '&', $meta->getattribute('content'));
+                            $itempropImage = $valueContent;
                         }
                     }
                 }
