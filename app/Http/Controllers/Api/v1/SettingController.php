@@ -221,7 +221,6 @@ class SettingController extends ApiController
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
         } catch (\Throwable $th) {
-            dd($th);
             // return $this->errorResponse($th->getMessage(), 500);
             $meta = [
                 [
