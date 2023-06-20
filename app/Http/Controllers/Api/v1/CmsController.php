@@ -4,13 +4,8 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Resources\Api\v1\WebsiteContentResource;
-use App\Models\BetModel;
-use App\Models\BetsTogel;
-use App\Models\DepositModel;
 use App\Models\ImageContent;
 use App\Models\WebSiteContent;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
 
 class CmsController extends ApiController
 {
@@ -23,15 +18,15 @@ class CmsController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
 
     /**
-        * Image Content
-        * filter data by type 
-        * delete not used in frontend order and content
+     * Image Content
+     * filter data by type
+     * delete not used in frontend order and content
      */
     public function imageContent($type)
     {
@@ -67,7 +62,7 @@ class CmsController extends ApiController
                     return $this->successResponse($sildeAndPopupImages, $type . ' nonaktif', 200);
                 }
             }
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -82,7 +77,7 @@ class CmsController extends ApiController
             }
 
             return $this->successResponse(null, 'Tidak ada konten', 204);
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
@@ -106,16 +101,17 @@ class CmsController extends ApiController
                         ->orWhere('type', 'rolling')
                         ->orWhere('type', 'bonus')
                         ->orWhere('type', 'referral')
-                        ->orWhere('type', 'freebet');
+                        ->orWhere('type', 'freebet')
+                        ->orWhere('type', 'promotion');
                 })
-                ->orderByRaw('FIELD(type, "turnover", "bonus_new_member", "bonus_next_deposit", "cashback", "rolling", "referral", "bonus", "freebet")')
+                ->orderByRaw('FIELD(type, "turnover", "bonus_new_member", "bonus_next_deposit", "cashback", "rolling", "referral", "bonus", "freebet", "promotion")')
                 ->get();
             if (is_null($bannerTurnover)) {
                 return $this->successResponse(null, 'Iklan nonaktif', 200);
             } else {
                 return $this->successResponse($bannerTurnover, 'Iklan aktif', 200);
             }
-        } catch (\Throwable$th) {
+        } catch (\Throwable $th) {
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
