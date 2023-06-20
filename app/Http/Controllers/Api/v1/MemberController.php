@@ -2710,7 +2710,7 @@ class MemberController extends ApiController
                         }
                     }
                 }
-                dd($item['bets']);
+
                 # History AIS Gaming Slot Referral
                 $AisGamingReferal = [];
                 foreach ($referalMembers['referrals'] as $key => $value) {
