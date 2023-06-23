@@ -18,6 +18,7 @@ jobs:
       - name: Deploy Member API boyslot
         uses: appleboy/ssh-action@master
         with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
           username: ${{ secrets.HOST }}
           key: ${{ secrets.SSHKEY_S }}
           port: ${{ secrets.SSH_PORT }}
@@ -40,6 +41,7 @@ jobs:
       - name: Deploy Member API lae138
         uses: appleboy/ssh-action@master
         with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
           username: ${{ secrets.HOST }}
           key: ${{ secrets.SSHKEY_S }}
           port: ${{ secrets.SSH_PORT }}
@@ -62,6 +64,7 @@ jobs:
       - name: Deploy  Member API cika303
         uses: appleboy/ssh-action@master
         with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
           username: ${{ secrets.HOST }}
           key: ${{ secrets.SSHKEY_S }}
           port: ${{ secrets.SSH_PORT }}
@@ -84,6 +87,7 @@ jobs:
       - name: Deploy Member API bocah77
         uses: appleboy/ssh-action@master
         with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
           username: ${{ secrets.HOST }}
           key: ${{ secrets.SSHKEY_S }}
           port: ${{ secrets.SSH_PORT }}
@@ -106,6 +110,7 @@ jobs:
       - name: Deploy Member API cikaslot
         uses: appleboy/ssh-action@master
         with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
           username: ${{ secrets.HOST }}
           key: ${{ secrets.SSHKEY_S }}
           port: ${{ secrets.SSH_PORT }}
@@ -128,6 +133,7 @@ jobs:
       - name: Deploy Member API cikatech
         uses: appleboy/ssh-action@master
         with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
           username: ${{ secrets.HOST }}
           key: ${{ secrets.SSHKEY_S }}
           port: ${{ secrets.SSH_PORT }}
