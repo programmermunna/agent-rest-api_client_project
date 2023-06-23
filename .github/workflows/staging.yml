@@ -1,4 +1,4 @@
-name: Deploy Member Api Staging
+name: Deploy Member ApI Staging
 
 on:
   push:
