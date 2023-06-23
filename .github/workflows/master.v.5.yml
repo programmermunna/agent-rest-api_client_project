@@ -1,0 +1,141 @@
+name: Deploy Member ApI Prod
+
+on:
+  push:
+    branches:
+      - master.v.5
+
+jobs:
+  deploy-boyslot:
+    name: Deploy Member API boyslot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+
+      - name: Deploy Member API boyslot
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.boyslot }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapi.sh
+
+  deploy-lae138:
+    name: Deploy Member API lae138
+    runs-on: ubuntu-latest
+    needs: deploy-boyslot
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+
+      - name: Deploy Member API lae138
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.LAE138 }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapi.sh
+            
+  deploy-cika303:
+    name: Deploy Member API cika303
+    runs-on: ubuntu-latest
+    needs: deploy-lae138
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+
+      - name: Deploy  Member API cika303
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.cika303 }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapi.sh
+            
+  deploy-bocah77:
+    name: Deploy Member API bocah77
+    runs-on: ubuntu-latest
+    needs: deploy-cika303
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+
+      - name: Deploy Member API bocah77
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.bocah77 }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapi.sh
+            
+  deploy-cikaslot:
+    name: Deploy Member API cikaslot
+    runs-on: ubuntu-latest
+    needs: deploy-bocah77
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+
+      - name: Deploy Member API cikaslot
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.IP_PROD }}
+          username: ${{ secrets.DO_HOSTNAME }}
+          key: ${{ secrets.SSHKEY_P }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            ./production.sh
+        
+  
+            
+            
+  slackNotif:
+    needs: deploy-cikaslot 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+      - name: Send Notif to slack
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_FOOTER: "Efforts don't betray the results"
+          SLACK_USERNAME: "CikaTech"
+          SLACK_ICON_EMOJI: ':cuddle:'
+          SLACK_LINK_NAMES: true
+          SLACK_MESSAGE: ':gas: Member Api staging deployed successfully @frontdev-team'
+          SLACK_TITLE:   ${{ github.event.head_commit.message }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK}}                    
+            
