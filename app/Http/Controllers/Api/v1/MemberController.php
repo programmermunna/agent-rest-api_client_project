@@ -3146,8 +3146,12 @@ class MemberController extends ApiController
             ->whereBetween('bets_togel.created_at', [$fromDate, $toDate])
             ->where('bets_togel.created_by', '=', auth('api')->user()->id)
             ->orderBy('bets_togel.id', 'DESC')
-            ->groupBy('bets_togel.togel_game_id')
-            ->groupBy(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"))
+            ->groupBy([
+                'bets_togel.togel_game_id',
+                'bets_togel.constant_provider_togel_id',
+                'bets_togel.period',
+                DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"),
+            ])
             ->get();
 
         return $this->togel = collect($result)->map(function ($value) {
@@ -3817,8 +3821,12 @@ class MemberController extends ApiController
             ->whereBetween('bets_togel.created_at', [$fromDate, $toDate])
             ->where('bets_togel.created_by', '=', auth('api')->user()->id)
             ->orderBy('bets_togel.id', 'DESC')
-            ->groupBy('bets_togel.togel_game_id')
-            ->groupBy(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"))
+            ->groupBy([
+                'bets_togel.togel_game_id',
+                'bets_togel.constant_provider_togel_id',
+                'bets_togel.period',
+                DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"),
+            ])
             ->get();
         return $result;
     }
@@ -4442,6 +4450,7 @@ class MemberController extends ApiController
             ")
             ->where(DB::raw("DATE_FORMAT(bets_togel.created_at, '%Y-%m-%d %H:%i')"), Carbon::parse($date->created_at)->format('Y-m-d H:i'))
             ->where('bets_togel.created_by', $date->created_by)
+            ->where('bets_togel.constant_provider_togel_id', $date->constant_provider_togel_id)
             ->where('bets_togel.togel_game_id', $date->togel_game_id)->get()->toArray();
         return $result;
     }
