@@ -116,9 +116,30 @@ jobs:
         
   
             
-            
+  deploy-adaro4d:
+    name: Deploy Member API adaro4d
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+
+      - name: Deploy Member API adaro4d
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.adaro4d }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapi.sh    
+    
   slackNotif:
-    needs: deploy-cikaslot 
+    needs: deploy-adaro4d 
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
