@@ -103,11 +103,13 @@ class Kernel extends HttpKernel
         'jwt.verify' => \App\Http\Middleware\Api\v1\JwtMiddleware::class,
         'open.api' => \App\Http\Middleware\Api\v1\OpenApiMiddleware::class,
 
-        //log middleware
+        // log middleware
         'log-viewer' => \App\Http\Middleware\LogViewerMiddleware::class,
 
         # Cannot Access Endpoint If Member Is Banned
         'member.banned' => \App\Http\Middleware\BanMemberMiddleware::class,
+
+        'authLogin' => \App\Http\Middleware\UserAuthenticationMiddleware::class,
     ];
 
     /**

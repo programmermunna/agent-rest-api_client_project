@@ -27,8 +27,9 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
     // Route::post('/login', 'JWTAuthController@probationLogin');
     // Route::post('/register', 'JWTAuthController@probationRegister');
 
-    Route::group(['middleware' => ['jwt.verify', 'member.banned'], 'prefix' => 'member'], function () {
+    Route::group(['middleware' => ['jwt.verify', 'authLogin', 'member.banned'], 'prefix' => 'member'], function () {
         Route::get('/history_by_type', 'MemberController@historyAll');
+
         // Member
         Route::get('/', 'JWTAuthController@getAuthenticatedMember');
         Route::get('/balance', 'JWTAuthController@getBalanceMember');
@@ -121,7 +122,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
     Route::post('/daily-referal', 'MemberController@dailyReferal');
 
     //Get destination banks
-    Route::group(['middleware' => ['jwt.verify', 'member.banned']], function () {
+    Route::group(['middleware' => ['jwt.verify', 'authLogin', 'member.banned']], function () {
         Route::get('/bank/destination', 'BankController@destination');
     });
 
@@ -144,8 +145,8 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
 
         // IMAGES CONTENT
         Route::group(['prefix' => 'cms'], function () {
-            Route::get('/website-content/{slug}', 'CmsController@websiteContent'); //{slug} => api general-info , my-account , about, help , rules , contact-us
-            Route::get('/image-contents/{type}', 'CmsController@imageContent'); //{type}=> api all , popup , mobile , slide , promotion ///
+            Route::get('/website-content/{slug}', 'CmsController@websiteContent'); // {slug} => api general-info , my-account , about, help , rules , contact-us
+            Route::get('/image-contents/{type}', 'CmsController@imageContent'); // {type}=> api all , popup , mobile , slide , promotion ///
             Route::get('/game-content/{slug}', 'CmsController@gameContent');
             Route::get('/banner_promo_bonus', 'CmsController@bannerPromoBonus');
         });
@@ -154,7 +155,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
             Route::post('/message/create', 'ContactUsController@create');
         });
 
-        //maintenance
+        // maintenance
         Route::group(['prefix' => 'maintenance'], function () {
             Route::get('/', 'LanlanController@maintenance');
             Route::post('/force-logout', 'JWTAuthController@forceLogout');
@@ -180,7 +181,7 @@ Route::group(['namespace' => 'v1', 'as' => 'v1.', 'prefix' => 'v1'], function ()
     });
 });
 
-// api for integration
+# api for integration
 Route::group(['prefix' => 'endpoint'], function () {
     # Togel
     Route::get("settingGames", [TogelSettingGameController::class, 'getTogelSettingGame']);
@@ -197,7 +198,7 @@ Route::group(['prefix' => 'endpoint'], function () {
     Route::get('getDetailTransaksi', [OutResult::class, 'getDetailTransaksi']);
     Route::get('getDetailTransaksiTogel/{id}', [MemberController::class, 'detailDataTogel']);
     # Togel Must Secure when bettin
-    Route::middleware(['jwt.verify', 'member.banned'])->group(function () {
+    Route::middleware(['jwt.verify', 'authLogin', 'member.banned'])->group(function () {
         Route::post('storeTogel', [BetsTogelController::class, 'store']);
     });
 });
