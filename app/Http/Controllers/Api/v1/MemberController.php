@@ -4815,11 +4815,11 @@ class MemberController extends ApiController
             } else {
                 return $this->successResponse(null, 'Tidak ada konten', 204);
             }
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
             return $this->errorResponse('Token absent', 500);
         }
     }
@@ -4895,6 +4895,7 @@ class MemberController extends ApiController
             return $this->errorResponse('Internal Server Error', 500);
         }
     }
+
     public function createRekeningMember(Request $request)
     {
         // validasi
@@ -4969,6 +4970,7 @@ class MemberController extends ApiController
             return $this->errorResponse($e->getMessage(), 500);
         }
     }
+
     public function updateRekeningMemberWd(Request $request)
     {
         try {
@@ -5048,6 +5050,7 @@ class MemberController extends ApiController
                     'rekening.nama_rekening',
                     'rekening.nomor_rekening',
                     'rekening.path as qrcode',
+                    'rekening.link',
                     'constant_rekening.name',
                 ])
                 ->whereNull('rekening.deleted_by')
@@ -5062,6 +5065,7 @@ class MemberController extends ApiController
                     'rekening.nama_rekening',
                     'rekening.nomor_rekening',
                     'rekening.path as qrcode',
+                    'rekening.link',
                     'constant_rekening.name',
                 ])
                 ->where('constant_rekening.name', '!=', 'QRIS')
