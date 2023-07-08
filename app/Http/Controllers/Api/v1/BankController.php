@@ -18,6 +18,7 @@ class BankController extends ApiController
                     'rekening.id as rekId',
                     'rekening.nama_rekening',
                     'rekening.nomor_rekening',
+                    'rekening.link',
                 ])
                 ->where('rekening.is_depo', 1)
                 ->orderBy('constant_rekening_id', 'asc')
