@@ -104,7 +104,8 @@ class CmsController extends ApiController
                         ->orWhere('type', 'freebet')
                         ->orWhere('type', 'promotion');
                 })
-                ->orderByRaw('FIELD(type, "turnover", "bonus_new_member", "bonus_next_deposit", "cashback", "rolling", "referral", "bonus", "freebet", "promotion")')
+                ->orderBy('order', 'ASC')
+            // ->orderByRaw('FIELD(type, "turnover", "bonus_new_member", "bonus_next_deposit", "cashback", "rolling", "referral", "bonus", "freebet", "promotion")')
                 ->get();
             if (is_null($bannerTurnover)) {
                 return $this->successResponse(null, 'Iklan nonaktif', 200);
