@@ -800,6 +800,27 @@ class MemberController extends ApiController
                     'status' => 'success',
                     'referralRedTigerSlot' => $data,
                 ];
+            } elseif ($request->type == 'referralNoLimitCitySlot') { # History Referral No Limit City Slot
+                $RedTigerSlotReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $item) {
+                    if ($item['bets'] != []) {
+                        $RedTigerSlot = collect($item['bets'])->where('constant_provider_id', 23)->all();
+                        foreach ($RedTigerSlot as $value) {
+                            $RedTigerSlotReferal[] = [
+                                'created_at' => $value['created_at'],
+                                'deskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain No Limit City Slot',
+                                'bonus' => $value['bonus_daily_referal'],
+                                'balance' => $value['credit_upline_referral'],
+                            ];
+                        }
+                    }
+                }
+
+                $data = $this->paginate($RedTigerSlotReferal, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralNoLimitCitySlot' => $data,
+                ];
             } elseif ($request->type == 'transaksiPragmaticSlot') { # History Transaksi Pragmatic Slot
                 $pragmaticSlot = $query->select(
                     'bets.bet',
@@ -1278,6 +1299,30 @@ class MemberController extends ApiController
                 return [
                     'status' => 'success',
                     'transaksiSabaSports' => $data,
+                ];
+            } elseif ($request->type == 'transaksiNoLimitCitySlot') { # History Transaksi No Limit City Slot
+                $noLimitCity = $query->select(
+                    'bets.bet',
+                    'bets.game_info',
+                    'bets.bet_id',
+                    'bets.game_id',
+                    'bets.deskripsi',
+                    'bets.credit',
+                    'bets.type',
+                    'bets.win',
+                    'bets.created_at',
+                    'constant_provider.constant_provider_name'
+                )
+                    ->where('bets.created_by', auth('api')->user()->id)
+                    ->where('bets.constant_provider_id', 23)
+                    ->orderBy('bets.created_at', 'desc')->get();
+
+                // $this->queenmakerBet = $qmBet->toArray();
+                $data = $this->paginate($noLimitCity->toArray(), $this->perPage);
+
+                return [
+                    'status' => 'success',
+                    'transaksiNoLimitCitySlot' => $data,
                 ];
             } elseif ($request->type == 'transaksiBonusPromo') { # History Transaksi Bonus Promo
                 $bonusHistory = [];
@@ -2825,8 +2870,54 @@ class MemberController extends ApiController
                     }
                 }
 
+                # History No Limit City Slot Referral
+                $NoLimitCityReferal = [];
+                foreach ($referalMembers['referrals'] as $key => $value) {
+                    if ($item['bets'] != []) {
+                        $NoLimitCity = collect($item['bets'])->where('constant_provider_id', 23)->all();
+                        foreach ($NoLimitCity as $value) {
+                            $NoLimitCityReferal[] = [
+                                'Tables' => 'bonus Referral',
+                                'betsBet' => null,
+                                'betsWin' => null,
+                                'betsGameInfo' => null,
+                                'betsBetId' => null,
+                                'betsGameId' => null,
+                                'betsDeskripsi' => null,
+                                'betsCredit' => null,
+                                'created_at' => $value['created_at'],
+                                'betsProviderName' => null,
+                                'betsTogelHistoryId' => null,
+                                'betsTogelHistoryPasaran' => null,
+                                'betsTogelHistorDeskripsi' => 'Dari downline referal Anda ' . $item['username'] . ' bermain No Limit City Slot',
+                                'betsTogelHistoryDebit' => null,
+                                'betsTogelHistoryKredit' => $value['bonus_daily_referal'],
+                                'betsTogelHistoryBalance' => $value['credit_upline_referral'],
+                                'betsTogelHistoryCreatedBy' => null,
+                                'depositCredit' => null,
+                                'depositJumlah' => null,
+                                'depositStatus' => null,
+                                'depositDescription' => null,
+                                'withdrawCredit' => null,
+                                'withdrawJumlah' => null,
+                                'withdrawStatus' => null,
+                                'withdrawDescription' => null,
+                                'bonusHistoryNamaBonus' => null,
+                                'bonusHistoryType' => null,
+                                'bonusHistoryJumlah' => null,
+                                'bonusHistoryHadiah' => null,
+                                'bonusHistoryStatus' => null,
+                                'bonusHistoryCredit' => null,
+                                'activityDeskripsi' => null,
+                                'activityName' => null,
+                                'detail' => null,
+                            ];
+                        }
+                    }
+                }
+
                 # Combine all history
-                $alldata = array_merge($providers, $allProBet, $activitys, $bonusHistory, $betTogelHistories, $togelReferals, $PragmaticSlotReferal, $PragmaticLiveCasinoReferal, $HabaneroSlotReferal, $JokerSlotReferal, $JokerFishReferal, $SpadeSlotReferal, $SpadeFishReferal, $PGSoftSlotReferal, $JDBSlotReferal, $JDBFishReferal, $SexyGamingLiveCasinoReferal, $IONXLiveCasinoReferal, $OneGameSlotReferal, $RedTigerSlotReferal, $BGGamingReferal, $SV388Referal, $SAGamingReferal, $Slot88Referal, $AisGamingReferal, $SabaSportReferal);
+                $alldata = array_merge($providers, $allProBet, $activitys, $bonusHistory, $betTogelHistories, $togelReferals, $PragmaticSlotReferal, $PragmaticLiveCasinoReferal, $HabaneroSlotReferal, $JokerSlotReferal, $JokerFishReferal, $SpadeSlotReferal, $SpadeFishReferal, $PGSoftSlotReferal, $JDBSlotReferal, $JDBFishReferal, $SexyGamingLiveCasinoReferal, $IONXLiveCasinoReferal, $OneGameSlotReferal, $RedTigerSlotReferal, $BGGamingReferal, $SV388Referal, $SAGamingReferal, $Slot88Referal, $AisGamingReferal, $SabaSportReferal, $NoLimitCityReferal);
                 $date = array_column($alldata, 'created_at');
                 array_multisort($date, SORT_DESC, $alldata);
                 $this->allProviderBet = $alldata;
