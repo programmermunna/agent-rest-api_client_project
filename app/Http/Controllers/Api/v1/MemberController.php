@@ -4565,16 +4565,16 @@ class MemberController extends ApiController
     public function bonusReferal()
     {
         try {
-            $bonus = ConstantProviderTogelModel::select('name', 'value')->where('status', true)->get();
+            $bonus = ConstantProviderTogelModel::select('id', 'name', 'value')->where('status', true)->get();
             if ($bonus->count() < 1) {
                 return $this->successResponse(null, 'Tidak ada data', 200);
             } else {
-                $providers = ConstantProvider::select('constant_provider_name', 'value')->where('id', '!=', 6)->get()->toArray();
+                $providers = ConstantProvider::select('id', 'constant_provider_name', 'value')->where('id', '!=', 6)->get();
                 $data[] = ["togel" => $bonus];
-                $data[] = ["slot" => collect($providers)->whereIn('id', [1, 2, 3, 4, 5, 7, 9, 12, 20, 21])];
-                $data[] = ["tembak_ikan" => collect($providers)->whereIn('id', [13, 14, 15])];
-                $data[] = ["live_casino" => collect($providers)->whereIn('id', [8, 10, 11, 18, 19])];
-                $data[] = ["sport" => collect($providers)->whereIn('id', [22])];
+                $data[] = ["slot" => array_values($providers->whereIn('id', [1, 2, 3, 4, 5, 7, 9, 12, 20, 21, 24])->all())];
+                $data[] = ["tembak_ikan" => array_values($providers->whereIn('id', [13, 14, 15])->all())];
+                $data[] = ["live_casino" => array_values($providers->whereIn('id', [8, 10, 11, 18, 19])->all())];
+                $data[] = ["sport" => array_values($providers->whereIn('id', [22])->all())];
                 return $this->successResponse($data, 'Bonus referal', 200);
             }
         } catch (\Throwable $th) {
