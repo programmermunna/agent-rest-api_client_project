@@ -4610,7 +4610,7 @@ class MemberController extends ApiController
             } else {
                 $providers = ConstantProvider::select('id', 'constant_provider_name', 'value')->where('id', '!=', 6)->get();
                 $data[] = ["togel" => $bonus];
-                $data[] = ["slot" => array_values($providers->whereIn('id', [1, 2, 3, 4, 5, 7, 9, 12, 20, 21, 24])->all())];
+                $data[] = ["slot" => array_values($providers->whereIn('id', [1, 2, 3, 4, 5, 7, 9, 12, 20, 21, 23, 24])->all())];
                 $data[] = ["tembak_ikan" => array_values($providers->whereIn('id', [13, 14, 15])->all())];
                 $data[] = ["live_casino" => array_values($providers->whereIn('id', [8, 10, 11, 18, 19])->all())];
                 $data[] = ["sport" => array_values($providers->whereIn('id', [22])->all())];
