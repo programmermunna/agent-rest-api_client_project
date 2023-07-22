@@ -182,9 +182,14 @@ class DepositController extends ApiController
                 $claimBonus = $bonus_deposit->status_bonus == 1 ? $request->is_claim_bonus : 0;
             }
 
+             # Check Deposit new member
+            $checkDepositNewMember = DepositModel::where('members_id', $this->memberActive->id)
+                ->where('approval_status', 1)->first();
+
             $active_rek = RekMemberModel::where([['created_by', $this->memberActive->id], ['is_depo', 1]])->first();
             $payload = [
                 'rek_member_id' => $request->rekening_member_id,
+                'is_new_member' => $checkDepositNewMember ? false : true,
                 'members_id' => $this->memberActive->id,
                 'rekening_id' => $request->rekening_id,
                 'jumlah' => $request->jumlah,
