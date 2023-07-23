@@ -4022,35 +4022,39 @@ class MemberController extends ApiController
             } elseif ($request->constant_rekening_id && in_array($request->nomor_rekening, $noRekArrays)) {
                 return $this->errorResponse('Nomor rekening yang anda masukkan telah digunakan', 400);
             } else {
-                // MemoModel::insert($create);
-                $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->constant_rekening_id)->where('is_wd', '=', 1)->first();
-                // dd($rekeningDepoMember);
-                $createRekMember = RekMemberModel::create([
-                    'username_member' => auth('api')->user()->username,
-                    'rekening_id' => $rekeningDepoMember->id,
-                    'created_by' => auth('api')->user()->id,
-                    'constant_rekening_id' => $request->constant_rekening_id,
-                    'nomor_rekening' => $request->nomor_rekening,
-                    'nama_rekening' => $request->account_name,
-                    'created_at' => Carbon::now(),
-                ]);
-                $user = auth('api')->user();
-                UserLogModel::logMemberActivity(
-                    'Created New Rekening',
-                    $user,
-                    $createRekMember,
-                    [
-                        'target' => $createRekMember->nomor_rekening,
-                        'activity' => 'Created',
-                        'ip_member' => auth('api')->user()->last_login_ip,
-                    ],
-                    "{$user->name} Created a Rekening nama_rekening: $createRekMember->nama_rekening. nomor_rekening: $createRekMember->nomor_rekening"
-                );
-                // auth('api')->user()->update([
-                //     'last_login_ip' => $request->ip,
-                // ]);
+                $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->constant_rekening_id)->where('is_depo', '=', 1)->first();
+                if ($rekeningDepoMember) {
+                    $createRekMember = RekMemberModel::create([
+                        'username_member' => auth('api')->user()->username,
+                        'rekening_id' => $rekeningDepoMember->id,
+                        'created_by' => auth('api')->user()->id,
+                        'constant_rekening_id' => $request->constant_rekening_id,
+                        'nomor_rekening' => $request->nomor_rekening,
+                        'nama_rekening' => $request->account_name,
+                        'created_at' => Carbon::now(),
+                    ]);
+                    $user = auth('api')->user();
+                    UserLogModel::logMemberActivity(
+                        'Created New Rekening',
+                        $user,
+                        $createRekMember,
+                        [
+                            'target' => $createRekMember->nomor_rekening,
+                            'activity' => 'Created',
+                            'ip_member' => auth('api')->user()->last_login_ip,
+                        ],
+                        "{$user->name} Created a Rekening nama_rekening: $createRekMember->nama_rekening. nomor_rekening: $createRekMember->nomor_rekening"
+                    );
 
-                return $this->successResponse(null, 'Berhasil membuat rekening baru', 200);
+                    return $this->successResponse(null, 'Berhasil membuat rekening baru', 200);
+                }
+
+                $constantRekening = ConstantRekeningModel::select('name')->find($request->constant_rekening_id);
+                if ($constantRekening) {
+                    return $this->errorResponse('Silakan minta CS kami untuk siapkan bank ' . $constantRekening->name . ' untuk deposit. Terima kasih.', 400);
+                }
+                return $this->errorResponse('Silakan minta CS kami untuk siapkan bank untuk deposit. Terima kasih.', 400);
+
             }
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 500);
