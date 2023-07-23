@@ -164,7 +164,34 @@ jobs:
             pwd
             whoami
             ls -la
-            ./memberapiadaro4d.sh             
+            ./memberapiadaro4d.sh       
+            
+            
+  deploy-romaslot88:
+    name: Deploy Member API romaslot88
+    runs-on: ubuntu-latest
+    needs: deploy-adaro4d
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: staging
+
+      - name: Deploy Member API romaslot88
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapiromaslot88.sh                   
+              
+            
+            
             
             
   slackNotif:

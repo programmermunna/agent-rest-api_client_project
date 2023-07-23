@@ -181,8 +181,8 @@ class DepositController extends ApiController
                 $bonus_amount = $bonus_deposit->status_bonus == 1 ? $bonus : 0;
                 $claimBonus = $bonus_deposit->status_bonus == 1 ? $request->is_claim_bonus : 0;
             }
-
-             # Check Deposit new member
+          
+            # Check Deposit new member
             $checkDepositNewMember = DepositModel::where('members_id', $this->memberActive->id)
                 ->where('approval_status', 1)->first();
 
