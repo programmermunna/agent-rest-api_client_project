@@ -714,6 +714,23 @@ class MemberController extends ApiController
                     'status' => 'success',
                     'referralRedTigerSlot' => $data,
                 ];
+            } elseif ($request->type == 'referralNoLimitCitySlot') { # History Referral No Limit City Slot
+                $referralBets = $referralBets->where('constant_provider_id', 23)->orderByDesc('created_at')->get();
+                $referral = [];
+                foreach ($referralBets as $key => $item) {
+                    $referral[] = [
+                        'created_at' => $item->created_at,
+                        'deskripsi' => $item->deskripsi,
+                        'bonus' => $item->hadiah,
+                        'balance' => $item->credit,
+                    ];
+                }
+
+                $data = $this->paginate($referral, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralNoLimitCitySlot' => $data,
+                ];
             } elseif ($request->type == 'referralJiliSlot') { # History Referral Jili Slot
                 $referralBets = $referralBets->where('constant_provider_id', 24)->orderByDesc('created_at')->get();
                 $referral = [];
@@ -1210,8 +1227,31 @@ class MemberController extends ApiController
                     'status' => 'success',
                     'transaksiSabaSports' => $data,
                 ];
+            } elseif ($request->type == 'transaksiNoLimitCitySlot') { # History Transaksi No Limit City Slot
+                $noLimitCity = $query->select(
+                    'bets.bet',
+                    'bets.game_info',
+                    'bets.bet_id',
+                    'bets.game_id',
+                    'bets.deskripsi',
+                    'bets.credit',
+                    'bets.type',
+                    'bets.win',
+                    'bets.created_at',
+                    'constant_provider.constant_provider_name'
+                )
+                    ->where('bets.created_by', auth('api')->user()->id)
+                    ->where('bets.constant_provider_id', 23)
+                    ->orderBy('bets.created_at', 'desc')->get();
+
+                $data = $this->paginate($noLimitCity->toArray(), $this->perPage);
+
+                return [
+                    'status' => 'success',
+                    'transaksiNoLimitCitySlot' => $data,
+                ];
             } elseif ($request->type == 'transaksiJiliSlot') { # History Transaksi Jili Slot
-                $sabaSports = $query->select(
+                $jiliSlot = $query->select(
                     'bets.bet',
                     'bets.game_info',
                     'bets.bet_id',
@@ -1227,8 +1267,7 @@ class MemberController extends ApiController
                     ->where('bets.constant_provider_id', 24)
                     ->orderBy('bets.created_at', 'desc')->get();
 
-                // $this->queenmakerBet = $qmBet->toArray();
-                $data = $this->paginate($sabaSports->toArray(), $this->perPage);
+                $data = $this->paginate($jiliSlot->toArray(), $this->perPage);
 
                 return [
                     'status' => 'success',
@@ -4576,7 +4615,7 @@ class MemberController extends ApiController
             } else {
                 $providers = ConstantProvider::select('id', 'constant_provider_name', 'value')->where('id', '!=', 6)->get();
                 $data[] = ["togel" => $bonus];
-                $data[] = ["slot" => array_values($providers->whereIn('id', [1, 2, 3, 4, 5, 7, 9, 12, 20, 21, 24])->all())];
+                $data[] = ["slot" => array_values($providers->whereIn('id', [1, 2, 3, 4, 5, 7, 9, 12, 20, 21, 23, 24])->all())];
                 $data[] = ["tembak_ikan" => array_values($providers->whereIn('id', [13, 14, 15])->all())];
                 $data[] = ["live_casino" => array_values($providers->whereIn('id', [8, 10, 11, 18, 19])->all())];
                 $data[] = ["sport" => array_values($providers->whereIn('id', [22])->all())];
