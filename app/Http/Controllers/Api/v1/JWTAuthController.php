@@ -74,24 +74,6 @@ class JWTAuthController extends ApiController
             ->orWhere('username', $input['user_account'])
             ->first();
         if ($member) {
-            # check maintenance
-            // $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
-            // $headers = [
-            //     'secret' => config('cikatechMaster.secret_url'),
-            // ];
-            // $requestCikatechMaster = [
-            //     'agent_name' => config('cikatechMaster.agent_name'),
-            //     'ip' => config('cikatechMaster.agent_ip'),
-            // ];
-            // $res = Http::asForm()
-            //     ->withHeaders($headers)
-            //     ->post($maintenanceUrl, $requestCikatechMaster)->json();
-
-            // if ($res['data']['status'] == 1) {
-            //     if (!in_array($member->id, [2, 3, 21])) {
-            //         return $this->errorResponse('Maaf, kita sedang Maintenance!.', 503);
-            //     }
-            // }
 
             /**
              * -----------------------------------------------------------
@@ -170,11 +152,11 @@ class JWTAuthController extends ApiController
             if (!$member) {
                 return $this->errorResponse('Member tidak ditemukan', 404);
             }
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
             return $this->errorResponse('Token absent', 500);
         }
 
@@ -187,11 +169,11 @@ class JWTAuthController extends ApiController
             $member = MembersModel::select(['credit'])->where('id', $this->memberID)->first();
             $balance = ['balance' => (float) $member->credit];
             return $this->successResponse($balance);
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
             return $this->errorResponse('Token absent', 500);
         }
 
@@ -489,11 +471,11 @@ class JWTAuthController extends ApiController
             ]);
 
             return $this->successResponse(null, 'Member berhasil logout.', 200);
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
             return $this->errorResponse('Token absent', 500);
         }
     }
