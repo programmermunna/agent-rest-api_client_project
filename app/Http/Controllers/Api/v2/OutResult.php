@@ -68,7 +68,7 @@ class OutResult extends ApiController
             'period as periode',
             'status as is_active',
         ])
-            ->with(['resultNumber', 'schedule'])
+            ->with(['resultNumber', 'schedules'])
             ->orderBy('id', 'asc')
             ->get();
         return OutResultResource::collection($results);
@@ -78,17 +78,15 @@ class OutResult extends ApiController
     {
 
         $results = ConstantProviderTogelModel::select([
-            'constant_provider_togel.id',
-            'constant_provider_togel.name_initial as nama_id',
-            'constant_provider_togel.name as pasaran',
-            'constant_provider_togel.website_url as web',
-            'constant_provider_togel.hari_diundi as hari_undi',
-            'constant_provider_togel.libur as libur',
-            'constant_provider_togel.tutup as tutup',
-            'constant_provider_togel.jadwal as jadwal',
+            'id',
+            'name_initial as nama_id',
+            'name as pasaran',
+            'website_url as web',
+            'hari_diundi as hari_undi',
+            'libur as libur',
         ])
             ->where('status', true)
-            ->with('resultNumber')
+            ->with(['resultNumber', 'schedules'])
             ->orderByDesc('id')
             ->get()
             ->toArray();
@@ -99,19 +97,17 @@ class OutResult extends ApiController
     {
         $provider = ConstantProviderTogelModel::query()
             ->select([
-                'constant_provider_togel.id',
-                'constant_provider_togel.name_initial as nama_id',
-                'constant_provider_togel.name as pasaran',
-                'constant_provider_togel.website_url as web',
-                'constant_provider_togel.hari_diundi as hari_undi',
-                'constant_provider_togel.libur as libur',
-                'constant_provider_togel.tutup as tutup',
-                'constant_provider_togel.jadwal as jadwal',
-                'constant_provider_togel.period as periode',
-                'constant_provider_togel.status as is_active',
+                'id',
+                'name_initial as nama_id',
+                'name as pasaran',
+                'website_url as web',
+                'hari_diundi as hari_undi',
+                'libur as libur',
+                'period as periode',
+                'status as is_active',
             ])
             ->where('status', true)
-            ->with('resultNumber')
+            ->with(['resultNumber', 'schedules'])
             ->get();
 
         return OutResultResource::collection($provider);
@@ -123,9 +119,8 @@ class OutResult extends ApiController
             ->select([
                 'id',
                 'name as pasaran',
-                'jadwal as jadwal',
             ])
-            ->with('resultNumber')
+            ->with(['resultNumber', 'schedules'])
             ->get();
         return PaitoResource::collection($paito);
 
@@ -142,11 +137,10 @@ class OutResult extends ApiController
                     'website_url as web',
                     'hari_diundi as hari_undi',
                     'libur as libur',
-                    'tutup as tutup',
-                    'jadwal as jadwal',
                     'period as periode',
                     'status as is_active',
-                ]);
+                ])
+                ->with('schedules');
             $paito = $paitos->first();
             $checkPasaran = $paitos->where('id', $request->pasaran)->first();
             $resultNumber = TogelResultNumberModel::leftJoin('constant_provider_togel as a', 'a.id', '=', 'togel_results_number.constant_provider_togel_id')
@@ -186,10 +180,9 @@ class OutResult extends ApiController
                     'hari_undi' => $checkPasaran->hari_undi,
                     'libur' => $checkPasaran->libur,
                     'url' => $checkPasaran->web,
-                    'tutup' => $checkPasaran->tutup,
-                    'jadwal' => $checkPasaran->jadwal,
                     'periode' => $checkPasaran->periode,
                     'is_active' => $checkPasaran->is_active,
+                    'schedules' => $checkPasaran->schedules,
                     'result' => $this->paginate($result->get()->toArray(), $this->perPage),
                 ];
                 return $this->successResponse($data, null, 200);
@@ -206,6 +199,7 @@ class OutResult extends ApiController
                     'jadwal' => $paito->jadwal,
                     'periode' => $paito->periode,
                     'is_active' => $paito->is_active,
+                    'schedules' => $paito->schedules,
                     'result' => $this->paginate($result->get()->toArray(), $this->perPage),
                 ];
                 $message = $request->pasaran == null ? null : 'Pasaran Not Found';
