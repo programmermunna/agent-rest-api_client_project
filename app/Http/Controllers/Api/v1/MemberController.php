@@ -1950,7 +1950,7 @@ class MemberController extends ApiController
             ->join('togel_setting_game', 'bets_togel.togel_setting_game_id', '=', 'togel_setting_game.id')
             ->selectRaw("
                   bets_togel.id,
-                  bets_togel.balance,
+                  IF(SUM(bets_togel.win_lose_status) > 0, MAX(bets_togel.balance), MIN(bets_togel.balance)) as balance,
                   constant_provider_togel.id as constant_provider_togel_id,
                   bets_togel.created_at
 
