@@ -2625,7 +2625,7 @@ class MemberController extends ApiController
             ->selectRaw("
             max(bets_togel.id) as id,
             bets_togel.created_by,
-            min(bets_togel.balance) as balance,
+            IF(SUM(bets_togel.win_lose_status) > 0, MAX(bets_togel.balance), MIN(bets_togel.balance)) as balance,
             constant_provider_togel.id as constant_provider_togel_id,
             bets_togel.created_at
 
