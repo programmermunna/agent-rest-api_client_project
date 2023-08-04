@@ -173,7 +173,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.Beruang988 }}
-          username: ${{ secrets.HOST }}
+          username: ${{ secrets.HOST_IP_UBUNTU }}
           key: ${{ secrets.SSHKEY_S }}
           port: ${{ secrets.SSH_PORT }}
           script: |
