@@ -158,7 +158,31 @@ jobs:
             pwd
             whoami
             ls -la
+            ./memberapi.sh           
+
+  deploy-beruang988:
+    name: Deploy Member API Beruang988
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+
+      - name: Deploy Member API Beruang988
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.Beruang988 }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
             ./memberapi.sh                
+    
+            
     
          
             
