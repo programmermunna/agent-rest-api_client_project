@@ -8,10 +8,8 @@ use App\Models\BetModel;
 use App\Models\BetsTogel;
 use App\Models\BonusHistoryModel;
 use App\Models\ConstantRekeningModel;
-use App\Models\DepositModel;
 use App\Models\FreeBetModel;
 use App\Models\MembersModel;
-use App\Models\MemberToken;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
 use App\Models\TurnoverModel;
@@ -23,16 +21,11 @@ use Illuminate\Pagination\Paginator; # pagination pake ini
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-// use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Livewire\WithPagination;
 use Tymon\JWTAuth\Exceptions\JWTException;
-
-# pagination pake ini
-
-# pagination pake ini
 
 class JWTAuthController extends ApiController
 {
@@ -48,6 +41,7 @@ class JWTAuthController extends ApiController
 
     public function authenticate(Request $request)
     {
+        $wap = $request->wap ?? null;
         $input = $request->all();
         $ipPublic = $request->ip ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         $ipClient = explode(', ', $ipPublic);
@@ -74,24 +68,6 @@ class JWTAuthController extends ApiController
             ->orWhere('username', $input['user_account'])
             ->first();
         if ($member) {
-            # check maintenance
-            // $maintenanceUrl = config('cikatechMaster.url_check_maintenance_agent');
-            // $headers = [
-            //     'secret' => config('cikatechMaster.secret_url'),
-            // ];
-            // $requestCikatechMaster = [
-            //     'agent_name' => config('cikatechMaster.agent_name'),
-            //     'ip' => config('cikatechMaster.agent_ip'),
-            // ];
-            // $res = Http::asForm()
-            //     ->withHeaders($headers)
-            //     ->post($maintenanceUrl, $requestCikatechMaster)->json();
-
-            // if ($res['data']['status'] == 1) {
-            //     if (!in_array($member->id, [2, 3, 21])) {
-            //         return $this->errorResponse('Maaf, kita sedang Maintenance!.', 503);
-            //     }
-            // }
 
             /**
              * -----------------------------------------------------------
@@ -130,6 +106,7 @@ class JWTAuthController extends ApiController
                 'last_login_ip' => $ipClient[0] ?? $request->ip(),
             ]);
 
+            $wap = $wap == 1 ? ' - WAP' : null;
             $user = auth('api')->user();
             UserLogModel::logMemberActivity(
                 'Member Login',
@@ -137,7 +114,7 @@ class JWTAuthController extends ApiController
                 $user,
                 [
                     'target' => $user->username,
-                    'activity' => 'Logged In',
+                    'activity' => 'Logged In' . $wap,
                     'ip_member' => $ipClient[0] ?? $request->ip(),
                 ],
                 'Successfully'
@@ -170,11 +147,11 @@ class JWTAuthController extends ApiController
             if (!$member) {
                 return $this->errorResponse('Member tidak ditemukan', 404);
             }
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
             return $this->errorResponse('Token absent', 500);
         }
 
@@ -187,11 +164,11 @@ class JWTAuthController extends ApiController
             $member = MembersModel::select(['credit'])->where('id', $this->memberID)->first();
             $balance = ['balance' => (float) $member->credit];
             return $this->successResponse($balance);
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
             return $this->errorResponse('Token absent', 500);
         }
 
@@ -216,246 +193,6 @@ class JWTAuthController extends ApiController
                 ['lastWin' => [$lastWin ?? ['win' => 0, 'created_at' => auth('api')->user()->created_at]]],
             ];
             return $this->successResponse($data);
-        } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
-        }
-    }
-
-    # Not Used from Nov, 18 2022 to now
-    public function lastBet()
-    {
-        try {
-
-            $id = auth('api')->user()->id;
-            $lastBet = DB::select("
-                            SELECT
-                                bets.bet,
-                                bets.created_at,
-                                members.username
-                            FROM
-                                bets
-                            INNER JOIN members ON members.id = bets.created_by
-                            WHERE
-                                (
-                                    bets.created_by = $id
-                                ) AND bets.deleted_at IS NULL
-
-                            UNION ALL
-
-                            SELECT
-                                bets_togel.bet_amount AS bet,
-                                bets_togel.created_at,
-                                members.username
-                            FROM
-                                bets_togel
-                            INNER JOIN members ON members.id = bets_togel.created_by
-                            WHERE
-                                bets_togel.created_by = $id AND bets_togel.deleted_at IS NULL
-                            ORDER BY created_at DESC
-                            LIMIT 1
-                        ");
-            // $lastBet = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-            // ->select([
-            //     'bets.bet',
-            //     'bets.created_at',
-            //     'bets.created_by',
-            // ])->where('bets.type', 'Lose')
-            // ->where('bets.created_by', auth('api')->user()->id)
-            // ->latest()
-            // ->limit(1)->first();
-
-            // $getMember = MembersModel::where('id', auth('api')->user()->id)->select('is_cash')->first();
-            // $dt = Carbon::now();
-
-            // if ($dt->dayOfWeek == Carbon::MONDAY && $getMember->is_cash === 0) {
-            //     $date = Carbon::now()->subDays(7);
-            //     $date->format('Y-m-d');
-            //     $enableCashback = ImageContent::where('type', 'cashback')->where('enabled', 1)->select('enabled')->first();
-            //     $cbMember = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-            //     ->select(
-            //         'members.id AS member_id',
-            //         DB::raw("(sum(bets.win)) - (sum(bets.bet)) as Balance"),
-            //     )
-            //         ->where('bets.created_at', '>=', $date)
-            //         ->where('bets.created_by', auth('api')->user()->id)
-            //         ->groupBy('bets.created_by')->first();
-            //     if (is_null($cbMember) && is_null($enableCashback)) {
-            //         return $this->successResponse(null, 'Belum Pernah Melakukan Betting', 200);
-            //     } elseif ($cbMember->Balance < 0) {
-            //         if ($cbMember->Balance > (-50000)) {
-            //             'no cashback';
-            //         } elseif ($cbMember->Balance <= -50000 && $cbMember->Balance >= -10000000) {
-            //             #tambah cashback to credit member
-            //             $member = MembersModel::find($cbMember->member_id);
-            //             $data1 = $cbMember->Balance - $cbMember->Balance - $cbMember->Balance;
-            //             $cashback5 = $data1 * 5 / 100;
-            //             $member->update([
-            //                 'credit' => $cashback5,
-            //                 'is_cash' => 1,
-            //             ]);
-
-            //             #create memo after get cashback
-            //             $createMemo = MemoModel::create([
-            //                 'member_id' => $cbMember->member_id,
-            //                 'sender_id' => 1,
-            //                 'subject' => 'CASHBACK 5%',
-            //                 'is_reply' => 1,
-            //                 'is_bonus' => 1,
-            //                 'content' => 'Selamat Anda Mendapatkan CASHBACK 5% = '. $cashback5,
-            //                 'created_at' => Carbon::now(),
-            //             ]);
-            //         } elseif ($cbMember->Balance <= -10001000 && $cbMember->Balance >= -100000000) {
-            //             #tambah cashback to credit member
-            //             $member = MembersModel::find($cbMember->member_id);
-            //             $data1 = $cbMember->Balance - $cbMember->Balance - $cbMember->Balance;
-            //             $cashback7 = $data1 * 7 / 100;
-            //             $member->update([
-            //                 'credit' => $cashback7,
-            //                 'is_cash' => 1,
-            //             ]);
-
-            //             #create memo after get cashback
-            //             $createMemo = MemoModel::create([
-            //                 'member_id' => $cbMember->member_id,
-            //                 'sender_id' => 1,
-            //                 'subject' => 'CASHBACK 7%',
-            //                 'is_reply' => 1,
-            //                 'is_bonus' => 1,
-            //                 'content' => 'Selamat Anda Mendapatkan CASHBACK 7% = '.$cashback7,
-            //                 'created_at' => Carbon::now(),
-            //             ]);
-            //         } elseif ($cbMember->Balance <= -100001000 && $cbMember->Balance >= -100000000000) {
-            //             #tambah cashback to credit member
-            //             $member = MembersModel::find($cbMember->member_id);
-            //             $data1 = $cbMember->Balance - $cbMember->Balance - $cbMember->Balance;
-            //             $cashback10 = $data1 * 10 / 100;
-            //             $member->update([
-            //                 'credit' => $cashback10,
-            //                 'is_cash' => 1,
-            //             ]);
-
-            //             #create memo after get cashback
-            //             $createMemo = MemoModel::create([
-            //                 'member_id' => $cbMember->member_id,
-            //                 'sender_id' => 1,
-            //                 'subject' => 'CASHBACK 10%',
-            //                 'is_reply' => 1,
-            //                 'is_bonus' => 1,
-            //                 'content' => 'Selamat Anda Mendapatkan CASHBACK 10% = '.$cashback10,
-            //                 'created_at' => Carbon::now(),
-            //             ]);
-            //         }
-            //     }
-            // }
-
-            // #update is_cash to be 0
-            // if ($dt->dayOfWeek == Carbon::SUNDAY) {
-            //     $member = MembersModel::where('id', auth('api')->user()->id);
-            //     $member->update([
-            //         'is_cash' => 0,
-            //     ]);
-            // }
-
-            return $this->successResponse($lastBet);
-        } catch (\Throwable $th) {
-            return $this->errorResponse($th->getMessage(), 500);
-        }
-    }
-
-    # Not Used from Nov, 18 2022 to now
-    public function lastWin()
-    {
-        try {
-            $cekKondisi = DepositModel::where('approval_status', 1)
-                ->where('created_by', auth('api')->user()->id)
-                ->orderBy('approval_status_at', 'asc')->count();
-            // dd($cekKondisi);
-            if (is_null($cekKondisi)) {
-                'Tidak ada data';
-            } elseif ($cekKondisi >= 0 && $cekKondisi <= 2) {
-                $member = MembersModel::where('id', auth('api')->user()->id)->first();
-                $member->update(['is_next_deposit' => 1]);
-            } elseif ($cekKondisi > 2 && $cekKondisi <= 3) {
-                $member = MembersModel::where('id', auth('api')->user()->id)->first();
-                $member->update(['is_next_deposit' => 0]);
-            }
-            // $lastWin = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-            // ->select([
-            //     'bets.win',
-            //     'bets.created_at',
-            //     'bets.created_by',
-
-            // ])->where('bets.type', 'Win')
-            // ->where('bets.created_by', auth('api')->user()->id)
-            // ->latest()
-            // ->limit(1)->get();
-            $id = auth('api')->user()->id;
-            $lastWin = DB::select("
-                            SELECT
-                                bets.win,
-                                bets.created_at,
-                                members.username
-                            FROM
-                                bets
-                            INNER JOIN members ON members.id = bets.created_by
-                            WHERE
-                                (
-                                    bets.created_by = $id
-                                ) AND bets.deleted_at IS NULL
-
-                            UNION ALL
-
-                            SELECT
-                                bets_togel.win_nominal AS win,
-                                bets_togel.created_at,
-                                members.username
-                            FROM
-                                bets_togel
-                            INNER JOIN members ON members.id = bets_togel.created_by
-                            WHERE
-                                bets_togel.win_lose_status = 1 AND bets_togel.created_by = $id AND bets_togel.deleted_at IS NULL
-                            ORDER BY created_at DESC
-                            LIMIT 1
-                        ");
-            return $this->successResponse($lastWin);
-        } catch (\Throwable $th) {
-            return $this->errorResponse('Internal Server Error', 500);
-        }
-    }
-
-    # Not Used from Nov, 18 2022 to now
-    public function history()
-    {
-        try {
-            $date = Carbon::now()->subDays(7);
-            $history = BetModel::join('members', 'members.id', '=', 'bets.created_by')
-                ->join('constant_provider', 'constant_provider.id', '=', 'bets.constant_provider_id')
-                ->select([
-                    'bets.id as betsId',
-                    'bets.constant_provider_id',
-                    'bets.bet_id',
-                    'bets.game_id',
-                    'bets.credit',
-                    'bets.deskripsi',
-                    'bets.created_by',
-                    'bets.bet',
-                    'bets.win',
-                    'bets.created_at',
-                    'bets.player_wl',
-                    'members.id as memberId',
-                    'members.username',
-                    'constant_provider.constant_provider_name',
-                ])
-                ->orderBy('bets.created_at', 'desc')
-                ->where('bets.created_by', auth('api')->user()->id)
-                ->where('bets.created_at', '>=', $date);
-            $this->history = $history->get()->toArray();
-            $arrHistory = $this->paginate($this->history, $this->perPage);
-            if ($arrHistory != null) {
-                return $this->successResponse($arrHistory);
-            } else {
-                return $this->successResponse('Tidak ada histori', 204);
-            }
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
         }
@@ -489,11 +226,11 @@ class JWTAuthController extends ApiController
             ]);
 
             return $this->successResponse(null, 'Member berhasil logout.', 200);
-        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
             return $this->errorResponse('Token expired', 404);
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
             return $this->errorResponse('Token invalid', 400);
-        } catch (Tymon\JWTAuth\Exceptions\JWTException$e) {
+        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
             return $this->errorResponse('Token absent', 500);
         }
     }
@@ -746,31 +483,6 @@ class JWTAuthController extends ApiController
             }
         } catch (\Throwable $th) {
             return $this->errorResponse('Internal Server Error', 500);
-        }
-    }
-
-    # Force Logout All Member if in cikateck master Maintenance
-    public function forceLogout(Request $request)
-    {
-        try {
-            MembersModel::query()->update([
-                'remember_token' => null,
-                'active' => 0,
-            ]);
-            MemberToken::truncate();
-            $projectDir = base_path();
-
-            //$commandResult = exec("cd $projectDir && php artisan jwt:secret -f");
-            //$commandResult = exec("bash ~/logallmemberout.sh");//
-            $commandResult = exec("cd $projectDir && php artisan jwt:secret -f"); //
-            Log::info($commandResult);
-            //Artisan::call('jwt:secret -f');
-            //Artisan::call('optimize');
-            return $this->successResponse('Success force logout all members');
-
-        } catch (\Throwable $th) {
-            Log::error($th);
-            return $this->errorResponse('Internal Error Server!.', 500);
         }
     }
 
