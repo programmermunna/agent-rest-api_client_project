@@ -1391,6 +1391,10 @@ class MemberController extends ApiController
                       NULL as bonusHistoryCredit,
                       NULL as activityDeskripsi,
                       NULL as activityName,
+                      NULL as jumlah,
+                      NULL as credit,
+                      NULL as form,
+                      NULL as deskripsi,
                       NULL as detail
                     ")->get()->toArray();
 
@@ -1443,6 +1447,10 @@ class MemberController extends ApiController
                             NULL as bonusHistoryCredit,
                             NULL as activityDeskripsi,
                             NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
                             NULL as detail
                             FROM
                                 deposit as a
@@ -1496,6 +1504,10 @@ class MemberController extends ApiController
                             NULL as bonusHistoryCredit,
                             NULL as activityDeskripsi,
                             NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
                             NULL as detail
                         FROM
                             withdraw as a
@@ -1607,6 +1619,10 @@ class MemberController extends ApiController
                             NULL as bonusHistoryCredit,
                             NULL as activityDeskripsi,
                             NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
                             NULL as detail
                             FROM
                             deposit_withdraw_history
@@ -1620,7 +1636,6 @@ class MemberController extends ApiController
                     $allProBet = array_merge($depoWithdrawHistory, $depositWithdraw);
 
                 } else {
-
                     $allProBet = DB::select("(SELECT
                             IF(
                                 deposit_id is null
@@ -1723,6 +1738,10 @@ class MemberController extends ApiController
                             NULL as bonusHistoryCredit,
                             NULL as activityDeskripsi,
                             NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
                             NULL as detail
                         FROM
                             deposit_withdraw_history
@@ -1838,6 +1857,10 @@ class MemberController extends ApiController
                             NULL as bonusHistoryCredit,
                             NULL as activityDeskripsi,
                             NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
                             NULL as detail
                         FROM
                             deposit_withdraw_history
@@ -1853,6 +1876,53 @@ class MemberController extends ApiController
                         DESC
                     ");
                 }
+
+                # History Mutasi Edit Credit
+                $editCreditHistory = DB::select("SELECT
+                        'Mutasi Edit Credit' as Tables,
+                        NULL as betsBet,
+                        NULL as betsWin,
+                        NULL as betsGameInfo,
+                        NULL as betsBetId,
+                        NULL as betsGameId,
+                        NULL as betsDeskripsi,
+                        NULL as betsCredit,
+                        created_at as created_at,
+                        NULL as betsProviderName,
+                        NULL as betsTogelHistoryId,
+                        NULL as betsTogelHistoryPasaran,
+                        NULL as betsTogelHistorDeskripsi,
+                        NULL as betsTogelHistoryDebit,
+                        NULL as betsTogelHistoryKredit,
+                        NULL as betsTogelHistoryBalance,
+                        NULL as betsTogelHistoryCreatedBy,
+                        NULL as depositCredit,
+                        NULL as depositJumlah,
+                        NULL as depositStatus,
+                        NULL as 'depositDescription',
+                        NULL as withdrawCredit,
+                        NULL as withdrawJumlah,
+                        NULL as withdrawStatus,
+                        NULL as withdrawDescription,
+                        NULL as bonusHistoryNamaBonus,
+                        NULL as bonusHistoryType,
+                        NULL as bonusHistoryJumlah,
+                        NULL as bonusHistoryHadiah,
+                        NULL as bonusHistoryStatus,
+                        NULL as bonusHistoryCredit,
+                        NULL as activityDeskripsi,
+                        NULL as activityName,
+                        jumlah,
+                        credit as credit,
+                        value as form,
+                        detail_description as deskripsi,
+                        NULL as detail
+                        FROM
+                            mutasi_edit_credit
+                        WHERE
+                            member_id = $id
+                            AND created_at BETWEEN '$fromDate' AND '$toDate'
+                    ");
 
                 # Histori Login/Logout
                 $activity_members = DB::select("SELECT
@@ -1921,6 +1991,10 @@ class MemberController extends ApiController
                         'bonusHistoryCredit' => null,
                         'activityDeskripsi' => $value['device'] != null ? $value['activity'] . " : " . $value['device'] : $value['activity'],
                         'activityName' => $value['device'] != null ? $value['activity'] . " - " . $value['device'] : $value['activity'],
+                        'jumlah' => null,
+                        'credit' => null,
+                        'form' => null,
+                        'deskripsi' => null,
                         'detail' => null,
                     ];
                     $activitys[] = $activity;
@@ -1963,6 +2037,10 @@ class MemberController extends ApiController
                         'bonusHistoryCredit' => null,
                         'activityDeskripsi' => null,
                         'activityName' => null,
+                        'jumlah' => null,
+                        'credit' => null,
+                        'form' => null,
+                        'deskripsi' => null,
                         'detail' => '/endpoint/getDetailTransaksiTogel/' . $value['id'],
                     ];
                     $betTogelHistories[] = $betTogelHis;
@@ -2007,6 +2085,10 @@ class MemberController extends ApiController
                         'bonusHistoryCredit' => $value->credit,
                         'activityDeskripsi' => null,
                         'activityName' => null,
+                        'jumlah' => null,
+                        'credit' => null,
+                        'form' => null,
+                        'deskripsi' => null,
                         'detail' => null,
                     ];
                 }
@@ -2049,13 +2131,17 @@ class MemberController extends ApiController
                         'bonusHistoryCredit' => null,
                         'activityDeskripsi' => null,
                         'activityName' => null,
+                        'jumlah' => null,
+                        'credit' => null,
+                        'form' => null,
+                        'deskripsi' => null,
                         'detail' => null,
                     ];
 
                 }
 
                 # Combine all history
-                $alldata = array_merge($providers, $allProBet, $activitys, $bonusHistory, $betTogelHistories, $referrals);
+                $alldata = array_merge($providers, $allProBet, $editCreditHistory, $activitys, $bonusHistory, $betTogelHistories, $referrals);
                 $date = array_column($alldata, 'created_at');
                 array_multisort($date, SORT_DESC, $alldata);
                 $this->allProviderBet = $alldata;
