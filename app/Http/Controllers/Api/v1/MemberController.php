@@ -257,7 +257,7 @@ class MemberController extends ApiController
                     ];
 
                 } else {
-                    $depoWithdrawHistory = DepositWithdrawHistory::selectRaw("
+                    $withdrawHistory = DepositWithdrawHistory::selectRaw("
                             IF(
                                 deposit_id is null
                                 , 'Withdraw'
@@ -300,11 +300,61 @@ class MemberController extends ApiController
                             ) AS 'withdraw status'
                         ")
                         ->where('member_id', $id)
+                        ->whereNull('deposit_id')
                         ->whereBetween('created_at', [$fromDate, $toDate])
+                        ->orderBy('created_at', 'DESC');
+
+                    $depoWDHistory = DepositWithdrawHistory::selectRaw("
+                            IF(
+                                deposit_id is null
+                                , 'Withdraw'
+                                , 'Deposit'
+                            ) AS tables,
+                            amount as jumlah,
+                            credit,
+                            IF (
+                                status = 'Pending'
+                                , 0
+                                , IF (
+                                    status = 'Approved'
+                                    , 1
+                                    , IF (
+                                        status = 'Rejected'
+                                        , 2
+                                        , 3
+                                    )
+                                )
+                            ) AS approval_status,
+                            created_at,
+                            created_by,
+                            IF(
+                                deposit_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS 'deposit status',
+                            IF(
+                                withdraw_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS 'withdraw status'
+                        ")
+                        ->where('member_id', $id)
+                        ->whereNull('withdraw_id')
+                        ->orderBy('created_at', 'DESC')
+                        ->limit(20)
+                        ->union($withdrawHistory)
                         ->orderBy('created_at', 'DESC')
                         ->get()->toArray() ?? [];
 
-                    $data = $this->paginate($depoWithdrawHistory, $this->perPageWd);
+                    $data = $this->paginate($depoWDHistory, $this->perPageWd);
 
                     return [
                         'status' => 'success',
@@ -1341,6 +1391,10 @@ class MemberController extends ApiController
                       NULL as bonusHistoryCredit,
                       NULL as activityDeskripsi,
                       NULL as activityName,
+                      NULL as jumlah,
+                      NULL as credit,
+                      NULL as form,
+                      NULL as deskripsi,
                       NULL as detail
                     ")->get()->toArray();
 
@@ -1393,6 +1447,10 @@ class MemberController extends ApiController
                             NULL as bonusHistoryCredit,
                             NULL as activityDeskripsi,
                             NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
                             NULL as detail
                             FROM
                                 deposit as a
@@ -1446,6 +1504,10 @@ class MemberController extends ApiController
                             NULL as bonusHistoryCredit,
                             NULL as activityDeskripsi,
                             NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
                             NULL as detail
                         FROM
                             withdraw as a
@@ -1557,6 +1619,10 @@ class MemberController extends ApiController
                             NULL as bonusHistoryCredit,
                             NULL as activityDeskripsi,
                             NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
                             NULL as detail
                             FROM
                             deposit_withdraw_history
@@ -1570,7 +1636,7 @@ class MemberController extends ApiController
                     $allProBet = array_merge($depoWithdrawHistory, $depositWithdraw);
 
                 } else {
-                    $allProBet = DB::select("SELECT
+                    $allProBet = DB::select("(SELECT
                             IF(
                                 deposit_id is null
                                 , 'Withdraw'
@@ -1672,16 +1738,191 @@ class MemberController extends ApiController
                             NULL as bonusHistoryCredit,
                             NULL as activityDeskripsi,
                             NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
                             NULL as detail
                         FROM
                             deposit_withdraw_history
                         WHERE
                             member_id = $id
+                            AND  withdraw_id IS NULL
+                        ORDER BY
+                            created_at
+                        DESC
+                        LIMIT 20)
+
+                        UNION
+
+                        (SELECT
+                            IF(
+                                deposit_id is null
+                                , 'Withdraw'
+                                , 'Deposit'
+                            ) AS Tables,
+                            NULL as betsBet,
+                            NULL as betsWin,
+                            NULL as betsGameInfo,
+                            NULL as betsBetId,
+                            NULL as betsGameId,
+                            NULL as betsDeskripsi,
+                            NULL as betsCredit,
+                            created_at,
+                            NULL as betsProviderName,
+                            NULL as betsTogelHistoryId,
+                            NULL as betsTogelHistoryPasaran,
+                            NULL as betsTogelHistorDeskripsi,
+                            NULL as betsTogelHistoryDebit,
+                            NULL as betsTogelHistoryKredit,
+                            NULL as betsTogelHistoryBalance,
+                            NULL as betsTogelHistoryCreatedBy,
+                            IF(
+                                deposit_id is not null
+                                , credit
+                                , NULL
+                            ) AS depositCredit,
+                            IF(
+                                deposit_id is not null
+                                , amount
+                                , NULL
+                            ) AS depositJumlah,
+                            IF(
+                                deposit_id is not null
+                                , IF (
+                                    status = 'Pending'
+                                    , 0
+                                    , IF (
+                                        status = 'Approved'
+                                        , 1
+                                        , IF (
+                                            status = 'Rejected'
+                                            , 2
+                                            , 3
+                                        )
+                                    )
+                                )
+                                , NULL
+                            ) AS depositStatus,
+                            IF(
+                                deposit_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS depositDescription,
+                            IF(
+                                withdraw_id is not null
+                                , credit
+                                , NULL
+                            ) AS withdrawCredit,
+                            IF(
+                                withdraw_id is not null
+                                , amount
+                                , NULL
+                            ) AS withdrawJumlah,
+                            IF(
+                                withdraw_id is not null
+                                , IF (
+                                    status = 'Pending'
+                                    , 0
+                                    , IF (
+                                        status = 'Approved'
+                                        , 1
+                                        , IF (
+                                            status = 'Rejected'
+                                            , 2
+                                            , 3
+                                        )
+                                    )
+                                )
+                                , NULL
+                            ) AS withdrawStatus,
+                            IF(
+                                withdraw_id is not null
+                                , IF (
+                                    status = 'Approved'
+                                    , 'Success'
+                                    , status
+                                )
+                                , NULL
+                            ) AS withdrawDescription,
+                            NULL as bonusHistoryNamaBonus,
+                            NULL as bonusHistoryType,
+                            NULL as bonusHistoryJumlah,
+                            NULL as bonusHistoryHadiah,
+                            NULL as bonusHistoryStatus,
+                            NULL as bonusHistoryCredit,
+                            NULL as activityDeskripsi,
+                            NULL as activityName,
+                            NULL as jumlah,
+                            NULL as credit,
+                            NULL as form,
+                            NULL as deskripsi,
+                            NULL as detail
+                        FROM
+                            deposit_withdraw_history
+                        WHERE
+                            member_id = $id
+                            AND deposit_id IS NULL
                             AND created_at BETWEEN '$fromDate' AND '$toDate'
                         ORDER BY
                             created_at
-                        DESC");
+                        DESC)
+                        ORDER BY
+                            created_at
+                        DESC
+                    ");
                 }
+
+                # History Mutasi Edit Credit
+                $editCreditHistory = DB::select("SELECT
+                        'Mutasi Edit Credit' as Tables,
+                        NULL as betsBet,
+                        NULL as betsWin,
+                        NULL as betsGameInfo,
+                        NULL as betsBetId,
+                        NULL as betsGameId,
+                        NULL as betsDeskripsi,
+                        NULL as betsCredit,
+                        created_at as created_at,
+                        NULL as betsProviderName,
+                        NULL as betsTogelHistoryId,
+                        NULL as betsTogelHistoryPasaran,
+                        NULL as betsTogelHistorDeskripsi,
+                        NULL as betsTogelHistoryDebit,
+                        NULL as betsTogelHistoryKredit,
+                        NULL as betsTogelHistoryBalance,
+                        NULL as betsTogelHistoryCreatedBy,
+                        NULL as depositCredit,
+                        NULL as depositJumlah,
+                        NULL as depositStatus,
+                        NULL as 'depositDescription',
+                        NULL as withdrawCredit,
+                        NULL as withdrawJumlah,
+                        NULL as withdrawStatus,
+                        NULL as withdrawDescription,
+                        NULL as bonusHistoryNamaBonus,
+                        NULL as bonusHistoryType,
+                        NULL as bonusHistoryJumlah,
+                        NULL as bonusHistoryHadiah,
+                        NULL as bonusHistoryStatus,
+                        NULL as bonusHistoryCredit,
+                        NULL as activityDeskripsi,
+                        NULL as activityName,
+                        jumlah,
+                        credit as credit,
+                        value as form,
+                        detail_description as deskripsi,
+                        NULL as detail
+                        FROM
+                            mutasi_edit_credit
+                        WHERE
+                            member_id = $id
+                            AND created_at BETWEEN '$fromDate' AND '$toDate'
+                    ");
 
                 # Histori Login/Logout
                 $activity_members = DB::select("SELECT
@@ -1750,6 +1991,10 @@ class MemberController extends ApiController
                         'bonusHistoryCredit' => null,
                         'activityDeskripsi' => $value['device'] != null ? $value['activity'] . " : " . $value['device'] : $value['activity'],
                         'activityName' => $value['device'] != null ? $value['activity'] . " - " . $value['device'] : $value['activity'],
+                        'jumlah' => null,
+                        'credit' => null,
+                        'form' => null,
+                        'deskripsi' => null,
                         'detail' => null,
                     ];
                     $activitys[] = $activity;
@@ -1792,6 +2037,10 @@ class MemberController extends ApiController
                         'bonusHistoryCredit' => null,
                         'activityDeskripsi' => null,
                         'activityName' => null,
+                        'jumlah' => null,
+                        'credit' => null,
+                        'form' => null,
+                        'deskripsi' => null,
                         'detail' => '/endpoint/getDetailTransaksiTogel/' . $value['id'],
                     ];
                     $betTogelHistories[] = $betTogelHis;
@@ -1836,6 +2085,10 @@ class MemberController extends ApiController
                         'bonusHistoryCredit' => $value->credit,
                         'activityDeskripsi' => null,
                         'activityName' => null,
+                        'jumlah' => null,
+                        'credit' => null,
+                        'form' => null,
+                        'deskripsi' => null,
                         'detail' => null,
                     ];
                 }
@@ -1878,13 +2131,17 @@ class MemberController extends ApiController
                         'bonusHistoryCredit' => null,
                         'activityDeskripsi' => null,
                         'activityName' => null,
+                        'jumlah' => null,
+                        'credit' => null,
+                        'form' => null,
+                        'deskripsi' => null,
                         'detail' => null,
                     ];
 
                 }
 
                 # Combine all history
-                $alldata = array_merge($providers, $allProBet, $activitys, $bonusHistory, $betTogelHistories, $referrals);
+                $alldata = array_merge($providers, $allProBet, $editCreditHistory, $activitys, $bonusHistory, $betTogelHistories, $referrals);
                 $date = array_column($alldata, 'created_at');
                 array_multisort($date, SORT_DESC, $alldata);
                 $this->allProviderBet = $alldata;
@@ -1897,6 +2154,7 @@ class MemberController extends ApiController
 
             }
         } catch (\Throwable $th) {
+            dd($th);
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
@@ -1950,7 +2208,7 @@ class MemberController extends ApiController
             ->join('togel_setting_game', 'bets_togel.togel_setting_game_id', '=', 'togel_setting_game.id')
             ->selectRaw("
                   bets_togel.id,
-                  bets_togel.balance,
+                  IF(SUM(bets_togel.win_lose_status) > 0, MAX(bets_togel.balance), MIN(bets_togel.balance)) as balance,
                   constant_provider_togel.id as constant_provider_togel_id,
                   bets_togel.created_at
 
@@ -2623,436 +2881,154 @@ class MemberController extends ApiController
             ->leftJoin('togel_shio_name', 'bets_togel.tebak_shio', '=', 'togel_shio_name.id')
             ->join('togel_setting_game', 'bets_togel.togel_setting_game_id', '=', 'togel_setting_game.id')
             ->selectRaw("
-            max(bets_togel.id) as id,
-            bets_togel.created_by,
-            min(bets_togel.balance) as balance,
-            constant_provider_togel.id as constant_provider_togel_id,
-            bets_togel.created_at
+                max(bets_togel.id) as id,
+                bets_togel.created_by,
+                IF(SUM(bets_togel.win_lose_status) > 0, MAX(bets_togel.balance), MIN(bets_togel.balance)) as balance,
+                constant_provider_togel.id as constant_provider_togel_id,
+                bets_togel.created_at
 
-            , members.last_login_ip as 'IP'
-            , members.username as 'Username'
-            , concat(constant_provider_togel.name_initial, '-', bets_togel.period) as 'Pasaran'
-            , if (
-                bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
-                , '4D'
+                , members.last_login_ip as 'IP'
+                , members.username as 'Username'
+                , concat(constant_provider_togel.name_initial, '-', bets_togel.period) as 'Pasaran'
                 , if (
-                    bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
-                    , '3D'
+                    bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
+                    , '4D'
                     , if (
-                        bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
-                        , '2D'
+                        bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
+                        , '3D'
                         , if (
-                            bets_togel.number_6 is null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
-                            , '2D Tengah'
+                            bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
+                            , '2D'
                             , if (
-                                bets_togel.number_6 is null and bets_togel.number_5 is null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
-                                , '2D Depan'
-                                , togel_game.name
-                            )
-                        )
-                    )
-                )
-            ) as 'Game'
-            , if (
-                bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                , concat(bets_togel.number_3, bets_togel.number_4, bets_togel.number_5, bets_togel.number_6)
-                , if (
-                    bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                    , concat(bets_togel.number_4, bets_togel.number_5, bets_togel.number_6)
-                    , if (
-                        bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                        , concat(bets_togel.number_5, bets_togel.number_6)
-                        , if (
-                            bets_togel.number_6 is null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                            , concat(bets_togel.number_4, bets_togel.number_5)
-                            , if (
-                                bets_togel.number_6 is null and bets_togel.number_5 is null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                                , concat(bets_togel.number_3, bets_togel.number_4)
+                                bets_togel.number_6 is null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
+                                , '2D Tengah'
                                 , if (
-                                    togel_game.id = 5 and bets_togel.number_3 is null and bets_togel.number_4 is null and bets_togel.number_5 is null
-                                    ,bets_togel.number_6
-                                    , if (
-                                        togel_game.id = 5 and bets_togel.number_3 is null and bets_togel.number_4 is null and bets_togel.number_6 is null
-                                        ,bets_togel.number_5
-                                        , if (
-                                            togel_game.id = 5 and bets_togel.number_3 is null and bets_togel.number_5 is null and bets_togel.number_6 is null
-                                            ,bets_togel.number_4
-                                            , if (
-                                                togel_game.id = 5 and bets_togel.number_4 is null and bets_togel.number_5 is null and bets_togel.number_6 is null
-                                                ,bets_togel.number_3
-                                                , if (
-                                                    togel_game.id = 6
-                                                    , concat(bets_togel.number_1, bets_togel.number_2)
-                                                    , if (
-                                                        togel_game.id = 7
-                                                        , concat(bets_togel.number_1, bets_togel.number_2, bets_togel.number_3)
-                                                        , if (
-                                                            togel_game.id = 8 and bets_togel.number_3 is null and bets_togel.number_4 is null and bets_togel.number_5 is null
-                                                            , concat(bets_togel.number_6, ' - ' , bets_togel.tebak_as_kop_kepala_ekor)
-                                                            , if (
-                                                                togel_game.id = 8 and bets_togel.number_3 is null and bets_togel.number_4 is null and bets_togel.number_6 is null
-                                                                , concat(bets_togel.number_5, ' - ' , bets_togel.tebak_as_kop_kepala_ekor)
-                                                                , if (
-                                                                    togel_game.id = 8 and bets_togel.number_3 is null and bets_togel.number_5 is null and bets_togel.number_6 is null
-                                                                    , concat(bets_togel.number_4, ' - ' , bets_togel.tebak_as_kop_kepala_ekor)
-                                                                    , if (
-                                                                        togel_game.id = 8 and bets_togel.number_4 is null and bets_togel.number_5 is null and bets_togel.number_6 is null
-                                                                        , concat(bets_togel.number_3, ' - ' , bets_togel.tebak_as_kop_kepala_ekor)
-                                                                        , if (
-                                                                            togel_game.id = 9
-                                                                            , if (
-                                                                                bets_togel.tebak_besar_kecil is null
-                                                                                , if (
-                                                                                    bets_togel.tebak_genap_ganjil is null
-                                                                                    , if (
-                                                                                        bets_togel.tebak_tengah_tepi is null
-                                                                                        , 'nulled'
-                                                                                        , bets_togel.tebak_tengah_tepi
-                                                                                    )
-                                                                                    , bets_togel.tebak_genap_ganjil
-                                                                                )
-                                                                                , bets_togel.tebak_besar_kecil
-                                                                            )
-                                                                            , if (
-                                                                                togel_game.id = 10
-                                                                                , if (
-                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                    , concat('as', '-', 'genap')
-                                                                                    , if (
-                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                        , concat('as', '-', 'ganjil')
-                                                                                        , if (
-                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                            , concat('kop', '-', 'genap')
-                                                                                            , if (
-                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                , concat('kop', '-', 'ganjil')
-                                                                                                , if (
-                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                    , concat('kepala', '-', 'genap')
-                                                                                                    , if (
-                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                        , concat('kepala', '-', 'ganjil')
-                                                                                                        , if (
-                                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                            , concat('ekor', '-', 'genap')
-                                                                                                            , if (
-                                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                                , concat('ekor', '-', 'ganjil')
-                                                                                                                , if (
-                                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_besar_kecil = 'besar'
-                                                                                                                    , concat('as', '-', 'besar')
-                                                                                                                    , if (
-                                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                                                        , concat('as', '-', 'kecil')
-                                                                                                                        , if (
-                                                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_besar_kecil = 'besar'
-                                                                                                                            , concat('kop', '-', 'besar')
-                                                                                                                            , if (
-                                                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                                                                , concat('kop', '-', 'kecil')
-                                                                                                                                , if (
-                                                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_besar_kecil = 'besar'
-                                                                                                                                    , concat('kepala', '-', 'besar')
-                                                                                                                                    , if (
-                                                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                                                                        , concat('kepala', '-', 'kecil')
-                                                                                                                                        , if (
-                                                                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_besar_kecil = 'besar'
-                                                                                                                                            , concat('ekor', '-', 'besar')
-                                                                                                                                            , if (
-                                                                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                                                                                , concat('ekor', '-', 'kecil')
-                                                                                                                                                , 'nulled'
-                                                                                                                                            )
-                                                                                                                                        )
-                                                                                                                                    )
-                                                                                                                                )
-                                                                                                                            )
-                                                                                                                        )
-                                                                                                                    )
-                                                                                                                )
-                                                                                                            )
-                                                                                                        )
-                                                                                                    )
-                                                                                                )
-                                                                                            )
-                                                                                        )
-                                                                                    )
-                                                                                )
-                                                                                , if (
-                                                                                    togel_game.id = 11
-                                                                                    , if (
-                                                                                        bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_mono_stereo = 'stereo'
-                                                                                        , concat('belakang', ' - ', 'stereo')
-                                                                                        , if (
-                                                                                            bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_mono_stereo = 'mono'
-                                                                                            , concat('belakang', ' - ', 'mono')
-                                                                                            , if (
-                                                                                                bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
-                                                                                                , concat('belakang', ' - ', 'kembang')
-                                                                                                , if (
-                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
-                                                                                                    , concat('belakang', ' - ', 'kempis')
-                                                                                                    , if (
-                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
-                                                                                                        , concat('belakang', ' - ', 'kembar')
-                                                                                                        , if (
-                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_mono_stereo = 'stereo'
-                                                                                                            , concat('tengah', ' - ', 'stereo')
-                                                                                                            , if (
-                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_mono_stereo = 'mono'
-                                                                                                                , concat('tengah', ' - ', 'mono')
-                                                                                                                , if (
-                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
-                                                                                                                    , concat('tengah', ' - ', 'kembang')
-                                                                                                                    , if (
-                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
-                                                                                                                        , concat('tengah', ' - ', 'kempis')
-                                                                                                                        , if (
-                                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
-                                                                                                                            , concat('tengah', ' - ', 'kembar')
-                                                                                                                            , if (
-                                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_mono_stereo = 'stereo'
-                                                                                                                                , concat('depan', ' - ', 'stereo')
-                                                                                                                                , if (
-                                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_mono_stereo = 'mono'
-                                                                                                                                    , concat('depan', ' - ', 'mono')
-                                                                                                                                    , if (
-                                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
-                                                                                                                                        , concat('depan', ' - ', 'kembang')
-                                                                                                                                        , if (
-                                                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
-                                                                                                                                            , concat('depan', ' - ', 'kempis')
-                                                                                                                                            , if (
-                                                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
-                                                                                                                                                , concat('depan', ' - ', 'kembar')
-                                                                                                                                                , 'nulled'
-                                                                                                                                            )
-                                                                                                                                        )
-                                                                                                                                    )
-                                                                                                                                )
-                                                                                                                            )
-                                                                                                                        )
-                                                                                                                    )
-                                                                                                                )
-                                                                                                            )
-                                                                                                        )
-                                                                                                    )
-                                                                                                )
-                                                                                            )
-                                                                                        )
-                                                                                    )
-                                                                                    , if (
-                                                                                        togel_game.id = 12
-                                                                                        , if (
-                                                                                            bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                            , concat('belakang', '-', 'besar', '-', 'genap')
-                                                                                            , if (
-                                                                                                bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                , concat('belakang', '-', 'besar', '-', 'ganjil')
-                                                                                                , if (
-                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                    , concat('belakang', '-', 'kecil', '-', 'genap')
-                                                                                                    , if (
-                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                        , concat('belakang', '-', 'kecil', '-', 'ganjil')
-                                                                                                        , if (
-                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                            , concat('tengah', '-', 'besar', '-', 'genap')
-                                                                                                            , if (
-                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                                , concat('tengah', '-', 'besar', '-', 'ganjil')
-                                                                                                                , if (
-                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                                    , concat('tengah', '-', 'kecil', '-', 'genap')
-                                                                                                                    , if (
-                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                                        , concat('tengah', '-', 'kecil', '-', 'ganjil')
-                                                                                                                        , if (
-                                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                                            , concat('depan', '-', 'besar', '-', 'genap')
-                                                                                                                            , if (
-                                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                                                , concat('depan', '-', 'besar', '-', 'ganjil')
-                                                                                                                                , if (
-                                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                                                    , concat('depan', '-', 'kecil', '-', 'genap')
-                                                                                                                                    , if (
-                                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                                                        , concat('depan', '-', 'kecil', '-', 'ganjil')
-                                                                                                                                        , 'nulled'
-                                                                                                                                    )
-                                                                                                                                )
-                                                                                                                            )
-                                                                                                                        )
-                                                                                                                    )
-                                                                                                                )
-                                                                                                            )
-                                                                                                        )
-                                                                                                    )
-                                                                                                )
-                                                                                            )
-                                                                                        )
-                                                                                        , if (
-                                                                                            togel_game.id = 13
-                                                                                            , if (
-                                                                                                bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                , 'genap'
-                                                                                                , if (
-                                                                                                    bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                    , 'ganjil'
-                                                                                                    , if (
-                                                                                                        bets_togel.tebak_besar_kecil = 'besar'
-                                                                                                        , 'besar'
-                                                                                                        , if (
-                                                                                                            bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                                            , 'kecil'
-                                                                                                            , 'nulled'
-                                                                                                        )
-                                                                                                    )
-                                                                                                )
-                                                                                            )
-                                                                                            , if (
-                                                                                                togel_game.id = 14
-                                                                                                , togel_shio_name.name
-                                                                                                , 'nulled'
-                                                                                            )
-                                                                                        )
-                                                                                    )
-                                                                                )
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
+                                    bets_togel.number_6 is null and bets_togel.number_5 is null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null and bets_togel.togel_game_id = 1
+                                    , '2D Depan'
+                                    , togel_game.name
                                 )
                             )
                         )
                     )
-                )
-            ) as 'Nomor'
-            , SUM(bets_togel.bet_amount) as 'Bet'
-            , SUM(bets_togel.pay_amount) as 'Bayar'
-            , SUM(bets_togel.win_nominal) as 'winTogel'
-            , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'discKei'
-
-
-            , if (
-                bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                , concat(floor(togel_setting_game.win_4d_x), 'x')
+                ) as 'Game'
                 , if (
-                    bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                    , concat(floor(togel_setting_game.win_3d_x), 'x')
+                    bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                    , concat(bets_togel.number_3, bets_togel.number_4, bets_togel.number_5, bets_togel.number_6)
                     , if (
-                        bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                        , concat(floor(togel_setting_game.win_2d_x), 'x')
+                        bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                        , concat(bets_togel.number_4, bets_togel.number_5, bets_togel.number_6)
                         , if (
-                            bets_togel.number_6 is null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                            , concat(floor(togel_setting_game.win_2d_tengah_x), 'x')
+                            bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                            , concat(bets_togel.number_5, bets_togel.number_6)
                             , if (
-                                bets_togel.number_6 is null and bets_togel.number_5 is null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
-                                , concat(floor(togel_setting_game.win_2d_depan_x), 'x')
+                                bets_togel.number_6 is null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                                , concat(bets_togel.number_4, bets_togel.number_5)
                                 , if (
-                                    togel_game.id = 5
-                                    , concat(togel_setting_game.win_x, 'x')
+                                    bets_togel.number_6 is null and bets_togel.number_5 is null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                                    , concat(bets_togel.number_3, bets_togel.number_4)
                                     , if (
-                                        togel_game.id = 6
-                                        , concat(floor(togel_setting_game.win_2_digit), '/', floor(togel_setting_game.win_3_digit), '/', floor(togel_setting_game.win_4_digit), 'x')
+                                        togel_game.id = 5 and bets_togel.number_3 is null and bets_togel.number_4 is null and bets_togel.number_5 is null
+                                        ,bets_togel.number_6
                                         , if (
-                                            togel_game.id = 7
-                                            , concat(floor(togel_setting_game.win_3_digit), '/', floor(togel_setting_game.win_4_digit), 'x')
+                                            togel_game.id = 5 and bets_togel.number_3 is null and bets_togel.number_4 is null and bets_togel.number_6 is null
+                                            ,bets_togel.number_5
                                             , if (
-                                                togel_game.id = 8
-                                                , concat(if (
-                                                    bets_togel.tebak_as_kop_kepala_ekor = 'as'
-                                                    , concat(floor(togel_setting_game.win_as), 'x')
-                                                    , if (
-                                                        bets_togel.tebak_as_kop_kepala_ekor = 'kop'
-                                                        , concat(floor(togel_setting_game.win_kop), 'x')
-                                                        , if (
-                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kepala'
-                                                            , concat(floor(togel_setting_game.win_kepala), 'x')
-                                                            , if (
-                                                                bets_togel.tebak_as_kop_kepala_ekor = 'ekor'
-                                                                , concat(floor(togel_setting_game.win_ekor), 'x')
-                                                                , 'nulled'
-                                                            )
-                                                        )
-                                                    )
-                                                ))
+                                                togel_game.id = 5 and bets_togel.number_3 is null and bets_togel.number_5 is null and bets_togel.number_6 is null
+                                                ,bets_togel.number_4
                                                 , if (
-                                                    togel_game.id = 9
+                                                    togel_game.id = 5 and bets_togel.number_4 is null and bets_togel.number_5 is null and bets_togel.number_6 is null
+                                                    ,bets_togel.number_3
                                                     , if (
-                                                        bets_togel.tebak_besar_kecil is null
+                                                        togel_game.id = 6
+                                                        , concat(bets_togel.number_1, bets_togel.number_2)
                                                         , if (
-                                                            bets_togel.tebak_genap_ganjil is null
+                                                            togel_game.id = 7
+                                                            , concat(bets_togel.number_1, bets_togel.number_2, bets_togel.number_3)
                                                             , if (
-                                                                bets_togel.tebak_tengah_tepi is null
-                                                                , 'nulled'
-                                                                , concat(floor(togel_setting_game.win_x), 'x')
-                                                            )
-                                                            , concat(floor(togel_setting_game.win_x), 'x')
-                                                        )
-                                                        , concat(floor(togel_setting_game.win_x), 'x')
-                                                    )
-                                                    , if (
-                                                        togel_game.id = 10
-                                                        , if (
-                                                            bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                            , concat(floor(togel_setting_game.win_x), 'x')
-                                                            , if (
-                                                                bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                togel_game.id = 8 and bets_togel.number_3 is null and bets_togel.number_4 is null and bets_togel.number_5 is null
+                                                                , concat(bets_togel.number_6, ' - ' , bets_togel.tebak_as_kop_kepala_ekor)
                                                                 , if (
-                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                    togel_game.id = 8 and bets_togel.number_3 is null and bets_togel.number_4 is null and bets_togel.number_6 is null
+                                                                    , concat(bets_togel.number_5, ' - ' , bets_togel.tebak_as_kop_kepala_ekor)
                                                                     , if (
-                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                        togel_game.id = 8 and bets_togel.number_3 is null and bets_togel.number_5 is null and bets_togel.number_6 is null
+                                                                        , concat(bets_togel.number_4, ' - ' , bets_togel.tebak_as_kop_kepala_ekor)
                                                                         , if (
-                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                            togel_game.id = 8 and bets_togel.number_4 is null and bets_togel.number_5 is null and bets_togel.number_6 is null
+                                                                            , concat(bets_togel.number_3, ' - ' , bets_togel.tebak_as_kop_kepala_ekor)
                                                                             , if (
-                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                togel_game.id = 9
                                                                                 , if (
-                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                    bets_togel.tebak_besar_kecil is null
                                                                                     , if (
-                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                        bets_togel.tebak_genap_ganjil is null
                                                                                         , if (
-                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_besar_kecil = 'besar'
-                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                            bets_togel.tebak_tengah_tepi is null
+                                                                                            , 'nulled'
+                                                                                            , bets_togel.tebak_tengah_tepi
+                                                                                        )
+                                                                                        , bets_togel.tebak_genap_ganjil
+                                                                                    )
+                                                                                    , bets_togel.tebak_besar_kecil
+                                                                                )
+                                                                                , if (
+                                                                                    togel_game.id = 10
+                                                                                    , if (
+                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                        , concat('as', '-', 'genap')
+                                                                                        , if (
+                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                            , concat('as', '-', 'ganjil')
                                                                                             , if (
-                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                , concat('kop', '-', 'genap')
                                                                                                 , if (
-                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_besar_kecil = 'besar'
-                                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                    , concat('kop', '-', 'ganjil')
                                                                                                     , if (
-                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                        , concat('kepala', '-', 'genap')
                                                                                                         , if (
-                                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_besar_kecil = 'besar'
-                                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                            , concat('kepala', '-', 'ganjil')
                                                                                                             , if (
-                                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                                , concat('ekor', '-', 'genap')
                                                                                                                 , if (
-                                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_besar_kecil = 'besar'
-                                                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                                    , concat('ekor', '-', 'ganjil')
                                                                                                                     , if (
-                                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
-                                                                                                                        , 'nulled'
+                                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_besar_kecil = 'besar'
+                                                                                                                        , concat('as', '-', 'besar')
+                                                                                                                        , if (
+                                                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                                                            , concat('as', '-', 'kecil')
+                                                                                                                            , if (
+                                                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_besar_kecil = 'besar'
+                                                                                                                                , concat('kop', '-', 'besar')
+                                                                                                                                , if (
+                                                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                                                                    , concat('kop', '-', 'kecil')
+                                                                                                                                    , if (
+                                                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_besar_kecil = 'besar'
+                                                                                                                                        , concat('kepala', '-', 'besar')
+                                                                                                                                        , if (
+                                                                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                                                                            , concat('kepala', '-', 'kecil')
+                                                                                                                                            , if (
+                                                                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_besar_kecil = 'besar'
+                                                                                                                                                , concat('ekor', '-', 'besar')
+                                                                                                                                                , if (
+                                                                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                                                                                    , concat('ekor', '-', 'kecil')
+                                                                                                                                                    , 'nulled'
+                                                                                                                                                )
+                                                                                                                                            )
+                                                                                                                                        )
+                                                                                                                                    )
+                                                                                                                                )
+                                                                                                                            )
+                                                                                                                        )
                                                                                                                     )
                                                                                                                 )
                                                                                                             )
@@ -3062,61 +3038,61 @@ class MemberController extends ApiController
                                                                                             )
                                                                                         )
                                                                                     )
-                                                                                )
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                )
-                                                            )
-                                                        )
-                                                        , if (
-                                                            togel_game.id = 11
-                                                            , if (
-                                                                bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_mono_stereo = 'stereo'
-                                                                , concat(floor(togel_setting_game.win_x), 'x')
-                                                                , if (
-                                                                    bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_mono_stereo = 'mono'
-                                                                    , concat(floor(togel_setting_game.win_x), 'x')
-                                                                    , if (
-                                                                        bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
-                                                                        , concat(floor(togel_setting_game.win_x), 'x')
-                                                                        , if (
-                                                                            bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
-                                                                            , concat(floor(togel_setting_game.win_x), 'x')
-                                                                            , if (
-                                                                                bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
-                                                                                , concat(floor(togel_setting_game.win_x), 'x')
-                                                                                , if (
-                                                                                    bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_mono_stereo = 'stereo'
-                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
                                                                                     , if (
-                                                                                        bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_mono_stereo = 'mono'
-                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                        togel_game.id = 11
                                                                                         , if (
-                                                                                            bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
-                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                            bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_mono_stereo = 'stereo'
+                                                                                            , concat('belakang', ' - ', 'stereo')
                                                                                             , if (
-                                                                                                bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
-                                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_mono_stereo = 'mono'
+                                                                                                , concat('belakang', ' - ', 'mono')
                                                                                                 , if (
-                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
-                                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
+                                                                                                    , concat('belakang', ' - ', 'kembang')
                                                                                                     , if (
-                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_mono_stereo = 'stereo'
-                                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
+                                                                                                        , concat('belakang', ' - ', 'kempis')
                                                                                                         , if (
-                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_mono_stereo = 'mono'
-                                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
+                                                                                                            , concat('belakang', ' - ', 'kembar')
                                                                                                             , if (
-                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
-                                                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_mono_stereo = 'stereo'
+                                                                                                                , concat('tengah', ' - ', 'stereo')
                                                                                                                 , if (
-                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
-                                                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_mono_stereo = 'mono'
+                                                                                                                    , concat('tengah', ' - ', 'mono')
                                                                                                                     , if (
-                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
-                                                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
-                                                                                                                        , 'nulled'
+                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
+                                                                                                                        , concat('tengah', ' - ', 'kembang')
+                                                                                                                        , if (
+                                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
+                                                                                                                            , concat('tengah', ' - ', 'kempis')
+                                                                                                                            , if (
+                                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
+                                                                                                                                , concat('tengah', ' - ', 'kembar')
+                                                                                                                                , if (
+                                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_mono_stereo = 'stereo'
+                                                                                                                                    , concat('depan', ' - ', 'stereo')
+                                                                                                                                    , if (
+                                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_mono_stereo = 'mono'
+                                                                                                                                        , concat('depan', ' - ', 'mono')
+                                                                                                                                        , if (
+                                                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
+                                                                                                                                            , concat('depan', ' - ', 'kembang')
+                                                                                                                                            , if (
+                                                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
+                                                                                                                                                , concat('depan', ' - ', 'kempis')
+                                                                                                                                                , if (
+                                                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
+                                                                                                                                                    , concat('depan', ' - ', 'kembar')
+                                                                                                                                                    , 'nulled'
+                                                                                                                                                )
+                                                                                                                                            )
+                                                                                                                                        )
+                                                                                                                                    )
+                                                                                                                                )
+                                                                                                                            )
+                                                                                                                        )
                                                                                                                     )
                                                                                                                 )
                                                                                                             )
@@ -3125,87 +3101,87 @@ class MemberController extends ApiController
                                                                                                 )
                                                                                             )
                                                                                         )
-                                                                                    )
-                                                                                )
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                )
-                                                            )
-                                                            , if (
-                                                                togel_game.id = 12
-                                                                , if (
-                                                                    bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                    , concat(togel_setting_game.win_x, 'x')
-                                                                    , if (
-                                                                        bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                        , concat(togel_setting_game.win_x, 'x')
-                                                                        , if (
-                                                                            bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                            , concat(togel_setting_game.win_x, 'x')
-                                                                            , if (
-                                                                                bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                , concat(togel_setting_game.win_x, 'x')
-                                                                                , if (
-                                                                                    bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                    , concat(togel_setting_game.win_x, 'x')
-                                                                                    , if (
-                                                                                        bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                        , concat(togel_setting_game.win_x, 'x')
                                                                                         , if (
-                                                                                            bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                            , concat(togel_setting_game.win_x, 'x')
+                                                                                            togel_game.id = 12
                                                                                             , if (
-                                                                                                bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                , concat(togel_setting_game.win_x, 'x')
+                                                                                                bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                , concat('belakang', '-', 'besar', '-', 'genap')
                                                                                                 , if (
-                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                    , concat(togel_setting_game.win_x, 'x')
+                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                    , concat('belakang', '-', 'besar', '-', 'ganjil')
                                                                                                     , if (
-                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                        , concat(togel_setting_game.win_x, 'x')
+                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                        , concat('belakang', '-', 'kecil', '-', 'genap')
                                                                                                         , if (
-                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
-                                                                                                            , concat(togel_setting_game.win_x, 'x')
+                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                            , concat('belakang', '-', 'kecil', '-', 'ganjil')
                                                                                                             , if (
-                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                                                                , concat(togel_setting_game.win_x, 'x')
+                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                                , concat('tengah', '-', 'besar', '-', 'genap')
+                                                                                                                , if (
+                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                                    , concat('tengah', '-', 'besar', '-', 'ganjil')
+                                                                                                                    , if (
+                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                                        , concat('tengah', '-', 'kecil', '-', 'genap')
+                                                                                                                        , if (
+                                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                                            , concat('tengah', '-', 'kecil', '-', 'ganjil')
+                                                                                                                            , if (
+                                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                                                , concat('depan', '-', 'besar', '-', 'genap')
+                                                                                                                                , if (
+                                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                                                    , concat('depan', '-', 'besar', '-', 'ganjil')
+                                                                                                                                    , if (
+                                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                                                        , concat('depan', '-', 'kecil', '-', 'genap')
+                                                                                                                                        , if (
+                                                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                                                            , concat('depan', '-', 'kecil', '-', 'ganjil')
+                                                                                                                                            , 'nulled'
+                                                                                                                                        )
+                                                                                                                                    )
+                                                                                                                                )
+                                                                                                                            )
+                                                                                                                        )
+                                                                                                                    )
+                                                                                                                )
+                                                                                                            )
+                                                                                                        )
+                                                                                                    )
+                                                                                                )
+                                                                                            )
+                                                                                            , if (
+                                                                                                togel_game.id = 13
+                                                                                                , if (
+                                                                                                    bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                    , 'genap'
+                                                                                                    , if (
+                                                                                                        bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                        , 'ganjil'
+                                                                                                        , if (
+                                                                                                            bets_togel.tebak_besar_kecil = 'besar'
+                                                                                                            , 'besar'
+                                                                                                            , if (
+                                                                                                                bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                                                , 'kecil'
                                                                                                                 , 'nulled'
                                                                                                             )
                                                                                                         )
                                                                                                     )
                                                                                                 )
+                                                                                                , if (
+                                                                                                    togel_game.id = 14
+                                                                                                    , togel_shio_name.name
+                                                                                                    , 'nulled'
+                                                                                                )
                                                                                             )
                                                                                         )
                                                                                     )
                                                                                 )
                                                                             )
                                                                         )
-                                                                    )
-                                                                )
-                                                                , if (
-                                                                    togel_game.id = 13
-                                                                    , if (
-                                                                        bets_togel.tebak_genap_ganjil = 'genap'
-                                                                        , concat(floor(togel_setting_game.win_x), 'x')
-                                                                        , if (
-                                                                            bets_togel.tebak_genap_ganjil = 'ganjil'
-                                                                            , concat(floor(togel_setting_game.win_x), 'x')
-                                                                            , if (
-                                                                                bets_togel.tebak_besar_kecil = 'besar'
-                                                                                , concat(floor(togel_setting_game.win_x), 'x')
-                                                                                , if (
-                                                                                    bets_togel.tebak_besar_kecil = 'kecil'
-                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
-                                                                                    , 'nulled'
-                                                                                )
-                                                                            )
-                                                                        )
-                                                                    )
-                                                                    , if (
-                                                                        togel_game.id = 14
-                                                                        , concat(floor(togel_setting_game.win_x), 'x')
-                                                                        , 'nulled'
                                                                     )
                                                                 )
                                                             )
@@ -3219,18 +3195,298 @@ class MemberController extends ApiController
                             )
                         )
                     )
-                )
-            ) as 'Win'
-            , if (
-                bets_togel.updated_at is null
-                , 'Running'
+                ) as 'Nomor'
+                , SUM(bets_togel.bet_amount) as 'Bet'
+                , SUM(bets_togel.pay_amount) as 'Bayar'
+                , SUM(bets_togel.win_nominal) as 'winTogel'
+                , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'discKei'
                 , if (
-                    bets_togel.win_lose_status = 1
-                    , 'Win'
-                    , 'Lose'
-                )
-            ) as 'Status'
-        ")
+                    bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                    , concat(floor(togel_setting_game.win_4d_x), 'x')
+                    , if (
+                        bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                        , concat(floor(togel_setting_game.win_3d_x), 'x')
+                        , if (
+                            bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                            , concat(floor(togel_setting_game.win_2d_x), 'x')
+                            , if (
+                                bets_togel.number_6 is null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                                , concat(floor(togel_setting_game.win_2d_tengah_x), 'x')
+                                , if (
+                                    bets_togel.number_6 is null and bets_togel.number_5 is null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
+                                    , concat(floor(togel_setting_game.win_2d_depan_x), 'x')
+                                    , if (
+                                        togel_game.id = 5
+                                        , concat(togel_setting_game.win_x, 'x')
+                                        , if (
+                                            togel_game.id = 6
+                                            , concat(floor(togel_setting_game.win_2_digit), '/', floor(togel_setting_game.win_3_digit), '/', floor(togel_setting_game.win_4_digit), 'x')
+                                            , if (
+                                                togel_game.id = 7
+                                                , concat(floor(togel_setting_game.win_3_digit), '/', floor(togel_setting_game.win_4_digit), 'x')
+                                                , if (
+                                                    togel_game.id = 8
+                                                    , concat(if (
+                                                        bets_togel.tebak_as_kop_kepala_ekor = 'as'
+                                                        , concat(floor(togel_setting_game.win_as), 'x')
+                                                        , if (
+                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kop'
+                                                            , concat(floor(togel_setting_game.win_kop), 'x')
+                                                            , if (
+                                                                bets_togel.tebak_as_kop_kepala_ekor = 'kepala'
+                                                                , concat(floor(togel_setting_game.win_kepala), 'x')
+                                                                , if (
+                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'ekor'
+                                                                    , concat(floor(togel_setting_game.win_ekor), 'x')
+                                                                    , 'nulled'
+                                                                )
+                                                            )
+                                                        )
+                                                    ))
+                                                    , if (
+                                                        togel_game.id = 9
+                                                        , if (
+                                                            bets_togel.tebak_besar_kecil is null
+                                                            , if (
+                                                                bets_togel.tebak_genap_ganjil is null
+                                                                , if (
+                                                                    bets_togel.tebak_tengah_tepi is null
+                                                                    , 'nulled'
+                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                )
+                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                            )
+                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                        )
+                                                        , if (
+                                                            togel_game.id = 10
+                                                            , if (
+                                                                bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                , if (
+                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                    , if (
+                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                        , if (
+                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                            , if (
+                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                , if (
+                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                    , if (
+                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                        , if (
+                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                            , if (
+                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_besar_kecil = 'besar'
+                                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                , if (
+                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'as' and bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                    , if (
+                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_besar_kecil = 'besar'
+                                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                        , if (
+                                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'kop' and bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                            , if (
+                                                                                                                bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_besar_kecil = 'besar'
+                                                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                , if (
+                                                                                                                    bets_togel.tebak_as_kop_kepala_ekor = 'kepala' and bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                    , if (
+                                                                                                                        bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_besar_kecil = 'besar'
+                                                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                        , if (
+                                                                                                                            bets_togel.tebak_as_kop_kepala_ekor = 'ekor' and bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                            , 'nulled'
+                                                                                                                        )
+                                                                                                                    )
+                                                                                                                )
+                                                                                                            )
+                                                                                                        )
+                                                                                                    )
+                                                                                                )
+                                                                                            )
+                                                                                        )
+                                                                                    )
+                                                                                )
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                )
+                                                            )
+                                                            , if (
+                                                                togel_game.id = 11
+                                                                , if (
+                                                                    bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_mono_stereo = 'stereo'
+                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                    , if (
+                                                                        bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_mono_stereo = 'mono'
+                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                        , if (
+                                                                            bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
+                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                            , if (
+                                                                                bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
+                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                , if (
+                                                                                    bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
+                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                    , if (
+                                                                                        bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_mono_stereo = 'stereo'
+                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                        , if (
+                                                                                            bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_mono_stereo = 'mono'
+                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                            , if (
+                                                                                                bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
+                                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                , if (
+                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
+                                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                    , if (
+                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
+                                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                        , if (
+                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_mono_stereo = 'stereo'
+                                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                            , if (
+                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_mono_stereo = 'mono'
+                                                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                , if (
+                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kembang'
+                                                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                    , if (
+                                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kempis'
+                                                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                        , if (
+                                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_kembang_kempis_kembar = 'kembar'
+                                                                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                                                            , 'nulled'
+                                                                                                                        )
+                                                                                                                    )
+                                                                                                                )
+                                                                                                            )
+                                                                                                        )
+                                                                                                    )
+                                                                                                )
+                                                                                            )
+                                                                                        )
+                                                                                    )
+                                                                                )
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                )
+                                                                , if (
+                                                                    togel_game.id = 12
+                                                                    , if (
+                                                                        bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                        , concat(togel_setting_game.win_x, 'x')
+                                                                        , if (
+                                                                            bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                            , concat(togel_setting_game.win_x, 'x')
+                                                                            , if (
+                                                                                bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                , concat(togel_setting_game.win_x, 'x')
+                                                                                , if (
+                                                                                    bets_togel.tebak_depan_tengah_belakang = 'belakang' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                    , concat(togel_setting_game.win_x, 'x')
+                                                                                    , if (
+                                                                                        bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                        , concat(togel_setting_game.win_x, 'x')
+                                                                                        , if (
+                                                                                            bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                            , concat(togel_setting_game.win_x, 'x')
+                                                                                            , if (
+                                                                                                bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                , concat(togel_setting_game.win_x, 'x')
+                                                                                                , if (
+                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'tengah' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                    , concat(togel_setting_game.win_x, 'x')
+                                                                                                    , if (
+                                                                                                        bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                        , concat(togel_setting_game.win_x, 'x')
+                                                                                                        , if (
+                                                                                                            bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'besar' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                            , concat(togel_setting_game.win_x, 'x')
+                                                                                                            , if (
+                                                                                                                bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'genap'
+                                                                                                                , concat(togel_setting_game.win_x, 'x')
+                                                                                                                , if (
+                                                                                                                    bets_togel.tebak_depan_tengah_belakang = 'depan' and bets_togel.tebak_besar_kecil = 'kecil' and bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                                                    , concat(togel_setting_game.win_x, 'x')
+                                                                                                                    , 'nulled'
+                                                                                                                )
+                                                                                                            )
+                                                                                                        )
+                                                                                                    )
+                                                                                                )
+                                                                                            )
+                                                                                        )
+                                                                                    )
+                                                                                )
+                                                                            )
+                                                                        )
+                                                                    )
+                                                                    , if (
+                                                                        togel_game.id = 13
+                                                                        , if (
+                                                                            bets_togel.tebak_genap_ganjil = 'genap'
+                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                            , if (
+                                                                                bets_togel.tebak_genap_ganjil = 'ganjil'
+                                                                                , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                , if (
+                                                                                    bets_togel.tebak_besar_kecil = 'besar'
+                                                                                    , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                    , if (
+                                                                                        bets_togel.tebak_besar_kecil = 'kecil'
+                                                                                        , concat(floor(togel_setting_game.win_x), 'x')
+                                                                                        , 'nulled'
+                                                                                    )
+                                                                                )
+                                                                            )
+                                                                        )
+                                                                        , if (
+                                                                            togel_game.id = 14
+                                                                            , concat(floor(togel_setting_game.win_x), 'x')
+                                                                            , 'nulled'
+                                                                        )
+                                                                    )
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ) as 'Win'
+                , if (
+                    bets_togel.updated_at is null
+                    , 'Running'
+                    , if (
+                        bets_togel.win_lose_status = 1
+                        , 'Win'
+                        , 'Lose'
+                    )
+                ) as 'Status'
+            ")
             ->whereBetween('bets_togel.created_at', [$fromDate, $toDate])
             ->where('bets_togel.created_by', '=', auth('api')->user()->id)
             ->orderBy('bets_togel.id', 'DESC')
@@ -3258,7 +3514,6 @@ class MemberController extends ApiController
                 bets_togel.balance,
                 constant_provider_togel.id as constant_provider_togel_id,
                 bets_togel.created_at
-
                 , members.last_login_ip as 'IP'
                 , members.username as 'Username'
                 , concat(constant_provider_togel.name_initial, '-', bets_togel.period) as 'Pasaran'
@@ -3572,8 +3827,6 @@ class MemberController extends ApiController
                 , bets_togel.pay_amount as 'Bayar'
                 , bets_togel.win_nominal as 'winTogel'
                 , CONCAT(REPLACE(FORMAT(bets_togel.tax_amount,1),',',-1), '%') as 'discKey'
-
-
                 , if (
                     bets_togel.number_6 is not null and bets_togel.number_5 is not null and bets_togel.number_4 is not null and bets_togel.number_3 is not null and bets_togel.number_2 is null and bets_togel.number_1 is null
                     , concat(floor(togel_setting_game.win_4d_x), 'x')

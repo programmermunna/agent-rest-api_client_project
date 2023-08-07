@@ -127,6 +127,9 @@ class BetsTogelController extends ApiController
         if (is_null($game)) {
             return $this->errorResponse('Jenis game tidak ditemukan', 400);
         }
+        if ($pasaran->status == 0) {
+            return $this->errorResponse('Maaf, pasaran ' . $request->provider . ' sedang tutup.', 400);
+        }
 
         # check limit line
         $sisaLimitLines = $this->sisaLimitLine($request);
