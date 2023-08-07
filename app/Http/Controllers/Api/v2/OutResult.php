@@ -90,7 +90,13 @@ class OutResult extends ApiController
             ->orderByDesc('id')
             ->get()
             ->toArray();
-        return $this->paginate($results, 20);
+        $datas = [];
+        foreach ($results as $key => $item) {
+            $item['tutup'] = $item['schedules'][0]['closing_time'] ?? null;
+            $item['jadwal'] = $item['schedules'][0]['open_time'] ?? null;
+            $datas[] = $item;
+        }
+        return $this->paginate($datas, 20);
     }
 
     public function getResultByProvider()
@@ -145,31 +151,31 @@ class OutResult extends ApiController
             $checkPasaran = $paitos->where('id', $request->pasaran)->first();
             $resultNumber = TogelResultNumberModel::leftJoin('constant_provider_togel as a', 'a.id', '=', 'togel_results_number.constant_provider_togel_id')
                 ->selectRaw("
-												togel_results_number.id,
-												concat(number_result_3, number_result_4, number_result_5, number_result_6) as resultNumber,
-												togel_results_number.period,
-												togel_results_number.result_date,
-												if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Monday'
-													, 'Senin'
-													, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Tuesday'
-														, 'Selasa'
-														, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Wednesday'
-															, 'Rabu'
-															, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Thursday'
-																, 'Kamis'
-																, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Friday'
-																	, 'Jum`at'
-																	, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Saturday'
-																		, 'Sabtu'
-																		, 'Minggu'
-																	)
-																)
-															)
-														)
-													)
-												) as day,
-												concat(a.name_initial, '-', togel_results_number.period) as pasaran
-											")
+					togel_results_number.id,
+					concat(number_result_3, number_result_4, number_result_5, number_result_6) as resultNumber,
+					togel_results_number.period,
+					togel_results_number.result_date,
+					if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Monday'
+						, 'Senin'
+						, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Tuesday'
+							, 'Selasa'
+							, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Wednesday'
+								, 'Rabu'
+								, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Thursday'
+									, 'Kamis'
+									, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Friday'
+										, 'Jum`at'
+										, if(DATE_FORMAT(togel_results_number.result_date, '%W') = 'Saturday'
+											, 'Sabtu'
+											, 'Minggu'
+										)
+									)
+								)
+							)
+						)
+					) as day,
+					concat(a.name_initial, '-', togel_results_number.period) as pasaran
+				")
                 ->orderBy('togel_results_number.period', 'desc');
             if ($checkPasaran) {
                 $result = $resultNumber->where('togel_results_number.constant_provider_togel_id', $request->pasaran);
@@ -180,6 +186,8 @@ class OutResult extends ApiController
                     'hari_undi' => $checkPasaran->hari_undi,
                     'libur' => $checkPasaran->libur,
                     'url' => $checkPasaran->web,
+                    'tutup' => $checkPasaran->schedules->first()->closing_time,
+                    'jadwal' => $checkPasaran->schedules->first()->open_time,
                     'periode' => $checkPasaran->periode,
                     'is_active' => $checkPasaran->is_active,
                     'schedules' => $checkPasaran->schedules,
@@ -195,8 +203,8 @@ class OutResult extends ApiController
                     'hari_undi' => $paito->hari_undi,
                     'libur' => $paito->libur,
                     'url' => $paito->web,
-                    'tutup' => $paito->tutup,
-                    'jadwal' => $paito->jadwal,
+                    'tutup' => $paito->schedules->first()->closing_time,
+                    'jadwal' => $paito->schedules->first()->open_time,
                     'periode' => $paito->periode,
                     'is_active' => $paito->is_active,
                     'schedules' => $paito->schedules,

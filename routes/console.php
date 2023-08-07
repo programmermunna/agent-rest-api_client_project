@@ -26,3 +26,6 @@ Artisan::command('migrate:fresh', function () {
 Artisan::command('migrate:refresh', function () {
     $this->comment("Sorry, You are not allowed to do this!\nBy : Cikatech\nTime : " . now());
 })->describe('Override default command.');
+Artisan::command('db:seed', function () {
+    $this->comment("Sorry, You are not allowed to do this!\nBy : Cikatech\nTime : " . now());
+})->describe('Override default command.');

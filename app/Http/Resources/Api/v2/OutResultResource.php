@@ -20,6 +20,8 @@ class OutResultResource extends JsonResource
             'initial' => $this->nama_id,
             'hari_undi' => $this->hari_undi,
             'libur' => $this->libur,
+            'tutup' => $this->schedules->first()->closing_time,
+            'jadwal' => $this->schedules->first()->open_time,
             'url' => $this->web,
             'periode' => $this->periode,
             'is_active' => $this->is_active,
