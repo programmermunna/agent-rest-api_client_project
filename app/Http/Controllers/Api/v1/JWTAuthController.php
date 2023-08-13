@@ -296,22 +296,51 @@ class JWTAuthController extends ApiController
                 return $this->errorResponse($validator->errors()->first(), 400);
             }
 
+            DB::beginTransaction();
             $referal = MembersModel::where('username', $request->referral)->first();
             $rekeningDepoMember = RekeningModel::where('constant_rekening_id', '=', $request->bank_name)->where('is_depo', '=', 1)->first();
             $constantRekening = ConstantRekeningModel::where('id', $request->bank_name)->first();
+            $bank = $constantRekening->name;
 
             // also prevent error in here:
             // Don't let user continue register successfully when there is no Agent's bank set as Deposit.
             if (is_null($rekeningDepoMember) || empty($rekeningDepoMember)) {
-                return $this->errorResponse('Silakan minta CS kami untuk siapkan bank ' . $constantRekening->name . ' untuk deposit. Terima kasih.', 400);
+                return $this->errorResponse('Silakan minta CS kami untuk siapkan bank ' . $bank . ' untuk deposit. Terima kasih.', 400);
             }
 
             // check no rekening
-            $noRekArray = RekeningModel::where('constant_rekening_id', $request->bank_name)->pluck('nomor_rekening')->toArray();
-            $noMemberArray = RekMemberModel::where('constant_rekening_id', $request->bank_name)->pluck('nomor_rekening')->toArray();
+            $noRekArray = RekeningModel::pluck('nomor_rekening')->toArray();
+            $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
             $noRekArrays = array_merge($noRekArray, $noMemberArray);
             if (in_array($request->account_number, $noRekArrays)) {
-                return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
+                # Check Number Rekening E-Money
+                $rekeningAgent = RekeningModel::where('nomor_rekening', $request->account_number)->first();
+                $rekeningMember = RekMemberModel::where('nomor_rekening', $request->account_number)->first();
+
+                # Check E-Money On Rekening Agent
+                if ($rekeningAgent) {
+                    $constantRekening = ConstantRekeningModel::where('id', $rekeningAgent->constant_rekening_id)->first();
+                    if ($constantRekening->is_bank == 1 && in_array($constantRekening->name, ['OVO', 'GOPAY', 'DANA', 'LinkAja'])) {
+                        if ($constantRekening->name == $bank) {
+                            return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
+                        }
+                    }
+                }
+
+                # Check E-Money On Rekening Member
+                elseif ($rekeningMember) {
+                    $constantRekening = ConstantRekeningModel::where('id', $rekeningMember->constant_rekening_id)->first();
+                    if ($constantRekening->is_bank == 1 && in_array($constantRekening->name, ['OVO', 'GOPAY', 'DANA', 'LinkAja'])) {
+                        if ($constantRekening->name == $bank) {
+                            return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
+                        }
+                    }
+                }
+
+                # Return error if number Rekening Duplicate which is not E-money
+                else {
+                    return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
+                }
             }
 
             # Check Referral
@@ -423,9 +452,10 @@ class JWTAuthController extends ApiController
                 'Successfully'
             );
 
+            DB::commit();
             return $this->successResponse(null, 'Member berhasil didaftar.', 201);
-
         } catch (\Throwable $th) {
+            DB::rollback();
             return $this->errorResponse($th->getMessage(), 500);
         }
     }
