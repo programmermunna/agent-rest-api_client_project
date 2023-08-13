@@ -314,25 +314,18 @@ class JWTAuthController extends ApiController
             $noRekArrays = array_merge($noRekArray, $noMemberArray);
             if (in_array($request->account_number, $noRekArrays)) {
                 # Check Number Rekening E-Money
-                $rekeningAgent = RekeningModel::where('nomor_rekening', $request->account_number)->first();
-                $rekeningMember = RekMemberModel::where('nomor_rekening', $request->account_number)->first();
+                $rekeningAgents = RekeningModel::select('constant_rekening_id')->where('nomor_rekening', $request->account_number)->get()->toArray();
+                $rekeningMembers = RekMemberModel::select('constant_rekening_id')->where('nomor_rekening', $request->account_number)->get()->toArray();
+                $rekeningAgentsMembers = array_merge($rekeningAgents, $rekeningMembers);
 
-                # Check E-Money On Rekening Agent
-                if ($rekeningAgent) {
-                    $constantRekening = ConstantRekeningModel::where('id', $rekeningAgent->constant_rekening_id)->first();
-                    if ($constantRekening->is_bank == 1 && in_array($constantRekening->name, ['OVO', 'GOPAY', 'DANA', 'LinkAja'])) {
-                        if ($constantRekening->name == $bank) {
-                            return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
-                        }
-                    }
-                }
-
-                # Check E-Money On Rekening Member
-                elseif ($rekeningMember) {
-                    $constantRekening = ConstantRekeningModel::where('id', $rekeningMember->constant_rekening_id)->first();
-                    if ($constantRekening->is_bank == 1 && in_array($constantRekening->name, ['OVO', 'GOPAY', 'DANA', 'LinkAja'])) {
-                        if ($constantRekening->name == $bank) {
-                            return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
+                # Check E-Money
+                if ($rekeningAgentsMembers != []) {
+                    foreach ($rekeningAgentsMembers as $key => $rekeningAgentMember) {
+                        $constantRekening = ConstantRekeningModel::where('id', $rekeningAgentMember['constant_rekening_id'])->first();
+                        if ($constantRekening->is_bank == 1 && in_array($constantRekening->name, ['OVO', 'GOPAY', 'DANA', 'LinkAja'])) {
+                            if ($constantRekening->name == $bank) {
+                                return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
+                            }
                         }
                     }
                 }
