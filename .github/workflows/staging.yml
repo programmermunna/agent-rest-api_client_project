@@ -211,7 +211,30 @@ jobs:
             pwd
             whoami
             ls -la
-            ./memberapiberuang988.sh              
+            ./memberapiberuang988.sh   
+  deploy-lukaslot:
+    name: Deploy Member API lukaslot
+    runs-on: ubuntu-latest
+    needs: deploy-beruang988
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: staging
+
+      - name: Deploy Member API lukaslot
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapilukaslot.sh
+            
             
   slackNotif:
     needs: deploy-cikatech 
