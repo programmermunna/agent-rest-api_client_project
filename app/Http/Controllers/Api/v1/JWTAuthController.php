@@ -326,6 +326,7 @@ class JWTAuthController extends ApiController
                             return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
                         }
                     } else {
+
                         if (!in_array($bank, ['OVO', 'GOPAY', 'DANA', 'LinkAja'])) {
                             return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
                         }
