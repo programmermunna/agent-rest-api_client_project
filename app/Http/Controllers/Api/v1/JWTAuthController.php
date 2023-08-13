@@ -313,12 +313,11 @@ class JWTAuthController extends ApiController
             // $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
             // $noRekArrays = array_merge($noRekArray, $noMemberArray);
             // if (in_array($request->account_number, $noRekArrays)) {
-            # Check Number Rekening E-Money
             $rekeningAgents = RekeningModel::select('constant_rekening_id')->where('nomor_rekening', $request->account_number)->get()->toArray();
             $rekeningMembers = RekMemberModel::select('constant_rekening_id')->where('nomor_rekening', $request->account_number)->get()->toArray();
             $rekeningAgentsMembers = array_merge($rekeningAgents, $rekeningMembers);
 
-            # Check E-Money
+            # Check number Rekening
             if ($rekeningAgentsMembers != []) {
                 foreach ($rekeningAgentsMembers as $key => $rekeningAgentMember) {
                     $constantRekening = ConstantRekeningModel::where('id', $rekeningAgentMember['constant_rekening_id'])->first();
@@ -330,11 +329,6 @@ class JWTAuthController extends ApiController
                         return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
                     }
                 }
-            }
-
-            # Return error if number Rekening Duplicate which is not E-money
-            else {
-                return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
             }
             // }
 
