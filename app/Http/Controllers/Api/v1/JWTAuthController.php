@@ -307,8 +307,8 @@ class JWTAuthController extends ApiController
             }
 
             // check no rekening
-            $noRekArray = RekeningModel::pluck('nomor_rekening')->toArray();
-            $noMemberArray = RekMemberModel::pluck('nomor_rekening')->toArray();
+            $noRekArray = RekeningModel::where('constant_rekening_id', $request->bank_name)->pluck('nomor_rekening')->toArray();
+            $noMemberArray = RekMemberModel::where('constant_rekening_id', $request->bank_name)->pluck('nomor_rekening')->toArray();
             $noRekArrays = array_merge($noRekArray, $noMemberArray);
             if (in_array($request->account_number, $noRekArrays)) {
                 return $this->errorResponse('Nomor rekening sudah ada sebelumnya.', 400);
