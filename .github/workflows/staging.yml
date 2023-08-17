@@ -257,7 +257,8 @@ jobs:
             pwd
             whoami
             ls -la
-            ./memberapiimbawin88.sh            
+            ./memberapiimbawin88.sh
+        
             
             
   slackNotif:
