@@ -203,4 +203,27 @@ jobs:
             pwd
             whoami
             ls -la
-            ./memberapi.sh              
+            ./memberapi.sh   
+
+
+  deploy-imbawin88:
+    name: Deploy Member API imbawin88
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+
+      - name: Deploy Member API imbawin88
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.imbawin88 }}
+          username: ${{ secrets.HOST_IP_UBUNTU }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapi.sh             
