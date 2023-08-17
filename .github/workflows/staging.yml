@@ -234,9 +234,9 @@ jobs:
             whoami
             ls -la
             ./memberapilukaslot.sh
+  
 
-
- deploy-imbawin88:
+  deploy-imbawin88:
     name: Deploy Member API imbawin88
     runs-on: ubuntu-latest
     needs: deploy-lukaslot
@@ -258,8 +258,7 @@ jobs:
             whoami
             ls -la
             ./memberapiimbawin88.sh
-        
-            
+              
             
   slackNotif:
     needs: deploy-cikatech 
