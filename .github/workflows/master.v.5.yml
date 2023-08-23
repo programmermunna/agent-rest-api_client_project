@@ -249,4 +249,25 @@ jobs:
             whoami
             ls -la
             ./memberapi.sh 
-            
+
+  deploy-win88jp:
+    name: Deploy Member API win88jp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: master.v.5
+
+      - name: Deploy Member API win88jp
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.win88jp }}
+          username: ${{ secrets.HOST_IP_UBUNTU }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapi.sh             
