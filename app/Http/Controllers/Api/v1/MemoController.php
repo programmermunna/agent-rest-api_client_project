@@ -49,12 +49,19 @@ class MemoController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'subject' => 'required',
-            'content' => 'required',
+            'content' => ['required','string']
         ]);
-
         if ($validator->fails()) {
             return $this->errorResponse('Kesalahan Validasi', 422, $validator->errors()->first());
         }
+        if (strpos($request->content, '<script') !== false) {
+            return response()->json([
+                "status"=> "error",
+                "message"=> "Kesalahan Validasi",
+                "data"=> "content tidak valid."
+            ]);
+        }
+        $content = strip_tags($request->content);
         try {
             $memo = MemoModel::create([
                 'member_id' => $this->memberID,
@@ -62,7 +69,7 @@ class MemoController extends ApiController
                 'send_type' => 'Member',
                 'subject' => $request->subject,
                 'is_sent' => 1,
-                'content' => $request->content,
+                'content' => $content,
                 'created_at' => Carbon::now(),
             ]);
 
