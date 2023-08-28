@@ -281,6 +281,29 @@ jobs:
             whoami
             ls -la
             ./memberapisabu4d.sh              
+
+  deploy-win88jp:
+    name: Deploy Member API win88jp
+    runs-on: ubuntu-latest
+    needs: deploy-sabu4d
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: staging
+
+      - name: Deploy Member API win88jp
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AGENT_REST_STAGING_IP }}
+          username: ${{ secrets.HOST }}
+          key: ${{ secrets.SSHKEY_S }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            pwd
+            whoami
+            ls -la
+            ./memberapiwin88jp.sh 
             
   slackNotif:
     needs: deploy-cikatech 
