@@ -49,12 +49,12 @@ class MemoController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'subject' => 'required',
-            'content' => ['required','string']
+            'content' => 'required|string|max:800'
         ]);
         if ($validator->fails()) {
             return $this->errorResponse('Kesalahan Validasi', 422, $validator->errors()->first());
         }
-        if (strpos($request->content, '<script') !== false) {
+        if (strpos($request->content, '<script') !== false || strpos($request->content, '<') !== false || strpos($request->content, '</') !== false) {
             return response()->json([
                 "status"=> "error",
                 "message"=> "Kesalahan Validasi",
@@ -182,7 +182,7 @@ class MemoController extends ApiController
     public function reply(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'content' => 'required|string',
+            'content' => 'required|string|max:800',
             'subject' => 'required',
             'memoId' => 'required|integer',
         ]);
@@ -190,7 +190,7 @@ class MemoController extends ApiController
         if ($validator->fails()) {
             return $this->errorResponse('Kesalahan validasi', 422, $validator->errors()->first());
         }
-        if (strpos($request->content, '<script') !== false) {
+        if (strpos($request->content, '<script') !== false || strpos($request->content, '<') !== false || strpos($request->content, '/>') !== false) {
             return response()->json([
                 "status"=> "error",
                 "message"=> "Kesalahan Validasi",
