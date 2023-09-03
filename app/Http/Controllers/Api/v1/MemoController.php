@@ -59,7 +59,7 @@ class MemoController extends ApiController
                 "status"=> "error",
                 "message"=> "Kesalahan Validasi",
                 "data"=> "content tidak valid."
-            ]);
+            ],422);
         }
         $content = strip_tags($request->content);
         try {
@@ -195,7 +195,7 @@ class MemoController extends ApiController
                 "status"=> "error",
                 "message"=> "Kesalahan Validasi",
                 "data"=> "content tidak valid."
-            ]);
+            ],422);
         }
         $content = strip_tags($request->content);
         try {
