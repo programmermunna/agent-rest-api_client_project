@@ -278,7 +278,7 @@ class JWTAuthController extends ApiController
                 $request->all(),
                 [
                     'username' => 'required|unique:members|string|between:6,16|regex:/^[a-zA-Z0-9\s\-\+\(\)]+$/u|alpha_dash',
-                    'email' => 'required|email|max:100|unique:members',
+                    // 'email' => 'required|email|max:100|unique:members',
                     'password' => 'required|min:6|regex:/^\S*$/u',
                     'bank_name' => 'required',
                     'account_number' => 'required|numeric',
