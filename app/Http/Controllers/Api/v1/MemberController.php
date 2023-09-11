@@ -798,6 +798,26 @@ class MemberController extends ApiController
                     'status' => 'success',
                     'referralJiliSlot' => $data,
                 ];
+            }elseif ($request->type == 'referralAdventPlay') { # History Referral Advent Play
+                $referralBets = $referralBets->where('constant_provider_id', 25)
+                    ->orderByDesc('created_at')
+                    ->get();
+
+                $referral = [];
+                foreach ($referralBets as $key => $item) {
+                    $referral[] = [
+                        'created_at' => $item->created_at,
+                        'deskripsi' => $item->deskripsi,
+                        'bonus' => $item->hadiah,
+                        'balance' => $item->credit,
+                    ];
+                }
+
+                $data = $this->paginate($referral, $this->perPage);
+                return [
+                    'status' => 'success',
+                    'referralAdventPlay' => $data,
+                ];
             } elseif ($request->type == 'transaksiPragmaticSlot') { # History Transaksi Pragmatic Slot
                 $pragmaticSlot = $query->select(
                     'bets.bet',
@@ -1322,6 +1342,29 @@ class MemberController extends ApiController
                 return [
                     'status' => 'success',
                     'transaksiJiliSlot' => $data,
+                ];
+            } elseif ($request->type == 'transaksiAdventPlay') { # History Transaksi Advent Play
+                $jiliSlot = $query->select(
+                    'bets.bet',
+                    'bets.game_info',
+                    'bets.bet_id',
+                    'bets.game_id',
+                    'bets.deskripsi',
+                    'bets.credit',
+                    'bets.type',
+                    'bets.win',
+                    'bets.created_at',
+                    'constant_provider.constant_provider_name'
+                )
+                    ->where('bets.created_by', auth('api')->user()->id)
+                    ->where('bets.constant_provider_id', 25)
+                    ->orderBy('bets.created_at', 'desc')->get();
+
+                $data = $this->paginate($jiliSlot->toArray(), $this->perPage);
+
+                return [
+                    'status' => 'success',
+                    'transaksiAdventPlay' => $data,
                 ];
             } elseif ($request->type == 'transaksiBonusPromo') { # History Transaksi Bonus Promo
                 $bonusHistory = [];
