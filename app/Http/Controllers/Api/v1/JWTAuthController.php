@@ -9,7 +9,6 @@ use App\Models\BetsTogel;
 use App\Models\BonusHistoryModel;
 use App\Models\ConstantRekeningModel;
 use App\Models\FreeBetModel;
-use App\Models\MemberIpLog;
 use App\Models\MembersModel;
 use App\Models\RekeningModel;
 use App\Models\RekMemberModel;
@@ -100,21 +99,12 @@ class JWTAuthController extends ApiController
             } catch (JWTException $e) {
                 return $this->errorResponse('Tidak dapat membuat token', 500);
             }
-            $authUser = auth('api')->user();
-            $authUser->update([
+            auth('api')->user()->update([
                 'remember_token' => $token,
                 'active' => 1,
                 'last_login_at' => now(),
                 'last_login_ip' => $ipClient[0] ?? $request->ip(),
             ]);
-
-            MemberIpLog::updateOrCreate([
-                'member_id' => $authUser->id,
-                'ip_address' => $ipClient[0] ?? $request->ip(),
-            ], [
-                'last_used' => now()
-            ]);
-
 
             $wap = $wap == 1 ? ' - WAP' : null;
             $user = auth('api')->user();
@@ -134,24 +124,19 @@ class JWTAuthController extends ApiController
             return $this->errorResponse('Username tidak ditemukan', 401);
         }
 
-        auth('api')
-            ->user()
-            ->authTokens
-            ->each(function ($item) {
-                try {
-                    auth('api')->setToken($item->token)->invalidate();
-                    $item->delete();
-                } catch (\Exception $exception) {
-                    //handle exception
-                }
+        auth('api')->user()->authTokens->each(function ($item) {
+            try {
+                auth('api')->setToken($item->token)->invalidate();
                 $item->delete();
-            });
+            } catch (\Exception $exception) {
+                //handle exception
+            }
+            $item->delete();
+        });
 
         auth('api')->user()->authTokens()->create([
             'token' => $token,
         ]);
-
-
         return $this->createNewToken($token, $user);
     }
 
@@ -442,12 +427,6 @@ class JWTAuthController extends ApiController
             $user->update([
                 // 'last_login_ip' => $request->ip ?? request()->getClientIp(),
                 'last_login_ip' => $ipClient[0] ?? $request->ip(),
-            ]);
-
-            MemberIpLog::create([
-                'member_id' => $user->id,
-                'ip_address' => $ipClient[0] ?? $request->ip(),
-                'last_used' => now()
             ]);
 
             # Create Activity Log
