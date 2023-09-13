@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Events\WithdrawalCreateBalanceEvent;
-use App\Facades\MemberBalanceService;
 use App\Http\Controllers\ApiController;
 use App\Models\BonusSettingModel;
 use App\Models\DepositModel;
@@ -143,11 +142,9 @@ class WithdrawController extends ApiController
 
                             # update balance member
                             $member = MembersModel::find($memberId);
-                            MemberBalanceService::decrement($member, $jumlah);
-                            $member = $member->refresh();
-//                            MembersModel::where('id', $memberId)->update([
-//                                'credit' => $member->credit - $jumlah,
-//                            ]);
+                            MembersModel::where('id', $memberId)->update([
+                                'credit' => $member->credit - $jumlah,
+                            ]);
 
                             // WEB SOCKET START
                             WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
@@ -206,11 +203,9 @@ class WithdrawController extends ApiController
 
                     # update balance member
                     $member = MembersModel::find($memberId);
-                    MemberBalanceService::decrement($member, $jumlah);
-//                    MembersModel::where('id', $memberId)->update([
-//                        'credit' => $member->credit - $jumlah,
-//                    ]);
-                    $member = $member->refresh();
+                    MembersModel::where('id', $memberId)->update([
+                        'credit' => $member->credit - $jumlah,
+                    ]);
 
                     // WEB SOCKET START
                     WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
@@ -257,11 +252,9 @@ class WithdrawController extends ApiController
 
                 # update balance member
                 $member = MembersModel::find($memberId);
-                MemberBalanceService::decrement($member, $jumlah);
-//                MembersModel::where('id', $memberId)->update([
-//                    'credit' => $member->credit - $jumlah,
-//                ]);
-                $member = $member->refresh();
+                MembersModel::where('id', $memberId)->update([
+                    'credit' => $member->credit - $jumlah,
+                ]);
 
                 // WEB SOCKET START
                 WithdrawalCreateBalanceEvent::dispatch(MembersModel::select('id', 'credit', 'username')->find($memberId)->toArray());
