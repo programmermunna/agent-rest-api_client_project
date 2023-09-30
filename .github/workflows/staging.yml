@@ -74,33 +74,11 @@ jobs:
             ls -la
             ./memberapicika303.sh   
             
-  deploy-bocah77:
-    name: Deploy Member API bocah77
-    runs-on: ubuntu-latest
-    needs: deploy-cika303
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          ref: staging
-
-      - name: Deploy Member API bocah77
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.AGENT_REST_STAGING_IP }}
-          username: ${{ secrets.HOST }}
-          key: ${{ secrets.SSHKEY_S }}
-          port: ${{ secrets.SSH_PORT }}
-          script: |
-            pwd
-            whoami
-            ls -la
-            ./memberapibocah77.sh 
             
   deploy-cikaslot:
     name: Deploy Member API cikaslot
     runs-on: ubuntu-latest
-    needs: deploy-bocah77
+    needs: deploy-cika303
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
