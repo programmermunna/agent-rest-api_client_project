@@ -12,20 +12,21 @@ class OutResultResource extends JsonResource
 	 * @param  \Illuminate\Http\Request  $request
 	 * @return array
 	 */
-	public function toArray($request)
-	{
-		return [
-			'id'      		=> $this->id,
-			'pasaran' 		=> $this->pasaran,
-			'initial' 		=> $this->nama_id,
-			'hari_undi'     => $this->hari_undi,
-			'libur'   		=> $this->libur,
-			'url'     		=> $this->web,
-			'tutup'   		=> $this->tutup,
-			'jadwal'  		=> $this->jadwal,
-			'periode' 		=> $this->periode,
-			'is_active'     => $this->is_active,
-			'result'  => $this->resultNumber()->first(),
-		];
-	}
+    public function toArray($request)
+    {
+        return [
+            'id' => $this->id,
+            'pasaran' => $this->pasaran,
+            'initial' => $this->nama_id,
+            'hari_undi' => $this->hari_undi,
+            'libur' => $this->libur,
+            'tutup' => $this->schedules->first() ? $this->schedules->first()->closing_time : null,
+            'jadwal' => $this->schedules->first() ? $this->schedules->first()->open_time : null,
+            'url' => $this->web,
+            'periode' => $this->periode,
+            'is_active' => $this->is_active,
+            'result' => $this->resultNumber()->first(),
+            'schedules' => $this->schedules,
+        ];
+    }
 }
