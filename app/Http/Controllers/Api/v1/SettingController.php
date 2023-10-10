@@ -232,10 +232,10 @@ class SettingController extends ApiController
                     'property' => "og:locale",
                     'content' => $ogLocale,
                 ],
-                [
-                    'property' => "og:locale:alternate",
-                    'content' => $ogLocaleAlternate,
-                ],
+//                [
+//                    'property' => "og:locale:alternate",
+//                    'content' => $ogLocaleAlternate,
+//                ],
                 [
                     'itemprop' => "name",
                     'content' => $itempropName,
