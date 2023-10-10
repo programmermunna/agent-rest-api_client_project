@@ -366,10 +366,6 @@ class SettingController extends ApiController
                     'content' => '',
                 ],
                 [
-                    'property' => "og:locale:alternate",
-                    'content' => '',
-                ],
-                [
                     'itemprop' => "name",
                     'content' => '',
                 ],
