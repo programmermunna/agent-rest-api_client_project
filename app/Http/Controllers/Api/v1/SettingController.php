@@ -58,6 +58,17 @@ class SettingController extends ApiController
             $itempropName = "";
             $itempropDescription = "";
             $itempropImage = "";
+            $ogTitle = "";
+            $ogDescription = "";
+            $ogSiteName = "";
+            $revisitAfter = "";
+            $rating = "";
+            $twitterTitle = "";
+            $twitterDomain = "";
+            $twitterCreator = "";
+            $twitterDescription = "";
+            $linkAmphtml = "";
+
             if ($metaTag->value) {
                 $dom = new \DOMdocument ();
                 $metaTagString = str_replace('&', '*HTML_ENTITY*', $metaTag->value);
@@ -121,12 +132,45 @@ class SettingController extends ApiController
                         if ($meta->getattribute('itemprop') == 'image' && $meta->getattribute('content')) {
                             $itempropImage = $valueContent;
                         }
+                        if ($meta->getattribute('property') == 'og:title' && $meta->getattribute('content')) {
+                            $ogTitle = $valueContent;
+                        }
+                        if ($meta->getattribute('property') == 'og:description' && $meta->getattribute('content')) {
+                            $ogDescription = $valueContent;
+                        }
+                        if ($meta->getattribute('property') == 'og:site_name' && $meta->getattribute('content')) {
+                            $ogSiteName = $valueContent;
+                        }
+                        if ($meta->getattribute('name') == 'revisit-after' && $meta->getattribute('content')) {
+                            $revisitAfter = $valueContent;
+                        }
+                        if ($meta->getattribute('name') == 'rating' && $meta->getattribute('content')) {
+                            $rating = $valueContent;
+                        }
+                        if ($meta->getattribute('name') == 'twitter:creator' && $meta->getattribute('content')) {
+                            $twitterCreator = $valueContent;
+                        }
+                        if ($meta->getattribute('name') == 'twitter:domain' && $meta->getattribute('content')) {
+                            $twitterDomain = $valueContent;
+                        }
+                        if ($meta->getattribute('name') == 'twitter:title' && $meta->getattribute('content')) {
+                            $twitterTitle = $valueContent;
+                        }
+                        if ($meta->getattribute('name') == 'twitter:description' && $meta->getattribute('content')) {
+                            $twitterDescription = $valueContent;
+                        }
+                        if ($meta->getattribute('name') == 'twitter:description' && $meta->getattribute('content')) {
+                            $twitterDescription = $valueContent;
+                        }
                     }
                 }
                 if ($dom->getelementsbytagname('link')) {
                     foreach ($dom->getelementsbytagname('link') as $link) {
                         if ($link->getattribute('rel') == 'canonical' && $link->getattribute('href')) {
                             $linkcanonical = $link->getattribute('href');
+                        }
+                        if ($link->getattribute('rel') == 'amphtml' && $link->getattribute('href')) {
+                            $linkAmphtml = $link->getattribute('href');
                         }
                     }
                 }
@@ -188,10 +232,10 @@ class SettingController extends ApiController
                     'property' => "og:locale",
                     'content' => $ogLocale,
                 ],
-                [
-                    'property' => "og:locale:alternate",
-                    'content' => $ogLocaleAlternate,
-                ],
+//                [
+//                    'property' => "og:locale:alternate",
+//                    'content' => $ogLocaleAlternate,
+//                ],
                 [
                     'itemprop' => "name",
                     'content' => $itempropName,
@@ -204,6 +248,42 @@ class SettingController extends ApiController
                     'itemprop' => "image",
                     'content' => $itempropImage,
                 ],
+                [
+                    'property' => 'og:title',
+                    'content' => $ogTitle
+                ],
+                [
+                    'property' => 'og:site_name',
+                    'content' => $ogSiteName
+                ],
+                [
+                    'property' => 'og:description',
+                    'content' => $ogDescription
+                ],
+                [
+                    'name' => 'revisit-after',
+                    'content' => $revisitAfter
+                ],
+                [
+                    'name' => 'twitter:creator',
+                    'content' => $twitterCreator
+                ],
+                [
+                    'name' => 'twitter:domain',
+                    'content' => $twitterDomain
+                ],
+                [
+                    'name' => 'twitter:title',
+                    'content' => $twitterTitle
+                ],
+                [
+                    'name' => 'twitter:description',
+                    'content' => $twitterDescription
+                ],
+                [
+                    'name' => 'rating',
+                    'content' => $rating
+                ],
             ];
             $meta = array_merge_recursive($dataMeta, $googleSiteVerificationArr);
             if ($title && $metaTag) {
@@ -215,6 +295,16 @@ class SettingController extends ApiController
                             'rel' => 'canonical',
                             'href' => $linkcanonical,
                         ],
+                        'links' => [
+                            [
+                                'rel' => 'canonical',
+                                'href' => $linkcanonical,
+                            ],
+                            [
+                                'rel' => 'amphtml',
+                                'href' => $linkAmphtml
+                            ]
+                        ]
                     ],
                 ], 200);
             }
@@ -276,10 +366,6 @@ class SettingController extends ApiController
                     'content' => '',
                 ],
                 [
-                    'property' => "og:locale:alternate",
-                    'content' => '',
-                ],
-                [
                     'itemprop' => "name",
                     'content' => '',
                 ],
@@ -301,6 +387,7 @@ class SettingController extends ApiController
                         'rel' => 'canonical',
                         'href' => '',
                     ],
+                    'links' => []
                 ],
             ], 400);
         }
