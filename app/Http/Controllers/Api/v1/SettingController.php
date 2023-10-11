@@ -292,14 +292,8 @@ class SettingController extends ApiController
                     'data' => [
                         'meta' => $meta,
                         'link' => [
-                            [
-                                'rel' => 'canonical',
-                                'href' => $linkcanonical,
-                            ],
-                            [
-                                'rel' => 'amphtml',
-                                'href' => $linkAmphtml
-                            ]
+                            'rel' => 'canonical',
+                            'href' => $linkcanonical,
                         ],
                         'links' => [
                             [
